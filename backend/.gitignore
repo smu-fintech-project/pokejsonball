@@ -3,6 +3,11 @@
 .env.local
 .env.*.local
 
+# Database
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
 # Logs
 logs
 *.log
@@ -11,13 +16,5 @@ npm-debug.log*
 # Dependencies
 node_modules/
 
-# Production build
-dist/
-dist-ssr/
-
 # OS files
 .DS_Store
-
-# Editor directories
-.vscode/
-.idea/
