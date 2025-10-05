@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
+import cardRoutes from "./routes/cards.js";
 
 dotenv.config();
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/cards", cardRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running 🚀" });

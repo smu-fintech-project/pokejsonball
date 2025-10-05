@@ -1,30 +1,30 @@
 <template>
   <section class="space-y-10">
     <!-- hero -->
-    <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+    <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
       <div class="flex-1">
-        <h1 class="text-3xl md:text-4xl font-extrabold leading-tight">Singapore’s community marketplace for Pokémon & One Piece cards.</h1>
-        <p class="mt-4 text-gray-600 max-w-xl">Buy, sell and trade with trusted collectors. Live prices, verified listings and a friendly community to help you grow your collection.</p>
+        <h1 class="text-3xl md:text-4xl font-extrabold leading-tight">Singapore’s community marketplace for Pokémon cards.</h1>
+        <p class="mt-4 text-gray-600 dark:text-slate-300 max-w-xl">Buy, sell and trade with trusted collectors. Live prices, verified listings and a friendly community to help you grow your collection.</p>
 
         <div class="mt-6 flex items-center gap-3">
           <router-link to="/profile" class="px-5 py-3 bg-indigo-600 text-white rounded-lg font-semibold">Start browsing</router-link>
-          <router-link to="/login" class="px-4 py-3 border rounded-lg">Login / Signup</router-link>
+          <router-link to="/login" class="px-4 py-3 border rounded-lg dark:border-slate-700">Login / Signup</router-link>
         </div>
 
         <div class="mt-6 text-xs text-gray-400">Made for collectors in Singapore • P2P trades supported</div>
       </div>
 
       <div class="w-full md:w-96 grid grid-cols-2 gap-3">
-        <div class="rounded-xl bg-white p-3 shadow">
+        <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
           <img src="https://images.pokemontcg.io/base1/4_hires.png" alt="card" class="w-full h-36 object-contain" />
         </div>
-        <div class="rounded-xl bg-white p-3 shadow">
+        <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
           <img src="https://images.pokemontcg.io/base1/5_hires.png" alt="card" class="w-full h-36 object-contain" />
         </div>
-        <div class="rounded-xl bg-white p-3 shadow">
+        <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
           <img src="https://images.pokemontcg.io/base1/6_hires.png" alt="card" class="w-full h-36 object-contain" />
         </div>
-        <div class="rounded-xl bg-white p-3 shadow">
+        <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
           <img src="https://images.pokemontcg.io/base1/7_hires.png" alt="card" class="w-full h-36 object-contain" />
         </div>
       </div>
@@ -33,8 +33,8 @@
     <!-- featured -->
     <div>
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">Featured listings</h2>
-        <button class="text-sm px-3 py-1 border rounded">View all</button>
+        <h2 class="text-xl font-semibold">Featured holographic cards</h2>
+        <router-link to="/" class="text-sm px-3 py-1 border rounded dark:border-slate-700">View all</router-link>
       </div>
 
       <CardGrid>
@@ -43,13 +43,13 @@
     </div>
 
     <!-- quick filters -->
-    <div class="bg-white rounded-2xl p-4 shadow-sm">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm">
       <h3 class="font-semibold mb-3">Quick filters</h3>
       <div class="flex gap-2 flex-wrap">
-        <button class="px-3 py-1 border rounded text-sm">Pikachu</button>
-        <button class="px-3 py-1 border rounded text-sm">Rare</button>
-        <button class="px-3 py-1 border rounded text-sm">S$0 - S$50</button>
-        <button class="px-3 py-1 border rounded text-sm">One Piece</button>
+        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">Pikachu</button>
+        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">Rare</button>
+        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">S$0 - S$50</button>
+        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">One Piece</button>
       </div>
     </div>
   </section>
