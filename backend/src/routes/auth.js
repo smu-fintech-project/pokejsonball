@@ -12,7 +12,7 @@ router.post("/signup", async (req, res) => {
   const hashed = await bcrypt.hash(password, 10);
   users.push({ email, password: hashed });
 
-  res.json({ message: "User registered ✅" });
+  res.json({ message: "User registered " });
 });
 
 router.post("/login", async (req, res) => {
@@ -20,7 +20,7 @@ router.post("/login", async (req, res) => {
   const user = users.find((u) => u.email === email);
 
   if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(400).json({ error: "Invalid credentials ❌" });
+    return res.status(400).json({ error: "Invalid credentials " });
   }
 
   const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });

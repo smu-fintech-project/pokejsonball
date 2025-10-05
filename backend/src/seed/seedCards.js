@@ -4,7 +4,7 @@ import { getDb } from '../db.js';
 dotenv.config();
 
 function generateSeedCards() {
-  // ✅ ONLY Real PSA certification numbers for Eeveelution cards (19 total)
+  //  ONLY Real PSA certification numbers for Eeveelution cards (19 total)
   const realCerts = [
     '116230496',
     '110761155',
@@ -56,10 +56,10 @@ function seed() {
   try {
     const db = getDb();
     
-    console.log('\n🗑️  Clearing existing data...');
+    console.log('\n  Clearing existing data...');
     db.prepare('DELETE FROM cards').run();
     db.prepare('DELETE FROM api_cache').run();
-    console.log('✅ Database cleared\n');
+    console.log(' Database cleared\n');
     
     const cards = generateSeedCards();
     
@@ -86,17 +86,17 @@ function seed() {
     });
     
     insertMany(cards);
-    console.log(`✅ Seeded ${cards.length} Eeveelution cards`);
+    console.log(` Seeded ${cards.length} Eeveelution cards`);
     
     // Show detailed stats
     const count = db.prepare('SELECT COUNT(*) as count FROM cards').get();
     const realCount = db.prepare("SELECT COUNT(*) as count FROM cards WHERE cert_number NOT LIKE 'EEV-%'").get();
-    console.log(`📊 Total cards in database: ${count.count}`);
-    console.log(`🎴 Real PSA certified cards: ${realCount.count}`);
-    console.log(`📝 Placeholder cards: ${count.count - realCount.count}\n`);
+    console.log(` Total cards in database: ${count.count}`);
+    console.log(` Real PSA certified cards: ${realCount.count}`);
+    console.log(` Placeholder cards: ${count.count - realCount.count}\n`);
     
   } catch (e) {
-    console.error('❌ Seed failed:', e.message);
+    console.error(' Seed failed:', e.message);
     process.exitCode = 1;
   }
 }

@@ -13,7 +13,7 @@ export function getDb() {
     const dbPath = process.env.DB_PATH || join(__dirname, '../data/cards.db');
     const dbDir = dirname(dbPath);
     
-    console.log('\n💾 Database Initialization:');
+    console.log('\n Database Initialization:');
     console.log(`Path: ${dbPath}`);
     
     // Ensure data directory exists
@@ -26,9 +26,9 @@ export function getDb() {
       db = new Database(dbPath);
       db.pragma('journal_mode = WAL');
       db.pragma('foreign_keys = ON');
-      console.log('✅ Database connected successfully');
+      console.log(' Database connected successfully');
     } catch (error) {
-      console.error('❌ Database connection failed:', error.message);
+      console.error(' Database connection failed:', error.message);
       throw error;
     }
     
@@ -64,21 +64,21 @@ export function getCache(key, maxAgeSeconds = 300) {
   const row = db.prepare('SELECT payload, updated_at FROM api_cache WHERE key = ?').get(key);
   
   if (!row) {
-    console.log(`🔍 Cache miss: ${key}`);
+    console.log(` Cache miss: ${key}`);
     return null;
   }
   
   const age = (Date.now() - new Date(row.updated_at).getTime()) / 1000;
   if (age > maxAgeSeconds) {
-    console.log(`⏰ Cache expired: ${key} (age: ${age.toFixed(0)}s, max: ${maxAgeSeconds}s)`);
+    console.log(` Cache expired: ${key} (age: ${age.toFixed(0)}s, max: ${maxAgeSeconds}s)`);
     return null;
   }
   
   try { 
-    console.log(`✅ Cache hit: ${key} (age: ${age.toFixed(0)}s)`);
+    console.log(` Cache hit: ${key} (age: ${age.toFixed(0)}s)`);
     return JSON.parse(row.payload); 
   } catch (error) {
-    console.error(`❌ Cache parse error for ${key}:`, error.message);
+    console.error(` Cache parse error for ${key}:`, error.message);
     return null; 
   }
 }
@@ -93,8 +93,8 @@ export function setCache(key, payload) {
       VALUES (?, ?, CURRENT_TIMESTAMP)
       ON CONFLICT(key) DO UPDATE SET payload=excluded.payload, updated_at=CURRENT_TIMESTAMP
     `).run(key, json);
-    console.log(`💾 Cache stored: ${key}`);
+    console.log(` Cache stored: ${key}`);
   } catch (error) {
-    console.error(`❌ Cache store error for ${key}:`, error.message);
+    console.error(` Cache store error for ${key}:`, error.message);
   }
 }

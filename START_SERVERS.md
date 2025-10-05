@@ -1,6 +1,6 @@
-# 🚀 How to Start Your Servers
+#  How to Start Your Servers
 
-## ⚠️ IMPORTANT: You Must `cd` Into Each Directory First!
+##  IMPORTANT: You Must `cd` Into Each Directory First!
 
 Your project structure is:
 ```
@@ -18,7 +18,7 @@ pokejsonball/           ← Root directory
 
 ---
 
-## 📋 Step-by-Step Instructions
+##  Step-by-Step Instructions
 
 ### Step 1: Reset Database with Real PSA Cert Numbers
 
@@ -31,8 +31,8 @@ npm run db:reset
 
 **Expected output:**
 ```
-✅ Seeded 150 Eeveelution cards
-📊 Total cards in database: 150
+ Seeded 150 Eeveelution cards
+ Total cards in database: 150
 ```
 
 This will:
@@ -52,7 +52,7 @@ node src/app.js
 
 **Expected output:**
 ```
-✅ Server running on port 3001
+ Server running on port 3001
 ```
 
 **Leave this terminal running!** Don't close it.
@@ -89,7 +89,7 @@ http://localhost:5173
 
 ---
 
-## ✅ What You Should See
+##  What You Should See
 
 1. **Homepage loads** with featured Eeveelution cards
 2. **Dark mode toggle** works (sun/moon icon)
@@ -107,11 +107,11 @@ http://localhost:5173
 **Solution:** Make sure you `cd` into `backend/` or `frontend/` first!
 
 ```bash
-# ❌ WRONG - from root
+#  WRONG - from root
 cd pokejsonball
 node src/app.js
 
-# ✅ CORRECT - cd into backend first
+#  CORRECT - cd into backend first
 cd pokejsonball/backend
 node src/app.js
 ```
@@ -139,7 +139,7 @@ node src/app.js
 
 ---
 
-## 📊 Your Real PSA Cards
+##  Your Real PSA Cards
 
 These 19 real PSA certification numbers are now in your database:
 
@@ -185,6 +185,6 @@ curl http://localhost:3001/api/cards/116230496
 
 ---
 
-## 🎉 You're All Set!
+##  You're All Set!
 
 Both servers should now be running with your real PSA certification numbers integrated into the database!

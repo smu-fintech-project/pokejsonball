@@ -76,7 +76,7 @@ const loadFeaturedCards = async () => {
       const cards = await resp.json();
       // Show ALL cards from database (not just first 4)
       if (cards.length > 0) {
-        console.log(`✅ Loaded ${cards.length} cards from backend`);
+        console.log(` Loaded ${cards.length} cards from backend`);
         featuredRaw.value = cards.map(c => ({
           id: c.cert_number,
           img: c.image_url || 'https://images.pokemontcg.io/base1/4_hires.png',

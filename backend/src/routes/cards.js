@@ -6,16 +6,16 @@ const router = express.Router();
 
 // GET /api/cards - list cards (basic marketplace)
 router.get('/', async (req, res) => {
-  console.log('\n📋 Listing all cards...');
+  console.log('\n Listing all cards...');
   try {
     const db = getDb();
     const rows = db.prepare(
       'SELECT id, cert_number, card_name, set_name, psa_grade, release_year, pokemon_tcg_id, series, image_url, last_known_price FROM cards ORDER BY id LIMIT 200'
     ).all();
-    console.log(`✅ Found ${rows.length} cards`);
+    console.log(` Found ${rows.length} cards`);
     res.json(rows);
   } catch (e) {
-    console.error('❌ List cards error:', {
+    console.error(' List cards error:', {
       message: e.message,
       stack: e.stack
     });
@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 // GET /api/cards/:cert - details via PSA + PokemonTCG, with caching
 router.get('/:cert', async (req, res) => {
   const cert = req.params.cert;
-  console.log(`\n🔍 Fetching card details for cert: ${cert}`);
+  console.log(`\n Fetching card details for cert: ${cert}`);
   
   try {
     const db = getDb();
@@ -34,20 +34,20 @@ router.get('/:cert', async (req, res) => {
     const cached = getCache(cacheKey, 300);
     
     if (cached) {
-      console.log(`✅ Returning cached data for cert: ${cert}`);
+      console.log(` Returning cached data for cert: ${cert}`);
       return res.json({ source: 'cache', ...cached });
     }
 
     // Check if card exists in database
-    console.log(`📊 Checking database for cert: ${cert}`);
+    console.log(` Checking database for cert: ${cert}`);
     const dbCard = db.prepare('SELECT * FROM cards WHERE cert_number = ?').get(cert);
     
     if (!dbCard) {
-      console.warn(`⚠️  Card not found in database: ${cert}`);
+      console.warn(`  Card not found in database: ${cert}`);
       return res.status(404).json({ error: 'Card not found in database' });
     }
     
-    console.log(`✅ Found card in database: ${dbCard.card_name}`);
+    console.log(` Found card in database: ${dbCard.card_name}`);
 
     // PSA API
     // Note: PSA public API documentation is limited/unavailable
@@ -61,7 +61,7 @@ router.get('/:cert', async (req, res) => {
 
     if (process.env.PSA_API_KEY && process.env.PSA_API_KEY.length > 10) {
       try {
-        console.log(`📡 Fetching PSA images for cert: ${cert}`);
+        console.log(` Fetching PSA images for cert: ${cert}`);
         
         // Correct PSA API endpoint for images
         const psaEndpoint = `https://api.psacard.com/publicapi/cert/GetImagesByCertNumber/${cert}`;
@@ -74,7 +74,7 @@ router.get('/:cert', async (req, res) => {
           timeout: 10000
         });
         
-        console.log(`✅ PSA API success, received ${Array.isArray(psaResp.data) ? psaResp.data.length : 1} images`);
+        console.log(` PSA API success, received ${Array.isArray(psaResp.data) ? psaResp.data.length : 1} images`);
         
         // PSA returns array of images: [{ ImageURL: "...", IsFrontImage: true/false }]
         if (Array.isArray(psaResp.data) && psaResp.data.length > 0) {
@@ -86,14 +86,14 @@ router.get('/:cert', async (req, res) => {
           
           imageUrl = frontImage?.ImageURL || psaResp.data[0]?.ImageURL || imageUrl;
           
-          console.log(`✅ Front image: ${frontImage?.ImageURL ? 'Found' : 'Missing'}`);
-          console.log(`✅ Back image: ${backImage?.ImageURL ? 'Found' : 'Missing'}`);
+          console.log(` Front image: ${frontImage?.ImageURL ? 'Found' : 'Missing'}`);
+          console.log(` Back image: ${backImage?.ImageURL ? 'Found' : 'Missing'}`);
         }
       } catch (psaError) {
-        console.warn('⚠️  PSA API unavailable, using database values:', psaError.response?.status || psaError.message);
+        console.warn('  PSA API unavailable, using database values:', psaError.response?.status || psaError.message);
       }
     } else {
-      console.log('ℹ️  No valid PSA API key configured, using database values');
+      console.log('  No valid PSA API key configured, using database values');
     }
 
     // Pokemon TCG API
@@ -124,7 +124,7 @@ router.get('/:cert', async (req, res) => {
             });
             
             if (tcgResp.data?.data?.length > 0) {
-              console.log(`✅ Pokemon TCG API success with query: ${q}`);
+              console.log(` Pokemon TCG API success with query: ${q}`);
               break;
             }
           } catch (e) {
@@ -149,10 +149,10 @@ router.get('/:cert', async (req, res) => {
           }
         }
       } catch (tcgError) {
-        console.warn('⚠️  Pokemon TCG API unavailable, using database values:', tcgError.response?.status || tcgError.message);
+        console.warn('  Pokemon TCG API unavailable, using database values:', tcgError.response?.status || tcgError.message);
       }
     } else {
-      console.log('ℹ️  No valid Pokemon TCG API key configured, using database values');
+      console.log('  No valid Pokemon TCG API key configured, using database values');
     }
 
     const payload = {

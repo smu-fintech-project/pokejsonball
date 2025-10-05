@@ -23,12 +23,12 @@ export async function getCompleteCardInfo(certNumber, dbCard = null) {
   const cached = getCache(cacheKey, 300); // Cache for 5 minutes
   
   if (cached) {
-    console.log(`✅ Integrated cache hit for cert: ${certNumber}`);
+    console.log(` Integrated cache hit for cert: ${certNumber}`);
     return { ...cached, source: 'cache' };
   }
 
   // Step 1: Fetch PSA certification details
-  console.log(`📡 Fetching PSA data for cert: ${certNumber}`);
+  console.log(` Fetching PSA data for cert: ${certNumber}`);
   const psaData = await getPSACardDetails(certNumber);
   
   // Step 2: Use PSA data to search Pokemon TCG API for pricing
@@ -37,7 +37,7 @@ export async function getCompleteCardInfo(certNumber, dbCard = null) {
   let tcgImages = null;
 
   if (psaData.cardName && psaData.cardName !== 'Unknown Card') {
-    console.log(`📡 Fetching Pokemon TCG data for: ${psaData.cardName}`);
+    console.log(` Fetching Pokemon TCG data for: ${psaData.cardName}`);
     
     tcgData = await searchPokemonCard({
       name: psaData.cardName,
@@ -138,7 +138,7 @@ export async function getCompleteCardInfo(certNumber, dbCard = null) {
   // Cache the integrated result
   setCache(cacheKey, result);
   
-  console.log(`✅ Complete card info assembled for cert: ${certNumber}`);
+  console.log(` Complete card info assembled for cert: ${certNumber}`);
   return { ...result, source: 'live' };
 }
 
@@ -220,7 +220,7 @@ export async function findSimilarCards(cardName) {
   // but different PSA grades to show price comparison
   // Implementation depends on your database structure
   
-  console.log(`🔍 Searching for similar cards: ${cardName}`);
+  console.log(` Searching for similar cards: ${cardName}`);
   
   // Placeholder - implement based on your needs
   return [];

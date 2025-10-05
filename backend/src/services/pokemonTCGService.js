@@ -100,7 +100,7 @@ export async function searchPokemonCard({ name, setName, year, variety }) {
   const cached = getCache(cacheKey, TCG_API_CONFIG.cacheTTL);
   
   if (cached) {
-    console.log(`✅ Pokemon TCG cache hit for: ${name}`);
+    console.log(` Pokemon TCG cache hit for: ${name}`);
     return { ...cached, source: 'cache' };
   }
 
@@ -123,7 +123,7 @@ export async function searchPokemonCard({ name, setName, year, variety }) {
     
     const query = queryParts.join(' ');
     
-    console.log(`🔍 Pokemon TCG API query: ${query}`);
+    console.log(` Pokemon TCG API query: ${query}`);
     
     const response = await client.get('/cards', {
       params: {
@@ -136,7 +136,7 @@ export async function searchPokemonCard({ name, setName, year, variety }) {
     const cards = response.data?.data || [];
     
     if (cards.length === 0) {
-      console.warn(`⚠️  No Pokemon TCG results for: ${name}`);
+      console.warn(`  No Pokemon TCG results for: ${name}`);
       return null;
     }
 
@@ -155,18 +155,18 @@ export async function searchPokemonCard({ name, setName, year, variety }) {
     // Cache the result
     setCache(cacheKey, bestMatch);
     
-    console.log(`✅ Pokemon TCG API success: ${bestMatch.name} (${bestMatch.set.name})`);
+    console.log(` Pokemon TCG API success: ${bestMatch.name} (${bestMatch.set.name})`);
     return { ...bestMatch, source: 'live' };
 
   } catch (error) {
-    console.error(`❌ Pokemon TCG API error for ${name}:`, error.response?.status || error.message);
+    console.error(` Pokemon TCG API error for ${name}:`, error.response?.status || error.message);
     
     // Try fuzzy search as fallback
     if (!error.response || error.response.status >= 500) {
       try {
         return await fuzzySearchPokemonCard(name);
       } catch (fallbackError) {
-        console.error('❌ Fuzzy search also failed');
+        console.error(' Fuzzy search also failed');
       }
     }
     
@@ -195,7 +195,7 @@ async function fuzzySearchPokemonCard(name) {
       
       const cards = response.data?.data || [];
       if (cards.length > 0) {
-        console.log(`✅ Pokemon TCG fuzzy match: ${cards[0].name}`);
+        console.log(` Pokemon TCG fuzzy match: ${cards[0].name}`);
         return cards[0];
       }
     } catch (e) {

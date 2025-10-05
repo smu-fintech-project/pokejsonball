@@ -1,6 +1,6 @@
 # PokeJsonBall - Quick Start Guide
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js 16+ installed
@@ -44,7 +44,7 @@
    npm run dev
    ```
    
-   ✅ Backend running at `http://localhost:5000`
+    Backend running at `http://localhost:5000`
 
 ### Frontend Setup (3 minutes)
 
@@ -69,16 +69,16 @@
    npm run dev
    ```
    
-   ✅ Frontend running at `http://localhost:3000` (or the port Vite assigns)
+    Frontend running at `http://localhost:3000` (or the port Vite assigns)
 
 ### Test the App
 
 1. Open `http://localhost:3000` in your browser
 2. You should see:
-   - ✅ Modern homepage with dark mode toggle
-   - ✅ Navigation tabs (Marketplace, Portfolio, Community, About, Login)
-   - ✅ Featured holographic cards grid
-   - ✅ Click any card to see detail page
+   -  Modern homepage with dark mode toggle
+   -  Navigation tabs (Marketplace, Portfolio, Community, About, Login)
+   -  Featured holographic cards grid
+   -  Click any card to see detail page
 
 ## 🐛 CORS Issues Fixed
 
@@ -146,29 +146,29 @@ pokejsonball/
 ## 🎨 Features Implemented
 
 ### Frontend
-- ✅ Modern, minimalist UI with Tailwind CSS
-- ✅ Dark mode toggle (persisted to localStorage)
-- ✅ Navigation: Login, Marketplace, Portfolio, Community, About
-- ✅ Responsive grid layout for card listings
-- ✅ Card detail page with:
+-  Modern, minimalist UI with Tailwind CSS
+-  Dark mode toggle (persisted to localStorage)
+-  Navigation: Login, Marketplace, Portfolio, Community, About
+-  Responsive grid layout for card listings
+-  Card detail page with:
   - Large card image
   - Pricing history chart (mock data)
   - Condition filters
   - Seller ratings
   - Buy/Sell/Trade buttons
-- ✅ Mobile responsive design
-- ✅ Clean color scheme (light: white/blue, dark: slate/purple)
+-  Mobile responsive design
+-  Clean color scheme (light: white/blue, dark: slate/purple)
 
 ### Backend
-- ✅ SQLite database with 150 Eeveelution cards
-- ✅ PSA API integration for card images/metadata
-- ✅ PokemonTCG API integration for pricing
-- ✅ Smart caching (5-minute TTL)
-- ✅ Image proxy to bypass CORS
-- ✅ Error handling and fallbacks
-- ✅ RESTful API design
+-  SQLite database with 150 Eeveelution cards
+-  PSA API integration for card images/metadata
+-  PokemonTCG API integration for pricing
+-  Smart caching (5-minute TTL)
+-  Image proxy to bypass CORS
+-  Error handling and fallbacks
+-  RESTful API design
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### Backend won't start
 - Check if port 5000 is available
@@ -189,7 +189,7 @@ pokejsonball/
 - Delete `backend/data/cards.db` and run `npm run db:reset`
 - Check file permissions on `data/` directory
 
-## 📝 Next Steps
+##  Next Steps
 
 1. **Get Real API Keys**: Register for PSA and PokemonTCG APIs
 2. **Add Real Data**: Update seed script with actual card data
@@ -211,7 +211,7 @@ pokejsonball/
 - [ ] No CORS errors in browser console
 - [ ] Images load correctly
 
-## 📚 API Documentation
+##  API Documentation
 
 See `backend/README.md` for detailed API documentation.
 
@@ -223,4 +223,4 @@ If you encounter issues:
 3. Verify all dependencies installed
 4. Ensure both servers running
 
-Happy trading! 🎴✨
+Happy trading! ✨

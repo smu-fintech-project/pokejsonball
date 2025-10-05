@@ -30,38 +30,38 @@ app.use(cors({
 app.use(express.json());
 
 // Log environment configuration
-console.log('\n🔧 Environment Configuration:');
+console.log('\n Environment Configuration:');
 console.log(`PORT: ${process.env.PORT || 3001}`);
 console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
 console.log(`DB_PATH: ${process.env.DB_PATH || './data/cards.db'}`);
-console.log(`PSA_API_KEY: ${process.env.PSA_API_KEY ? '✅ Configured' : '❌ Missing'}`);
-console.log(`POKEMON_TCG_API_KEY: ${process.env.POKEMON_TCG_API_KEY ? '✅ Configured' : '❌ Missing'}`);
+console.log(`PSA_API_KEY: ${process.env.PSA_API_KEY ? ' Configured' : ' Missing'}`);
+console.log(`POKEMON_TCG_API_KEY: ${process.env.POKEMON_TCG_API_KEY ? ' Configured' : ' Missing'}`);
 
 // Image proxy to bypass CORS on external images
 app.get("/api/proxy-image", async (req, res) => {
   const { url } = req.query;
-  console.log(`\n🖼️  Image Proxy Request: ${url}`);
+  console.log(`\n  Image Proxy Request: ${url}`);
   
   if (!url) {
-    console.error('❌ Image proxy error: Missing URL parameter');
+    console.error(' Image proxy error: Missing URL parameter');
     return res.status(400).json({ error: "Missing url parameter" });
   }
   
   try {
-    console.log(`📡 Fetching image from: ${url}`);
+    console.log(` Fetching image from: ${url}`);
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       timeout: 10000
     });
     
     const contentType = response.headers['content-type'] || 'image/png';
-    console.log(`✅ Image fetched successfully (${contentType})`);
+    console.log(` Image fetched successfully (${contentType})`);
     
     res.set('Content-Type', contentType);
     res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     res.send(response.data);
   } catch (error) {
-    console.error('❌ Image proxy error:', {
+    console.error(' Image proxy error:', {
       url,
       error: error.message,
       status: error.response?.status,
@@ -78,14 +78,14 @@ app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
 
 app.get("/", (req, res) => {
-  res.json({ message: "Trading Card Marketplace API running 🚀" });
+  res.json({ message: "Trading Card Marketplace API running " });
 });
 
 const PORT = process.env.PORT || 3001;
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('\n❌ Unhandled Error:', {
+  console.error('\n Unhandled Error:', {
     message: err.message,
     stack: err.stack,
     url: req.url,
@@ -101,10 +101,10 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log('\n' + '='.repeat(50));
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`📍 API Base: http://localhost:${PORT}`);
-  console.log(`📚 API V1: http://localhost:${PORT}/api/cards`);
-  console.log(`🚀 API V2: http://localhost:${PORT}/api/v2/cards`);
-  console.log(`💚 Health: http://localhost:${PORT}/api/v2/health`);
+  console.log(` Server running on port ${PORT}`);
+  console.log(` API Base: http://localhost:${PORT}`);
+  console.log(` API V1: http://localhost:${PORT}/api/cards`);
+  console.log(` API V2: http://localhost:${PORT}/api/v2/cards`);
+  console.log(` Health: http://localhost:${PORT}/api/v2/health`);
   console.log('='.repeat(50) + '\n');
 });

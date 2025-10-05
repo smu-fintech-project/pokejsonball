@@ -1,11 +1,11 @@
-# 🎴 Database Setup Guide
+#  Database Setup Guide
 
 ## Overview
 Your marketplace now shows **19 real PSA certified Eeveelution cards** with actual PSA images!
 
 ---
 
-## ✅ What Was Done
+##  What Was Done
 
 1. **Removed 131 placeholder cards** - Only real PSA certs remain
 2. **Fetched all 19 PSA images** - Stored directly in database
@@ -13,7 +13,7 @@ Your marketplace now shows **19 real PSA certified Eeveelution cards** with actu
 
 ---
 
-## 🚀 Quick Commands
+##  Quick Commands
 
 ### Full Database Setup (Recommended)
 ```bash
@@ -36,16 +36,16 @@ npm run db:fetch-images
 
 ---
 
-## 📊 Current Database Stats
+##  Current Database Stats
 
 - **Total Cards**: 19
 - **Real PSA Certs**: 19
 - **Placeholder Cards**: 0
-- **Cards with Images**: 19/19 ✅
+- **Cards with Images**: 19/19 
 
 ---
 
-## 🎴 Your 19 Eeveelution Cards
+##  Your 19 Eeveelution Cards
 
 | # | Cert Number | Card Name | PSA Grade | Year |
 |---|-------------|-----------|-----------|------|
@@ -71,7 +71,7 @@ npm run db:fetch-images
 
 ---
 
-## 🖼️ Image Fetching
+##  Image Fetching
 
 ### How It Works
 1. Script calls PSA API: `GET /cert/GetImagesByCertNumber/{cert}`
@@ -91,7 +91,7 @@ https://d1htnxwo4o0jhw.cloudfront.net/cert/180289654/cwrwxaRlpUak7SGrFn5lJw.jpg
 
 ---
 
-## 🔧 Adding More Cards
+##  Adding More Cards
 
 To add more PSA certified cards:
 
@@ -117,7 +117,7 @@ To add more PSA certified cards:
 
 ---
 
-## ✅ Verification
+##  Verification
 
 Check your database:
 ```bash
@@ -133,6 +133,6 @@ curl -s http://localhost:3001/api/cards | jq '[.[] | .cert_number]'
 
 ---
 
-## 🎉 Result
+##  Result
 
-Your frontend marketplace will now display all 19 real Eeveelution cards with beautiful PSA images! 🖼️✨
+Your frontend marketplace will now display all 19 real Eeveelution cards with beautiful PSA images! ✨

@@ -1,6 +1,6 @@
-# ✅ PSA Image Integration - Complete!
+#  PSA Image Integration - Complete!
 
-## 🎉 What's Been Integrated
+##  What's Been Integrated
 
 Your PSA image fetching code has been successfully integrated into the backend!
 
@@ -28,20 +28,20 @@ GET https://api.psacard.com/publicapi/cert/GetImagesByCertNumber/{certNumber}
 ## 📁 Files Updated
 
 ### 1. **`backend/src/services/psaService.js`**
-- ✅ Updated to use correct endpoint: `/cert/GetImagesByCertNumber/{certNumber}`
-- ✅ Parses array response format
-- ✅ Extracts front and back images
-- ✅ Handles `IsFrontImage` boolean flag
-- ✅ Comprehensive logging
+-  Updated to use correct endpoint: `/cert/GetImagesByCertNumber/{certNumber}`
+-  Parses array response format
+-  Extracts front and back images
+-  Handles `IsFrontImage` boolean flag
+-  Comprehensive logging
 
 ### 2. **`backend/src/routes/cards.js`**
-- ✅ Updated V1 API to use correct PSA endpoint
-- ✅ Extracts front/back images from array
-- ✅ Falls back gracefully if images missing
+-  Updated V1 API to use correct PSA endpoint
+-  Extracts front/back images from array
+-  Falls back gracefully if images missing
 
 ---
 
-## 🚀 How to Test
+##  How to Test
 
 ### Test with Your Real PSA Token
 
@@ -67,20 +67,20 @@ curl http://localhost:3001/api/v2/cards/116230496 | jq '.data.images'
 
 ---
 
-## 📊 Expected Log Output
+##  Expected Log Output
 
 When PSA images are fetched successfully:
 
 ```
-📡 Fetching PSA images for cert: 116230496
-✅ PSA API success, received 2 images
-✅ Front image: Found
-✅ Back image: Found
+ Fetching PSA images for cert: 116230496
+ PSA API success, received 2 images
+ Front image: Found
+ Back image: Found
 ```
 
 ---
 
-## 🔧 How It Works
+##  How It Works
 
 ### 1. **Request Flow**
 
@@ -184,7 +184,7 @@ onMounted(() => loadCard('116230496'));
 
 ---
 
-## 📝 API Response Example
+##  API Response Example
 
 ### Request:
 ```bash
@@ -245,17 +245,17 @@ GET /api/cards/116230496
 
 ---
 
-## ✅ Summary
+##  Summary
 
 Your PSA image integration is now:
 
-✅ **Using correct endpoint** (`/cert/GetImagesByCertNumber/{certNumber}`)  
-✅ **Parsing array response** with `IsFrontImage` flag  
-✅ **Extracting front/back images** automatically  
-✅ **Integrated into both V1 and V2 APIs**  
-✅ **Comprehensive logging** for debugging  
-✅ **Graceful fallbacks** when PSA unavailable  
-✅ **Ready for frontend** integration  
+ **Using correct endpoint** (`/cert/GetImagesByCertNumber/{certNumber}`)  
+ **Parsing array response** with `IsFrontImage` flag  
+ **Extracting front/back images** automatically  
+ **Integrated into both V1 and V2 APIs**  
+ **Comprehensive logging** for debugging  
+ **Graceful fallbacks** when PSA unavailable  
+ **Ready for frontend** integration  
 
 ---
 
@@ -269,4 +269,4 @@ Your PSA image integration is now:
 
 ---
 
-**Your PSA image integration is complete and ready to use!** 🎉📸
+**Your PSA image integration is complete and ready to use!** 📸

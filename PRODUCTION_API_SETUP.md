@@ -1,6 +1,6 @@
-# 🚀 Production-Ready PSA + Pokemon TCG API Integration
+#  Production-Ready PSA + Pokemon TCG API Integration
 
-## ✅ What's Been Implemented
+##  What's Been Implemented
 
 A complete, production-ready backend system that integrates:
 
@@ -29,7 +29,7 @@ backend/
 
 ---
 
-## 🔧 Setup Instructions
+##  Setup Instructions
 
 ### Step 1: Restart Backend Server
 
@@ -85,7 +85,7 @@ curl http://localhost:3001/api/v2/cards/116230496/price-comparison | jq .
 
 ---
 
-## 📊 Response Example
+##  Response Example
 
 **Request:**
 ```bash
@@ -209,7 +209,7 @@ curl http://localhost:3001/api/v2/cards/99999999 | jq .
 
 ---
 
-## 📝 API Documentation
+##  API Documentation
 
 Full documentation available at:
 ```
@@ -226,7 +226,7 @@ Includes:
 
 ---
 
-## 🔄 Migration from V1 to V2
+##  Migration from V1 to V2
 
 ### Old Code (V1):
 ```javascript
@@ -333,7 +333,7 @@ With caching enabled:
 
 ---
 
-## 🚀 Next Steps
+##  Next Steps
 
 1. **Test with Real API Keys**: Add your PSA and Pokemon TCG keys to `.env`
 2. **Monitor API Usage**: Track rate limits and errors
@@ -343,7 +343,7 @@ With caching enabled:
 
 ---
 
-## 📚 Additional Resources
+##  Additional Resources
 
 - **PSA API Docs**: https://www.psacard.com/publicapi/documentation
 - **Pokemon TCG API**: https://dev.pokemontcg.io/
@@ -352,15 +352,15 @@ With caching enabled:
 
 ---
 
-## ✅ Summary
+##  Summary
 
 You now have a **production-ready** Pokemon card marketplace API that:
 
-✅ Integrates PSA certification data  
-✅ Fetches live market pricing  
-✅ Handles errors gracefully  
-✅ Implements caching and retries  
-✅ Provides comprehensive documentation  
-✅ Is modular and maintainable  
+ Integrates PSA certification data  
+ Fetches live market pricing  
+ Handles errors gracefully  
+ Implements caching and retries  
+ Provides comprehensive documentation  
+ Is modular and maintainable  
 
-**Ready to use!** 🎉
+**Ready to use!** 

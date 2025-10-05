@@ -41,14 +41,14 @@ async function testEndpoint(name, method, url, data = null) {
     const response = await axios(config);
     const duration = Date.now() - startTime;
     
-    log(colors.green, `✅ Success (${duration}ms)`);
+    log(colors.green, ` Success (${duration}ms)`);
     log(colors.blue, `   Status: ${response.status}`);
     log(colors.blue, `   Response:`, JSON.stringify(response.data, null, 2).substring(0, 500));
     
     return { success: true, data: response.data, duration };
   } catch (error) {
     const duration = Date.now() - Date.now();
-    log(colors.red, `❌ Failed (${duration}ms)`);
+    log(colors.red, ` Failed (${duration}ms)`);
     
     if (error.response) {
       log(colors.red, `   Status: ${error.response.status}`);
@@ -63,7 +63,7 @@ async function testEndpoint(name, method, url, data = null) {
 
 async function runTests() {
   console.log('\n' + '='.repeat(60));
-  log(colors.cyan, '🚀 Starting API Tests');
+  log(colors.cyan, ' Starting API Tests');
   log(colors.cyan, `   Base URL: ${BASE_URL}`);
   console.log('='.repeat(60));
   
@@ -142,20 +142,20 @@ async function runTests() {
   
   // Summary
   console.log('\n' + '='.repeat(60));
-  log(colors.cyan, '📊 Test Summary');
+  log(colors.cyan, ' Test Summary');
   console.log('='.repeat(60));
   
   const passed = results.filter(r => r.success).length;
   const failed = results.filter(r => !r.success).length;
   
-  log(colors.green, `✅ Passed: ${passed}`);
-  log(colors.red, `❌ Failed: ${failed}`);
+  log(colors.green, ` Passed: ${passed}`);
+  log(colors.red, ` Failed: ${failed}`);
   log(colors.blue, `📈 Total: ${results.length}`);
   
   if (passed === results.length) {
-    log(colors.green, '\n🎉 All tests passed!');
+    log(colors.green, '\n All tests passed!');
   } else {
-    log(colors.yellow, '\n⚠️  Some tests failed. Check logs above.');
+    log(colors.yellow, '\n  Some tests failed. Check logs above.');
   }
   
   console.log('='.repeat(60) + '\n');
@@ -163,6 +163,6 @@ async function runTests() {
 
 // Run tests
 runTests().catch(error => {
-  log(colors.red, '\n❌ Test suite failed:', error.message);
+  log(colors.red, '\n Test suite failed:', error.message);
   process.exit(1);
 });
