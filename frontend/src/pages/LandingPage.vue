@@ -14,18 +14,9 @@
         <div class="mt-6 text-xs text-gray-400">Made for collectors in Singapore • P2P trades supported</div>
       </div>
 
-      <div class="w-full md:w-96 grid grid-cols-2 gap-3">
-        <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
-          <img :src="getProxiedImageUrl('https://images.pokemontcg.io/base1/4_hires.png')" alt="card" class="w-full h-36 object-contain" />
-        </div>
-        <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
-          <img :src="getProxiedImageUrl('https://images.pokemontcg.io/base1/5_hires.png')" alt="card" class="w-full h-36 object-contain" />
-        </div>
-        <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
-          <img :src="getProxiedImageUrl('https://images.pokemontcg.io/base1/6_hires.png')" alt="card" class="w-full h-36 object-contain" />
-        </div>
-        <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
-          <img :src="getProxiedImageUrl('https://images.pokemontcg.io/base1/7_hires.png')" alt="card" class="w-full h-36 object-contain" />
+      <div v-if="featured.length >= 4" class="w-full md:w-96 grid grid-cols-2 gap-3">
+        <div v-for="card in featured.slice(0, 4)" :key="card.id" class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
+          <img :src="card.img" :alt="card.title" class="w-full h-36 object-contain" />
         </div>
       </div>
     </div>
@@ -61,35 +52,48 @@ import CardGrid from '../components/CardGrid.vue';
 import ListingCard from '../components/ListingCard.vue';
 import { getProxiedImageUrl } from '../utils/imageProxy.js';
 
-const featuredRaw = ref([
-  { id: '116230496', img: 'https://images.pokemontcg.io/base1/4_hires.png', title: 'Eevee Holo', price: '120.00', lastSold: '115.00', rarity: 'PSA 10', set: 'Eeveelution' },
-  { id: '110761155', img: 'https://images.pokemontcg.io/base1/5_hires.png', title: 'Vaporeon Holo', price: '450.00', lastSold: '430.00', rarity: 'PSA 9', set: 'Eeveelution' },
-  { id: '114363745', img: 'https://images.pokemontcg.io/base1/6_hires.png', title: 'Jolteon Holo', price: '25.00', lastSold: '20.00', rarity: 'PSA 10', set: 'Eeveelution' },
-  { id: '113699124', img: 'https://images.pokemontcg.io/base1/7_hires.png', title: 'Flareon Holo', price: '30.00', lastSold: '28.00', rarity: 'PSA 9', set: 'Eeveelution' },
-]);
+// Start with empty array - cards will be loaded from database only
+const featuredRaw = ref([]);
+const loading = ref(true);
+const error = ref(null);
 
-// Fetch ALL real cards from backend
+// Fetch ALL cards from backend database (PSA images only)
 const loadFeaturedCards = async () => {
+  loading.value = true;
+  error.value = null;
+  
   try {
     const resp = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:3001'}/api/cards`);
-    if (resp.ok) {
-      const cards = await resp.json();
-      // Show ALL cards from database (not just first 4)
-      if (cards.length > 0) {
-        console.log(` Loaded ${cards.length} cards from backend`);
-        featuredRaw.value = cards.map(c => ({
-          id: c.cert_number,
-          img: c.image_url || 'https://images.pokemontcg.io/base1/4_hires.png',
-          title: c.card_name,
-          price: c.last_known_price || '0.00',
-          lastSold: c.last_known_price || '0.00',
-          rarity: `PSA ${c.psa_grade}`,
-          set: c.set_name
-        }));
-      }
+    
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+    
+    const cards = await resp.json();
+    
+    if (cards.length > 0) {
+      console.log(`Loaded ${cards.length} cards from backend database`);
+      
+      // Map database cards to display format - ONLY use database images
+      featuredRaw.value = cards.map(c => ({
+        id: c.cert_number,
+        img: c.image_url, // Use ONLY database PSA images, no fallback
+        title: c.card_name,
+        price: c.last_known_price || '0.00',
+        lastSold: c.last_known_price || '0.00',
+        rarity: `PSA ${c.psa_grade}`,
+        set: c.set_name
+      })).filter(card => card.img); // Only show cards that have images
+      
+      console.log(`Displaying ${featuredRaw.value.length} cards with PSA images`);
+    } else {
+      error.value = 'No cards found in database';
     }
   } catch (e) {
-    console.warn('Failed to load cards from backend, using defaults');
+    console.error('Failed to load cards from backend:', e.message);
+    error.value = 'Unable to load cards. Please check if the backend is running.';
+  } finally {
+    loading.value = false;
   }
 };
 
