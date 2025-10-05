@@ -59,6 +59,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { getProxiedImageUrl } from '../utils/imageProxy.js';
 
 const route = useRoute();
 const id = route.params.id; // treat as cert_number for backend
@@ -76,7 +77,7 @@ async function loadCard() {
     const data = await resp.json();
     card.value = {
       id,
-      img: data.image_url,
+      img: getProxiedImageUrl(data.image_url),
       title: data.psa?.cardName || data.tcg?.name || 'Card',
       price: data.last_known_price,
       lastSold: data.last_known_price,

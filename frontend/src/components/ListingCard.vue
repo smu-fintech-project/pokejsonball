@@ -2,7 +2,7 @@
   <article class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-md transition p-4 flex flex-col">
     <div class="relative">
       <router-link :to="`/card/${id}`">
-        <img :src="img" alt="card" class="w-full h-44 object-contain rounded-lg bg-gray-50 dark:bg-slate-700 p-3" />
+        <img :src="proxiedImg" alt="card" class="w-full h-44 object-contain rounded-lg bg-gray-50 dark:bg-slate-700 p-3" />
       </router-link>
       <div class="absolute top-3 left-3 bg-white/80 dark:bg-slate-900/70 px-2 py-1 rounded text-xs font-medium">{{ rarity }}</div>
     </div>
@@ -23,6 +23,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { getProxiedImageUrl } from '../utils/imageProxy.js';
+
 const props = defineProps({
   id: { type: [Number, String], default: 0 },
   img: { type: String, default: '/placeholder-card.png' },
@@ -32,4 +35,6 @@ const props = defineProps({
   rarity: { type: String, default: 'Rare' },
   set: { type: String, default: 'Base Set' },
 });
+
+const proxiedImg = computed(() => getProxiedImageUrl(props.img));
 </script>

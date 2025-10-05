@@ -16,16 +16,16 @@
 
       <div class="w-full md:w-96 grid grid-cols-2 gap-3">
         <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
-          <img src="https://images.pokemontcg.io/base1/4_hires.png" alt="card" class="w-full h-36 object-contain" />
+          <img :src="getProxiedImageUrl('https://images.pokemontcg.io/base1/4_hires.png')" alt="card" class="w-full h-36 object-contain" />
         </div>
         <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
-          <img src="https://images.pokemontcg.io/base1/5_hires.png" alt="card" class="w-full h-36 object-contain" />
+          <img :src="getProxiedImageUrl('https://images.pokemontcg.io/base1/5_hires.png')" alt="card" class="w-full h-36 object-contain" />
         </div>
         <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
-          <img src="https://images.pokemontcg.io/base1/6_hires.png" alt="card" class="w-full h-36 object-contain" />
+          <img :src="getProxiedImageUrl('https://images.pokemontcg.io/base1/6_hires.png')" alt="card" class="w-full h-36 object-contain" />
         </div>
         <div class="rounded-xl bg-white dark:bg-slate-800 p-3 shadow">
-          <img src="https://images.pokemontcg.io/base1/7_hires.png" alt="card" class="w-full h-36 object-contain" />
+          <img :src="getProxiedImageUrl('https://images.pokemontcg.io/base1/7_hires.png')" alt="card" class="w-full h-36 object-contain" />
         </div>
       </div>
     </div>
@@ -56,13 +56,46 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue';
 import CardGrid from '../components/CardGrid.vue';
 import ListingCard from '../components/ListingCard.vue';
+import { getProxiedImageUrl } from '../utils/imageProxy.js';
 
-const featured = [
-  { id: 1, img: 'https://images.pokemontcg.io/base1/4_hires.png', title: 'Pikachu VMax', price: '120.00', lastSold: '115.00', rarity: 'Ultra Rare', set: 'Sword & Shield' },
-  { id: 2, img: 'https://images.pokemontcg.io/base1/5_hires.png', title: 'Charizard Holo', price: '450.00', lastSold: '430.00', rarity: 'Secret', set: 'Base Set' },
-  { id: 3, img: 'https://images.pokemontcg.io/base1/6_hires.png', title: 'Bulbasaur', price: '25.00', lastSold: '20.00', rarity: 'Common', set: 'Base Set' },
-  { id: 4, img: 'https://images.pokemontcg.io/base1/7_hires.png', title: 'Squirtle', price: '30.00', lastSold: '28.00', rarity: 'Uncommon', set: 'Base Set' },
-];
+const featuredRaw = ref([
+  { id: '116230496', img: 'https://images.pokemontcg.io/base1/4_hires.png', title: 'Eevee Holo', price: '120.00', lastSold: '115.00', rarity: 'PSA 10', set: 'Eeveelution' },
+  { id: '110761155', img: 'https://images.pokemontcg.io/base1/5_hires.png', title: 'Vaporeon Holo', price: '450.00', lastSold: '430.00', rarity: 'PSA 9', set: 'Eeveelution' },
+  { id: '114363745', img: 'https://images.pokemontcg.io/base1/6_hires.png', title: 'Jolteon Holo', price: '25.00', lastSold: '20.00', rarity: 'PSA 10', set: 'Eeveelution' },
+  { id: '113699124', img: 'https://images.pokemontcg.io/base1/7_hires.png', title: 'Flareon Holo', price: '30.00', lastSold: '28.00', rarity: 'PSA 9', set: 'Eeveelution' },
+]);
+
+// Fetch ALL real cards from backend
+const loadFeaturedCards = async () => {
+  try {
+    const resp = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:3001'}/api/cards`);
+    if (resp.ok) {
+      const cards = await resp.json();
+      // Show ALL cards from database (not just first 4)
+      if (cards.length > 0) {
+        console.log(`✅ Loaded ${cards.length} cards from backend`);
+        featuredRaw.value = cards.map(c => ({
+          id: c.cert_number,
+          img: c.image_url || 'https://images.pokemontcg.io/base1/4_hires.png',
+          title: c.card_name,
+          price: c.last_known_price || '0.00',
+          lastSold: c.last_known_price || '0.00',
+          rarity: `PSA ${c.psa_grade}`,
+          set: c.set_name
+        }));
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load cards from backend, using defaults');
+  }
+};
+
+onMounted(loadFeaturedCards);
+
+const featured = computed(() => 
+  featuredRaw.value.map(card => ({ ...card, img: getProxiedImageUrl(card.img) }))
+);
 </script>
