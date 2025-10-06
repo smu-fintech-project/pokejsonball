@@ -14,6 +14,7 @@
       <nav class="hidden md:flex items-center space-x-1 text-sm">
         <router-link to="/" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800" :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/') }">Marketplace</router-link>
         <router-link to="/portfolio" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800" :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/portfolio') }">Portfolio</router-link>
+        <router-link to="/certs" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800" :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/certs') }">Cert Gallery</router-link>
         <router-link to="/community" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800" :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/community') }">Community</router-link>
         <router-link to="/about" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800" :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/about') }">About</router-link>
         <router-link to="/login" class="ml-2 px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Login</router-link>

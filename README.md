@@ -6,6 +6,7 @@ A modern, full-stack web application for buying, selling, and trading PSA-certif
 
 - **19 Real PSA Certified Eeveelution Cards** - All cards verified with actual PSA certification numbers
 - **Live PSA Image Integration** - High-resolution card images fetched directly from PSA's CloudFront CDN
+- **PSA Cert Gallery** - Browse PSA-verified cards with metadata, population stats, and sales data
 - **Dark Mode Support** - Toggle between light and dark themes with persistent user preferences
 - **Responsive Design** - Mobile-first design using Tailwind CSS
 - **RESTful API** - Clean backend architecture with modular service layers
@@ -211,6 +212,31 @@ GET /api/proxy-image?url=<encoded_image_url>
 ```
 Proxies external images to bypass CORS restrictions.
 
+#### Get PSA Certs (Cert Gallery)
+```http
+GET /api/certs?ids=comma,separated,certs
+```
+Batch fetch PSA certification data with metadata, images, and sales info. Requires authentication.
+
+**Response:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "certs": [
+    {
+      "cert_number": "116230496",
+      "item_title": "Eevee Holo",
+      "grade": "10",
+      "images": { "left": "https://...", "right": "https://..." },
+      "last_sale": { "price": 120.00, "source": "TCG_API_FALLBACK" },
+      "psa_population": "1234",
+      "psa_pop_higher": "0"
+    }
+  ]
+}
+```
+
 ## Database Schema
 
 ### Cards Table
@@ -249,6 +275,7 @@ npm run dev            # Start development server with nodemon
 npm run db:reset       # Reset database and seed cards
 npm run db:fetch-images # Fetch PSA images for all cards
 npm run db:setup       # Reset DB + fetch images (recommended)
+npm run db:sync-certs  # Sync PSA metadata, images, and sales for all cards
 npm test               # Run API endpoint tests
 npm run test:watch     # Run tests in watch mode
 ```

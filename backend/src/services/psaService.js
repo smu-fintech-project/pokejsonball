@@ -14,11 +14,11 @@ import { getCache, setCache } from '../db.js';
 
 // PSA API Configuration
 const PSA_API_CONFIG = {
-  baseURL: 'https://api.psacard.com/publicapi/v1',
+  baseURL: 'https://api.psacard.com/publicapi',
   timeout: 15000,
   maxRetries: 3,
   retryDelay: 1000, // Initial delay in ms
-  cacheTTL: 3600, // Cache for 1 hour
+  cacheTTL: 1800, // Cache for 30 minutes
 };
 
 // Placeholder image for fallback
@@ -50,10 +50,8 @@ const createPSAClient = () => {
     baseURL: PSA_API_CONFIG.baseURL,
     timeout: PSA_API_CONFIG.timeout,
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'X-API-Key': apiKey,
-      'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
     },
   });
 };
@@ -125,7 +123,7 @@ function expandAbbreviations(text) {
 async function fetchPSACertificate(certNumber, attempt = 0) {
   // Check cache first
   const cacheKey = `psa:cert:${certNumber}`;
-  const cached = getCache(cacheKey, PSA_API_CONFIG.cacheTTL);
+  const cached = await getCache(cacheKey, PSA_API_CONFIG.cacheTTL);
   
   if (cached) {
     console.log(` PSA cache hit for cert: ${certNumber}`);
@@ -137,7 +135,10 @@ async function fetchPSACertificate(certNumber, attempt = 0) {
     
     // Fetch full certificate metadata using GetByCertNumber
     const metadataResponse = await client.get(`/cert/GetByCertNumber/${certNumber}`);
-    const metadata = metadataResponse.data;
+    const rawData = metadataResponse.data;
+    
+    // Extract PSACert object from response
+    const metadata = rawData.PSACert || rawData;
     
     console.log(` PSA API metadata response:`, JSON.stringify(metadata).substring(0, 300));
     
@@ -163,8 +164,8 @@ async function fetchPSACertificate(certNumber, attempt = 0) {
       console.warn(`  Failed to fetch images for cert ${certNumber}, using metadata only`);
     }
     
-    // Parse and expand the card name from Brand field
-    const rawCardName = metadata.Brand || metadata.CardName || 'Unknown Card';
+    // Parse and expand the card name from Subject or Brand field
+    const rawCardName = metadata.Subject || metadata.Brand || metadata.CardName || 'Unknown Card';
     const expandedCardName = expandAbbreviations(rawCardName);
     
     // Combine metadata with images
@@ -172,6 +173,7 @@ async function fetchPSACertificate(certNumber, attempt = 0) {
       CertNumber: certNumber,
       CardName: expandedCardName,
       Brand: metadata.Brand,
+      Subject: metadata.Subject,
       Category: metadata.Category,
       SetName: metadata.SetName,
       Year: metadata.Year,
@@ -181,10 +183,12 @@ async function fetchPSACertificate(certNumber, attempt = 0) {
       Qualifier: metadata.Qualifier,
       CardNumber: metadata.CardNumber,
       SpecNumber: metadata.SpecNumber,
+      LabelType: metadata.LabelType,
+      ReverseBarcode: metadata.ReverseBarCode,
       CertificationStatus: metadata.CertificationStatus,
       DateGraded: metadata.CertDate || metadata.DateGraded,
       PopulationHigher: metadata.PopulationHigher,
-      PopulationSame: metadata.PopulationSame,
+      PopulationSame: metadata.TotalPopulationWithQualifier,
       TotalPopulation: metadata.TotalPopulation,
       CardFrontImageURL: imageData.CardFrontImageURL,
       CardBackImageURL: imageData.CardBackImageURL,
@@ -192,7 +196,7 @@ async function fetchPSACertificate(certNumber, attempt = 0) {
     };
 
     // Cache successful response
-    setCache(cacheKey, parsedData);
+    await setCache(cacheKey, parsedData);
     
     console.log(` PSA API success for cert: ${certNumber} - ${expandedCardName} (Grade: ${parsedData.Grade})`);
     return { ...parsedData, source: 'live' };
@@ -393,6 +397,200 @@ export async function checkPSAAPIHealth() {
       error: error.message,
     };
   }
+}
+
+/**
+ * Get normalized cert data for Cert Gallery API
+ * Maps PSA API response to our cert gallery schema
+ * 
+ * @param {string} certNumber - PSA certification number
+ * @returns {Promise<Object>} Normalized cert object
+ */
+export async function getCert(certNumber) {
+  try {
+    const psaData = await fetchPSACertificate(certNumber);
+    
+    // Get images
+    const images = await getImages(certNumber, psaData);
+    
+    // Get last sale data
+    const lastSale = await getLastSale(certNumber, psaData);
+    
+    // Normalize to cert gallery schema
+    return {
+      cert_number: psaData.CertNumber,
+      item_title: psaData.CardName || psaData.Brand || 'Unknown Card',
+      grade: psaData.Grade?.toString() || null,
+      label_type: psaData.LabelType || null,
+      reverse_cert_barcode: psaData.ReverseBarcode || false,
+      year: psaData.Year?.toString() || null,
+      brand_title: psaData.Brand || null,
+      subject: psaData.Subject || psaData.CardName || null,
+      card_number: psaData.CardNumber || psaData.SpecNumber || null,
+      category: psaData.Category || null,
+      variety_pedigree: psaData.Variety || psaData.Qualifier || null,
+      psa_population: psaData.TotalPopulation || psaData.PopulationSame || null,
+      psa_pop_higher: psaData.PopulationHigher || null,
+      psa_estimate: null, // PSA doesn't provide estimates via API
+      images,
+      last_sale: lastSale,
+    };
+  } catch (error) {
+    console.error(`❌ getCert error for ${certNumber}:`, error.message);
+    throw error;
+  }
+}
+
+/**
+ * Get CloudFront image URLs for a cert
+ * 
+ * @param {string} certNumber - PSA certification number
+ * @param {Object} psaData - Pre-fetched PSA data (optional)
+ * @returns {Promise<Object>} Image URLs { left?, right? }
+ */
+export async function getImages(certNumber, psaData = null) {
+  try {
+    if (!psaData) {
+      psaData = await fetchPSACertificate(certNumber);
+    }
+    
+    const images = {};
+    
+    if (psaData.CardFrontImageURL) {
+      images.left = psaData.CardFrontImageURL;
+    }
+    
+    if (psaData.CardBackImageURL) {
+      images.right = psaData.CardBackImageURL;
+    }
+    
+    return images;
+  } catch (error) {
+    console.warn(`⚠️ Failed to get images for cert ${certNumber}:`, error.message);
+    return {};
+  }
+}
+
+/**
+ * Get last sale information
+ * Tries PSA sales endpoint, falls back to Pokemon TCG API pricing
+ * 
+ * @param {string} certNumber - PSA certification number
+ * @param {Object} psaData - Pre-fetched PSA data (optional)
+ * @returns {Promise<Object>} Last sale object
+ */
+export async function getLastSale(certNumber, psaData = null) {
+  try {
+    if (!psaData) {
+      psaData = await fetchPSACertificate(certNumber);
+    }
+    
+    // Try to get PSA sales data (if endpoint available)
+    // Note: PSA Public API v1 doesn't provide sales/auction data
+    // This would require PSA's private/premium API access
+    
+    // For now, we'll attempt to use Pokemon TCG API as fallback
+    const { searchPokemonCard, extractMarketPrice } = await import('./pokemonTCGService.js');
+    
+    if (psaData.CardName && psaData.CardName !== 'Unknown Card') {
+      const tcgData = await searchPokemonCard({
+        name: psaData.CardName,
+        setName: psaData.SetName,
+        year: psaData.Year,
+        variety: psaData.Variety,
+      });
+      
+      if (tcgData) {
+        const priceInfo = extractMarketPrice(tcgData, psaData.Variety?.toLowerCase());
+        
+        if (priceInfo && priceInfo.price) {
+          return {
+            price: priceInfo.price,
+            currency: '$',
+            date: priceInfo.lastUpdated || new Date().toISOString().split('T')[0],
+            market: priceInfo.priceType || 'TCGplayer',
+            listing_url: priceInfo.tcgplayerUrl || undefined,
+            source: 'TCG_API_FALLBACK'
+          };
+        }
+      }
+    }
+    
+    // No sale data available
+    return {
+      source: 'TCG_API_FALLBACK'
+    };
+    
+  } catch (error) {
+    console.warn(`⚠️ Failed to get last sale for cert ${certNumber}:`, error.message);
+    return {
+      source: 'TCG_API_FALLBACK'
+    };
+  }
+}
+
+/**
+ * Batch fetch certs with rate limiting
+ * 
+ * @param {string[]} certNumbers - Array of cert numbers (max 50)
+ * @returns {Promise<Object[]>} Array of normalized cert objects
+ */
+export async function batchGetCerts(certNumbers) {
+  const maxBatch = 50;
+  const limitedCerts = certNumbers.slice(0, maxBatch);
+  
+  console.log(`📦 Batch fetching ${limitedCerts.length} certs with rate limiting...`);
+  
+  const results = [];
+  const errors = [];
+  
+  // Process certs with short delay to respect rate limits
+  for (let i = 0; i < limitedCerts.length; i++) {
+    const cert = limitedCerts[i];
+    
+    try {
+      const certData = await getCert(cert);
+      results.push(certData);
+      
+      // Add small delay between requests (200ms)
+      if (i < limitedCerts.length - 1) {
+        await sleep(200);
+      }
+    } catch (error) {
+      console.error(`❌ Failed to fetch cert ${cert}:`, error.message);
+      errors.push({
+        cert_number: cert,
+        error: error.code || 'FETCH_FAILED',
+        message: error.message || 'Failed to fetch cert data'
+      });
+      
+      // Return partial data with null fields
+      results.push({
+        cert_number: cert,
+        item_title: null,
+        grade: null,
+        label_type: null,
+        reverse_cert_barcode: null,
+        year: null,
+        brand_title: null,
+        subject: null,
+        card_number: null,
+        category: null,
+        variety_pedigree: null,
+        psa_population: null,
+        psa_pop_higher: null,
+        psa_estimate: null,
+        images: {},
+        last_sale: { source: 'TCG_API_FALLBACK' },
+        error: error.message
+      });
+    }
+  }
+  
+  return {
+    results,
+    errors: errors.length > 0 ? errors : undefined
+  };
 }
 
 // Export configuration for testing/debugging

@@ -1,6 +1,5 @@
 /**
  * Firebase Database Service
- * Replaces SQLite with Firestore
  */
 
 import { getFirestore } from './firebase.js';
@@ -100,7 +99,7 @@ export async function getCache(key, maxAgeSeconds = 300) {
   const doc = await db.collection(COLLECTIONS.CACHE).doc(key).get();
   
   if (!doc.exists) {
-    console.log(`📦 Cache miss: ${key}`);
+    console.log(`Cache miss: ${key}`);
     return null;
   }
   
@@ -108,11 +107,11 @@ export async function getCache(key, maxAgeSeconds = 300) {
   const age = (Date.now() - new Date(data.updated_at).getTime()) / 1000;
   
   if (age > maxAgeSeconds) {
-    console.log(`📦 Cache expired: ${key} (age: ${age.toFixed(0)}s)`);
+    console.log(`Cache expired: ${key} (age: ${age.toFixed(0)}s)`);
     return null;
   }
   
-  console.log(`📦 Cache hit: ${key} (age: ${age.toFixed(0)}s)`);
+  console.log(`Cache hit: ${key} (age: ${age.toFixed(0)}s)`);
   return JSON.parse(data.payload);
 }
 
@@ -125,7 +124,7 @@ export async function setCache(key, payload) {
     updated_at: new Date().toISOString(),
   });
   
-  console.log(`📦 Cache stored: ${key}`);
+  console.log(`Cache stored: ${key}`);
 }
 
 /**

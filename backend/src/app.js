@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import cardRoutes from "./routes/cardsFirebase.js";
 import cardsV2Routes from "./routes/cardsV2.js";
+import certsRoutes from "./routes/certs.js";
 
 dotenv.config();
 const app = express();
@@ -77,6 +78,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
+app.use("/api/certs", certsRoutes); // PSA Cert Gallery API
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running " });
@@ -107,6 +109,7 @@ app.listen(PORT, () => {
   console.log(` API Base: http://localhost:${PORT}`);
   console.log(` API V1: http://localhost:${PORT}/api/cards`);
   console.log(` API V2: http://localhost:${PORT}/api/v2/cards`);
+  console.log(` Certs: http://localhost:${PORT}/api/certs`);
   console.log(` Health: http://localhost:${PORT}/api/v2/health`);
   console.log('='.repeat(50) + '\n');
 });

@@ -8,7 +8,8 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "test": "node test-api.js",
-    "test:watch": "nodemon test-api.js"
+    "test:watch": "nodemon test-api.js",
+    "db:sync-certs": "node src/seed/syncCerts.js"
   },
   "dependencies": {
     "axios": "^1.7.7",

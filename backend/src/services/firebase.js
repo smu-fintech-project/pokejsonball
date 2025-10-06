@@ -26,9 +26,9 @@ export function initializeFirebase() {
       });
 
       db = admin.firestore();
-      console.log('✅ Firebase initialized successfully');
+      console.log('Firebase initialized successfully');
     } catch (error) {
-      console.error('❌ Firebase initialization failed:', error.message);
+      console.error('Firebase initialization failed:', error.message);
       throw error;
     }
   }
