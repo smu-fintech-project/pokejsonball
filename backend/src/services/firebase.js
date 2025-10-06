@@ -1,19 +1,46 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import dotenv from "dotenv";
+/**
+ * Firebase Admin Service
+ * Backend database using Firestore
+ */
+
+import admin from 'firebase-admin';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MSG_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-};
+let db = null;
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+export function initializeFirebase() {
+  if (!db) {
+    try {
+      // Initialize Firebase Admin with service account
+      const serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      };
 
-export default db;
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: process.env.FIREBASE_PROJECT_ID,
+      });
+
+      db = admin.firestore();
+      console.log('✅ Firebase initialized successfully');
+    } catch (error) {
+      console.error('❌ Firebase initialization failed:', error.message);
+      throw error;
+    }
+  }
+  
+  return db;
+}
+
+export function getFirestore() {
+  if (!db) {
+    return initializeFirebase();
+  }
+  return db;
+}
+
+export default { initializeFirebase, getFirestore };

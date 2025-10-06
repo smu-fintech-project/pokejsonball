@@ -59,34 +59,60 @@ const createPSAClient = () => {
 };
 
 /**
- * Fetch PSA certificate details with retry logic
+ * Expand common Pokemon card abbreviations
+ */
+function expandAbbreviations(text) {
+  if (!text) return text;
+  
+  const abbreviations = {
+    'F/A': 'Full Art',
+    'FA': 'Full Art',
+    'RR': 'Rainbow Rare',
+    'SR': 'Secret Rare',
+    'HR': 'Hyper Rare',
+    'UR': 'Ultra Rare',
+    'GX': 'GX',
+    'V': 'V',
+    'VMAX': 'VMAX',
+    'VSTAR': 'VSTAR',
+    'EX': 'EX',
+    'LV.X': 'LV.X',
+    '1st Ed': '1st Edition',
+    '1st Edition': '1st Edition',
+  };
+  
+  let expanded = text;
+  for (const [abbr, full] of Object.entries(abbreviations)) {
+    // Match abbreviation as whole word or with delimiters
+    const regex = new RegExp(`\\b${abbr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+    expanded = expanded.replace(regex, full);
+  }
+  
+  return expanded;
+}
+
+/**
+ * Fetch PSA certificate metadata with retry logic
+ * Uses GetByCertNumber endpoint for full certificate details
  * 
  * @param {string} certNumber - PSA certification number
  * @param {number} attempt - Current retry attempt (internal use)
  * @returns {Promise<Object>} PSA certificate data
  * 
- * Response Structure (per PSA API docs):
+ * Response Structure (from GetByCertNumber):
  * {
  *   "CertNumber": "12345678",
  *   "CardNumber": "25",
- *   "CardName": "Pikachu",
+ *   "Brand": "Pikachu VMAX F/A", // This is the actual card name!
+ *   "Category": "Pokemon",
  *   "SetName": "Base Set",
  *   "Year": "1999",
- *   "Brand": "Pokemon",
- *   "Grade": "10",
- *   "GradeDescription": "GEM MT",
+ *   "CardGrade": "10", // This is the grade!
  *   "Variety": "Holo",
  *   "Qualifier": null,
  *   "SpecNumber": null,
- *   "CardFrontImageURL": "https://...",
- *   "CardBackImageURL": "https://...",
- *   "LabelFrontImageURL": "https://...",
- *   "LabelBackImageURL": "https://...",
- *   "CertificationStatus": "Certified",
- *   "DateGraded": "2023-01-15",
- *   "PopulationHigher": 0,
- *   "PopulationSame": 150,
- *   "TotalPopulation": 1500
+ *   "CertDate": "2023-01-15",
+ *   ...
  * }
  * 
  * Error Codes:
@@ -109,48 +135,66 @@ async function fetchPSACertificate(certNumber, attempt = 0) {
   try {
     const client = createPSAClient();
     
-    // PSA API endpoint for certificate images
-    // Correct endpoint: /cert/GetImagesByCertNumber/{certNumber}
-    const response = await client.get(`/cert/GetImagesByCertNumber/${certNumber}`);
+    // Fetch full certificate metadata using GetByCertNumber
+    const metadataResponse = await client.get(`/cert/GetByCertNumber/${certNumber}`);
+    const metadata = metadataResponse.data;
     
-    const data = response.data;
+    console.log(` PSA API metadata response:`, JSON.stringify(metadata).substring(0, 300));
     
-    console.log(` PSA API raw response:`, JSON.stringify(data).substring(0, 200));
-    
-    // PSA returns an array of image objects
-    // Format: [{ ImageURL: "https://...", IsFrontImage: true/false }, ...]
-    let parsedData = {
-      CertNumber: certNumber,
-      images: [],
+    // Fetch images separately using GetImagesByCertNumber
+    let imageData = {
       CardFrontImageURL: null,
       CardBackImageURL: null,
     };
     
-    if (Array.isArray(data)) {
-      console.log(` PSA returned ${data.length} images`);
+    try {
+      const imageResponse = await client.get(`/cert/GetImagesByCertNumber/${certNumber}`);
+      const images = imageResponse.data;
       
-      parsedData.images = data;
-      
-      // Extract front and back images
-      const frontImage = data.find(img => img.IsFrontImage === true);
-      const backImage = data.find(img => img.IsFrontImage === false);
-      
-      parsedData.CardFrontImageURL = frontImage?.ImageURL || null;
-      parsedData.CardBackImageURL = backImage?.ImageURL || null;
-      
-      console.log(` Front image: ${parsedData.CardFrontImageURL ? 'Found' : 'Missing'}`);
-      console.log(` Back image: ${parsedData.CardBackImageURL ? 'Found' : 'Missing'}`);
-    } else if (data && typeof data === 'object') {
-      // Handle other possible response formats
-      parsedData = { ...data, CertNumber: certNumber };
-    } else {
-      throw new Error('Invalid PSA API response structure');
+      if (Array.isArray(images)) {
+        console.log(` PSA returned ${images.length} images`);
+        const frontImage = images.find(img => img.IsFrontImage === true);
+        const backImage = images.find(img => img.IsFrontImage === false);
+        
+        imageData.CardFrontImageURL = frontImage?.ImageURL || null;
+        imageData.CardBackImageURL = backImage?.ImageURL || null;
+      }
+    } catch (imageError) {
+      console.warn(`  Failed to fetch images for cert ${certNumber}, using metadata only`);
     }
+    
+    // Parse and expand the card name from Brand field
+    const rawCardName = metadata.Brand || metadata.CardName || 'Unknown Card';
+    const expandedCardName = expandAbbreviations(rawCardName);
+    
+    // Combine metadata with images
+    const parsedData = {
+      CertNumber: certNumber,
+      CardName: expandedCardName,
+      Brand: metadata.Brand,
+      Category: metadata.Category,
+      SetName: metadata.SetName,
+      Year: metadata.Year,
+      Grade: metadata.CardGrade || metadata.Grade,
+      GradeDescription: metadata.GradeDescription,
+      Variety: metadata.Variety,
+      Qualifier: metadata.Qualifier,
+      CardNumber: metadata.CardNumber,
+      SpecNumber: metadata.SpecNumber,
+      CertificationStatus: metadata.CertificationStatus,
+      DateGraded: metadata.CertDate || metadata.DateGraded,
+      PopulationHigher: metadata.PopulationHigher,
+      PopulationSame: metadata.PopulationSame,
+      TotalPopulation: metadata.TotalPopulation,
+      CardFrontImageURL: imageData.CardFrontImageURL,
+      CardBackImageURL: imageData.CardBackImageURL,
+      raw: metadata,
+    };
 
     // Cache successful response
     setCache(cacheKey, parsedData);
     
-    console.log(` PSA API success for cert: ${certNumber}`);
+    console.log(` PSA API success for cert: ${certNumber} - ${expandedCardName} (Grade: ${parsedData.Grade})`);
     return { ...parsedData, source: 'live' };
 
   } catch (error) {
@@ -237,10 +281,10 @@ async function fetchPSACertificate(certNumber, attempt = 0) {
 }
 
 /**
- * Get PSA card details with fallback to placeholder
+ * Get PSA card details with expanded abbreviations
  * 
  * @param {string} certNumber - PSA certification number
- * @returns {Promise<Object>} Card details with images or fallback
+ * @returns {Promise<Object>} Card details with images and expanded names
  */
 export async function getPSACardDetails(certNumber) {
   try {
@@ -250,13 +294,15 @@ export async function getPSACardDetails(certNumber) {
       success: true,
       source: psaData.source,
       certNumber: psaData.CertNumber,
-      cardName: psaData.CardName,
+      cardName: psaData.CardName, // Already expanded with abbreviations
       setName: psaData.SetName,
       year: psaData.Year,
-      brand: psaData.Brand,
-      grade: psaData.Grade,
+      brand: psaData.Brand, // Original brand field
+      category: psaData.Category,
+      grade: psaData.Grade, // CardGrade from API
       gradeDescription: psaData.GradeDescription,
       variety: psaData.Variety,
+      cardNumber: psaData.CardNumber,
       images: {
         front: psaData.CardFrontImageURL || PLACEHOLDER_IMAGE,
         back: psaData.CardBackImageURL || PLACEHOLDER_IMAGE,
@@ -278,34 +324,12 @@ export async function getPSACardDetails(certNumber) {
   } catch (error) {
     console.error(` PSA API error for cert ${certNumber}:`, error.message || error);
     
-    // Return fallback data
-    return {
+    // Throw error instead of returning fallback - let caller handle it
+    throw {
       success: false,
       error: error.code || 'UNKNOWN_ERROR',
       message: error.message || 'Failed to fetch PSA data',
       certNumber,
-      cardName: 'Unknown Card',
-      setName: 'Unknown Set',
-      year: null,
-      brand: 'Pokemon',
-      grade: null,
-      gradeDescription: 'N/A',
-      variety: null,
-      images: {
-        front: PLACEHOLDER_IMAGE,
-        back: PLACEHOLDER_IMAGE,
-        labelFront: null,
-        labelBack: null,
-      },
-      certification: {
-        status: 'Unknown',
-        dateGraded: null,
-      },
-      population: {
-        higher: null,
-        same: null,
-        total: null,
-      },
     };
   }
 }

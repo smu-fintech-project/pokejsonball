@@ -5,7 +5,7 @@ import axios from "axios";
 
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
-import cardRoutes from "./routes/cards.js";
+import cardRoutes from "./routes/cardsFirebase.js";
 import cardsV2Routes from "./routes/cardsV2.js";
 
 dotenv.config();
@@ -33,7 +33,8 @@ app.use(express.json());
 console.log('\n Environment Configuration:');
 console.log(`PORT: ${process.env.PORT || 3001}`);
 console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-console.log(`DB_PATH: ${process.env.DB_PATH || './data/cards.db'}`);
+console.log(`DATABASE: Firebase Firestore`);
+console.log(`FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID || ' Missing'}`);
 console.log(`PSA_API_KEY: ${process.env.PSA_API_KEY ? ' Configured' : ' Missing'}`);
 console.log(`POKEMON_TCG_API_KEY: ${process.env.POKEMON_TCG_API_KEY ? ' Configured' : ' Missing'}`);
 
@@ -101,7 +102,8 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log('\n' + '='.repeat(50));
-  console.log(` Server running on port ${PORT}`);
+  console.log(` 🚀 Server running on port ${PORT}`);
+  console.log(` 📱 Database: Firebase Firestore`);
   console.log(` API Base: http://localhost:${PORT}`);
   console.log(` API V1: http://localhost:${PORT}/api/cards`);
   console.log(` API V2: http://localhost:${PORT}/api/v2/cards`);

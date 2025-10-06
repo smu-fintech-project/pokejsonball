@@ -60,34 +60,39 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { getProxiedImageUrl } from '../utils/imageProxy.js';
+import { usePSADetails } from '../composables/usePSADetails.js';
 
 const route = useRoute();
 const id = route.params.id; // treat as cert_number for backend
 
+// ✅ Lazy loading hook with caching
+const { loading, error: apiError, data: cardData, fetchCardDetails } = usePSADetails();
+
 const card = ref({ id, img: '', title: '', price: null, lastSold: null, rarity: '', set: '' });
-const loading = ref(true);
 const error = ref(null);
 
+// ✅ Only fetch when user navigates to this page (lazy!)
 async function loadCard() {
-  loading.value = true;
-  error.value = null;
+  console.log(`🎯 User clicked to view cert #${id} - fetching details now...`);
+  
   try {
-    const resp = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:5000'}/api/cards/${encodeURIComponent(id)}`);
-    if (!resp.ok) throw new Error(`Fetch failed (${resp.status})`);
-    const data = await resp.json();
+    // This uses cache if available, otherwise makes ONE API call
+    const data = await fetchCardDetails(id);
+    
     card.value = {
       id,
       img: getProxiedImageUrl(data.image_url),
       title: data.psa?.cardName || data.tcg?.name || 'Card',
       price: data.last_known_price,
       lastSold: data.last_known_price,
-      rarity: data.tcg?.rarity || '—',
+      rarity: data.tcg?.rarity || `PSA ${data.psa?.grade || '—'}`,
       set: data.psa?.setName || data.tcg?.set?.name || '—'
     };
+    
+    console.log(`✅ Card loaded: ${card.value.title}`);
   } catch (e) {
-    error.value = e.message;
-  } finally {
-    loading.value = false;
+    error.value = e.message || apiError.value;
+    console.error(`❌ Failed to load cert #${id}:`, e);
   }
 }
 

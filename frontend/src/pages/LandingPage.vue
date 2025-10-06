@@ -20,6 +20,16 @@
         </div>
       </div>
     </div>
+    
+    <!-- quick filters To Be Implemented--> 
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm">
+      <h3 class="font-semibold mb-3">Quick filters</h3>
+      <div class="flex gap-2 flex-wrap">
+        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">Pikachu</button>
+        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">Rare</button>
+        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">S$0 - S$50</button>
+      </div>
+    </div>
 
     <!-- featured -->
     <div>
@@ -33,16 +43,6 @@
       </CardGrid>
     </div>
 
-    <!-- quick filters -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm">
-      <h3 class="font-semibold mb-3">Quick filters</h3>
-      <div class="flex gap-2 flex-wrap">
-        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">Pikachu</button>
-        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">Rare</button>
-        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">S$0 - S$50</button>
-        <button class="px-3 py-1 border rounded text-sm dark:border-slate-700">One Piece</button>
-      </div>
-    </div>
   </section>
 </template>
 
