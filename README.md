@@ -1,6 +1,6 @@
 # Pokemon Trading Card Marketplace
 
-A modern, full-stack web application for buying, selling, and trading PSA-certified Pokemon cards. Built with Vue.js, Express, and SQLite, featuring real-time PSA API integration for authentic card data and images.
+A modern, full-stack web application for buying, selling, and trading PSA-certified Pokemon cards. Built with Vue.js, Express, and Firebase, featuring real-time PSA API integration for authentic card data and images.
 
 ## Features
 
@@ -24,9 +24,9 @@ A modern, full-stack web application for buying, selling, and trading PSA-certif
 ### Backend
 - **Node.js** - JavaScript runtime
 - **Express** - Web application framework
-- **SQLite** (better-sqlite3) - Embedded database
+- **Firebase Firestore** - Cloud NoSQL database
 - **Axios** - HTTP client for API calls
-- **Firebase** - Authentication and user management
+- **Firebase Admin SDK** - Backend database and authentication
 - **JWT** - JSON Web Tokens for secure authentication
 
 ### External APIs
