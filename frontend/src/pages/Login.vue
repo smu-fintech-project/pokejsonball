@@ -35,10 +35,45 @@ const email = ref('');
 const password = ref('');
 const router = useRouter();
 
-function onSubmit() {
-  // mock login — replace with real auth later
-  localStorage.setItem('token', 'demo-token');
-  localStorage.setItem('userEmail', email.value || 'collector@example.com');
-  router.push('/profile');
+
+ 
+
+
+async function onSubmit() {
+
+   // mock login — replace with real auth later
+  // localStorage.setItem('token', 'demo-token');
+  // localStorage.setItem('userEmail', email.value || 'collector@example.com');
+
+  
+
+  try {
+    // Call your backend API (like calling ASP.NET controller)
+    const response = await fetch('http://localhost:3001/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Store token (like storing auth cookie in ASP.NET)
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userEmail', email.value);
+      
+      // Navigate to profile
+      router.push('/profile');
+    } else {
+      // Handle error
+      error.value = data.message || 'Login failed';
+    }
+  } catch (err) {
+    error.value = 'Network error';
+    console.error(err);
+  }
 }
 </script>
