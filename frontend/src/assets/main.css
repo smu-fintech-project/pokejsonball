@@ -16,3 +16,4 @@ body {
 .card-img-placeholder {
   @apply bg-white rounded-xl shadow-sm p-3 flex items-center justify-center;
 }
+
