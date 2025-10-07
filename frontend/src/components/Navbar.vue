@@ -15,9 +15,9 @@
         </div>
       </div>
 
-      <nav class="hidden md:flex items-center text-sm w-full px-4 relative">
-        <!-- Centered links -->
-        <div class="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2">
+      <nav class="hidden md:flex items-center text-sm w-full px-4">
+        <!-- Left-aligned navigation links -->
+        <div class="flex items-center space-x-2">
           <router-link to="/" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/') }">Marketplace</router-link>
           <router-link to="/portfolio" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
@@ -30,12 +30,13 @@
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/about') }">About</router-link>
         </div>
 
-        <!-- Right buttons -->
+        <!-- Right buttons (unchanged) -->
         <div class="flex items-center space-x-3 ml-auto">
           <router-link to="/login"
             class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Login</router-link>
-          <router-link to="/signup" class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Sign up</router-link>
-          
+          <router-link to="/signup" class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Sign
+            up</router-link>
+
           <button @click="$emit('toggle-dark')"
             class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
             <span v-if="isDark">🌙</span>
@@ -54,8 +55,10 @@
         </button>
         <router-link to="/login"
           class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Login</router-link>
-        <router-link to="/login" class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 text-sm">Login</router-link>
-        <router-link to="/signup" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Sign up</router-link>
+        <router-link to="/login"
+          class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 text-sm">Login</router-link>
+        <router-link to="/signup"
+          class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Sign up</router-link>
       </div>
     </div>
   </header>

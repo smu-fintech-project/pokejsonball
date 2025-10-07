@@ -113,19 +113,29 @@
         </div>
       </div>
 
-      <!-- Quick Filters -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
-        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-          <Star class="w-5 h-5 text-yellow-500" />
-          Quick Filters
-        </h3>
-        <div class="flex gap-2 flex-wrap">
-          <button v-for="(filter, idx) in quickFilters" :key="idx" @click="filter.action"
-            class="px-4 py-2 border-2 border-indigo-200 dark:border-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all hover:border-indigo-400">
-            {{ filter.label }}
-          </button>
-        </div>
-      </div>
+ <!-- Quick Filters -->
+<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+  <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+    <Star class="w-5 h-5 text-yellow-500" />
+    Quick Filters
+  </h3>
+  <div class="flex gap-2 flex-wrap">
+    <button 
+      v-for="(filter, idx) in quickFilters" 
+      :key="idx" 
+      @click="filter.action"
+      :class="[
+        'px-4 py-2 border-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+        filterStates[filter.label] 
+          ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg' 
+          : 'border-indigo-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:border-indigo-400 text-gray-700 dark:text-gray-300'
+      ]"
+    >
+      <CheckCircle v-if="filterStates[filter.label]" class="w-4 h-4" />
+      {{ filter.label }}
+    </button>
+  </div>
+</div>
       
       <!-- Watchlist feature -->
       <div v-if="watchlist.length > 0"
@@ -300,8 +310,8 @@
 </template>
 
 <script setup>
-import { Heart, Search, Filter, TrendingUp, Star, X, User } from "lucide-vue-next";
 import { ref, computed } from 'vue';
+import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
 
 const scrollToFeatured = () => {
   const section = document.getElementById('featured-cards')
@@ -401,12 +411,75 @@ const filteredCards = computed(() =>
   })
 );
 
+const activeQuickFilter = ref('')
+
+const filterStates = ref({
+  'Pikachu': false,
+  'Charizard': false,
+  'Under S$50': false,
+  'PSA 10': false,
+  'Legendary': false,
+  'Reset': false
+})
+
+// Updated quickFilters with individual state tracking
 const quickFilters = [
-  { label: 'Pikachu', action: () => (searchTerm.value = 'Pikachu') },
-  { label: 'Charizard', action: () => (searchTerm.value = 'Charizard') },
-  { label: 'Under S$50', action: () => (priceRange.value = [0, 50]) },
-  { label: 'PSA 10', action: () => (selectedGrade.value = 'PSA 10') },
-  { label: 'Legendary', action: () => (searchTerm.value = 'Mewtwo') },
-  { label: 'Reset', action: () => { searchTerm.value = ''; priceRange.value = [0, 1000]; selectedGrade.value = 'all'; } },
-];
+  { 
+    label: 'Pikachu', 
+    action: () => {
+      searchTerm.value = 'Pikachu'
+      filterStates.value['Pikachu'] = !filterStates.value['Pikachu']
+      // Turn off other search-based filters
+      filterStates.value['Charizard'] = false
+      filterStates.value['Legendary'] = false
+    }
+  },
+  { 
+    label: 'Charizard', 
+    action: () => {
+      searchTerm.value = 'Charizard'
+      filterStates.value['Charizard'] = !filterStates.value['Charizard']
+      // Turn off other search-based filters
+      filterStates.value['Pikachu'] = false
+      filterStates.value['Legendary'] = false
+    }
+  },
+  { 
+    label: 'Under S$50', 
+    action: () => {
+      priceRange.value = filterStates.value['Under S$50'] ? [0, 1000] : [0, 50]
+      filterStates.value['Under S$50'] = !filterStates.value['Under S$50']
+    }
+  },
+  { 
+    label: 'PSA 10', 
+    action: () => {
+      selectedGrade.value = filterStates.value['PSA 10'] ? 'all' : 'PSA 10'
+      filterStates.value['PSA 10'] = !filterStates.value['PSA 10']
+    }
+  },
+  { 
+    label: 'Legendary', 
+    action: () => {
+      searchTerm.value = filterStates.value['Legendary'] ? '' : 'Mewtwo'
+      filterStates.value['Legendary'] = !filterStates.value['Legendary']
+      // Turn off other search-based filters
+      filterStates.value['Pikachu'] = false
+      filterStates.value['Charizard'] = false
+    }
+  },
+  { 
+    label: 'Reset', 
+    action: () => {
+      searchTerm.value = ''
+      priceRange.value = [0, 1000]
+      selectedGrade.value = 'all'
+      // Reset all filter states
+      Object.keys(filterStates.value).forEach(key => {
+        filterStates.value[key] = false
+      })
+    }
+  },
+]
+
 </script>
