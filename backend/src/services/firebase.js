@@ -13,20 +13,23 @@ let db = null;
 export function initializeFirebase() {
   if (!db) {
     try {
-      // Initialize Firebase Admin with service account
-      const serviceAccount = {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      };
+      // Check if Firebase Admin is already initialized (from app.js)
+      if (admin.apps.length === 0) {
+        // Initialize Firebase Admin with service account
+        const serviceAccount = {
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        };
 
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: process.env.FIREBASE_PROJECT_ID,
-      });
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          projectId: process.env.FIREBASE_PROJECT_ID,
+        });
+        console.log('Firebase initialized successfully from firebase.js');
+      }
 
       db = admin.firestore();
-      console.log('Firebase initialized successfully');
     } catch (error) {
       console.error('Firebase initialization failed:', error.message);
       throw error;

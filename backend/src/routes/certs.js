@@ -8,7 +8,7 @@
 
 import express from 'express';
 import { batchGetCerts } from '../services/psaService.js';
-import authMiddleware from '../middleware/auth.js';
+import adminAuth from '../middleware/adminAuth.js';
 import CERT_NUMBERS from '../config/certs.js';
 
 const router = express.Router();
@@ -17,7 +17,7 @@ const router = express.Router();
  * GET /api/certs/all
  * Get all configured cert numbers
  */
-router.get('/all', authMiddleware, async (req, res) => {
+router.get('/all', adminAuth, async (req, res) => {
   try {
     res.json({
       success: true,
@@ -43,7 +43,7 @@ router.get('/all', authMiddleware, async (req, res) => {
  * 
  * Returns: Array of normalized cert objects with metadata, images, and last sale info
  */
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', adminAuth, async (req, res) => {
   try {
     const { ids } = req.query;
     
@@ -133,7 +133,7 @@ router.get('/', authMiddleware, async (req, res) => {
  * GET /api/certs/:certNumber
  * Get single cert details
  */
-router.get('/:certNumber', authMiddleware, async (req, res) => {
+router.get('/:certNumber', adminAuth, async (req, res) => {
   try {
     const { certNumber } = req.params;
     

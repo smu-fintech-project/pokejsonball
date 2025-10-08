@@ -53,7 +53,10 @@
           </div>
 
           <div class="w-full md:w-96 grid grid-cols-2 gap-3">
-            <div v-for="card in sampleCards.slice(0, 4)" :key="card.id"
+            <div v-if="loading" class="col-span-2 flex items-center justify-center py-8">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            </div>
+            <div v-else v-for="card in sampleCards.slice(0, 4)" :key="card.id"
               class="relative rounded-2xl bg-white/95 backdrop-blur-sm p-3 shadow-xl transform hover:scale-105 transition-all">
               <img :src="card.img" :alt="card.title" class="w-full h-36 object-contain" />
               <div class="absolute top-2 right-2 px-2 py-1 bg-yellow-400 text-black text-xs font-bold rounded-full">
@@ -154,12 +157,28 @@
         <div class="flex items-center justify-between mb-6">
           <h2 id="featured-cards" class="text-2xl font-bold flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"></svg>
-            Featured Holographic Cards
+            Featured PSA-Certified Cards
             <span class="text-sm font-normal text-gray-500">({{ filteredCards.length }} cards)</span>
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-12">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <p class="mt-4 text-gray-600 dark:text-slate-400">Loading cards from database...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="loadError" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center">
+          <p class="text-red-600 dark:text-red-400 font-semibold mb-2">⚠️ {{ loadError }}</p>
+          <p class="text-sm text-gray-600 dark:text-slate-400">Make sure your backend is running on port 3001</p>
+          <button @click="loadFeaturedCards" class="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+            Retry
+          </button>
+        </div>
+
+        <!-- Cards Grid -->
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div v-for="card in filteredCards" :key="card.id"
             class="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden">
             <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800">
@@ -310,7 +329,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
 
 const scrollToFeatured = () => {
@@ -320,33 +339,63 @@ const scrollToFeatured = () => {
   }
 }
 
-// TODO: REPLACE WITH API CALL TO OUR BACKEND
-// Expanded card list with more Pokémon
-const sampleCards = [
-  { id: 1, img: 'https://images.pokemontcg.io/base1/4_hires.png', title: 'Charizard Holo', price: '450.00', lastSold: '420.00', rarity: 'PSA 9', set: 'Base Set', sellerName: 'CardMaster88', sellerRating: '156' },
-  { id: 2, img: 'https://images.pokemontcg.io/base1/58_hires.png', title: 'Pikachu', price: '85.00', lastSold: '80.00', rarity: 'PSA 10', set: 'Base Set', sellerName: 'PokeFan123', sellerRating: '89' },
-  { id: 3, img: 'https://images.pokemontcg.io/base1/2_hires.png', title: 'Blastoise Holo', price: '280.00', lastSold: '265.00', rarity: 'PSA 8', set: 'Base Set', sellerName: 'TurtlePower', sellerRating: '142' },
-  { id: 4, img: 'https://images.pokemontcg.io/base1/15_hires.png', title: 'Venusaur Holo', price: '320.00', lastSold: '310.00', rarity: 'PSA 9', set: 'Base Set', sellerName: 'GrassKing', sellerRating: '203' },
-  { id: 5, img: 'https://images.pokemontcg.io/base1/7_hires.png', title: 'Hitmonchan Holo', price: '45.00', lastSold: '42.00', rarity: 'PSA 10', set: 'Base Set', sellerName: 'FightClub', sellerRating: '67' },
-  { id: 6, img: 'https://images.pokemontcg.io/base1/8_hires.png', title: 'Machamp Holo', price: '38.00', lastSold: '35.00', rarity: 'PSA 8', set: 'Base Set', sellerName: 'MuscleMan', sellerRating: '94' },
-  { id: 7, img: 'https://images.pokemontcg.io/base1/3_hires.png', title: 'Chansey Holo', price: '95.00', lastSold: '90.00', rarity: 'PSA 9', set: 'Base Set', sellerName: 'LuckyEgg', sellerRating: '178' },
-  { id: 8, img: 'https://images.pokemontcg.io/base1/9_hires.png', title: 'Magneton Holo', price: '42.00', lastSold: '40.00', rarity: 'PSA 10', set: 'Base Set', sellerName: 'ElectricDreams', sellerRating: '121' },
-  { id: 9, img: 'https://images.pokemontcg.io/base1/1_hires.png', title: 'Alakazam Holo', price: '165.00', lastSold: '158.00', rarity: 'PSA 9', set: 'Base Set', sellerName: 'PsychicMaster', sellerRating: '134' },
-  { id: 10, img: 'https://images.pokemontcg.io/base1/10_hires.png', title: 'Mewtwo Holo', price: '195.00', lastSold: '185.00', rarity: 'PSA 10', set: 'Base Set', sellerName: 'LegendaryCards', sellerRating: '267' },
-  { id: 11, img: 'https://images.pokemontcg.io/base1/11_hires.png', title: 'Nidoking Holo', price: '58.00', lastSold: '55.00', rarity: 'PSA 8', set: 'Base Set', sellerName: 'PoisonKing', sellerRating: '88' },
-  { id: 12, img: 'https://images.pokemontcg.io/base1/12_hires.png', title: 'Ninetales Holo', price: '72.00', lastSold: '68.00', rarity: 'PSA 9', set: 'Base Set', sellerName: 'FireFox99', sellerRating: '145' },
-  { id: 13, img: 'https://images.pokemontcg.io/base1/13_hires.png', title: 'Poliwrath Holo', price: '48.00', lastSold: '45.00', rarity: 'PSA 8', set: 'Base Set', sellerName: 'WaterWarrior', sellerRating: '76' },
-  { id: 14, img: 'https://images.pokemontcg.io/base1/14_hires.png', title: 'Raichu Holo', price: '118.00', lastSold: '112.00', rarity: 'PSA 10', set: 'Base Set', sellerName: 'ThunderBolt', sellerRating: '198' },
-  { id: 15, img: 'https://images.pokemontcg.io/base1/16_hires.png', title: 'Zapdos Holo', price: '225.00', lastSold: '215.00', rarity: 'PSA 9', set: 'Base Set', sellerName: 'BirdCollector', sellerRating: '234' },
-  { id: 16, img: 'https://images.pokemontcg.io/base1/17_hires.png', title: 'Beedrill Holo', price: '52.00', lastSold: '48.00', rarity: 'PSA 8', set: 'Base Set', sellerName: 'BugCatcher', sellerRating: '102' },
-];
-
+// State management
+const sampleCards = ref([]);
+const loading = ref(true);
+const loadError = ref(null);
 const watchlist = ref([]);
 const searchTerm = ref('');
 const priceRange = ref([0, 1000]);
 const selectedGrade = ref('all');
 const showFilters = ref(false);
 const selectedCard = ref(null);
+
+// Fetch cards from backend database
+const loadFeaturedCards = async () => {
+  loading.value = true;
+  loadError.value = null;
+  
+  try {
+    const resp = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:3001'}/api/cards`);
+    
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+    
+    const cards = await resp.json();
+    
+    if (cards.length > 0) {
+      console.log(`Loaded ${cards.length} cards from backend database`);
+      
+      // Map database cards to display format
+      sampleCards.value = cards.map(c => ({
+        id: c.cert_number,
+        img: c.image_url, // PSA certified card image
+        title: c.card_name,
+        price: c.last_sale_price || '0.00',
+        lastSold: c.last_sale_price || '0.00',
+        rarity: `PSA ${c.psa_grade}`,
+        set: c.set_name || 'Unknown Set',
+        sellerName: 'CardMaster88', // Default seller (can be dynamic later)
+        sellerRating: '156' // Default rating
+      })).filter(card => card.img); // Only show cards with images
+      
+      console.log(`Displaying ${sampleCards.value.length} PSA-certified cards`);
+    } else {
+      loadError.value = 'No cards found in database. Please sync cards first.';
+    }
+  } catch (e) {
+    console.error('Failed to load cards from backend:', e.message);
+    loadError.value = 'Unable to load cards. Please check if the backend is running.';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Load cards on component mount
+onMounted(() => {
+  loadFeaturedCards();
+});
 
 function toggleWatchlist(id) {
   if (watchlist.value.includes(id)) {
@@ -403,7 +452,7 @@ function handleContactSeller() {
 }
 
 const filteredCards = computed(() =>
-  sampleCards.filter(card => {
+  sampleCards.value.filter(card => {
     const matchesSearch = card.title.toLowerCase().includes(searchTerm.value.toLowerCase());
     const matchesPrice = parseFloat(card.price) >= priceRange.value[0] && parseFloat(card.price) <= priceRange.value[1];
     const matchesGrade = selectedGrade.value === 'all' || card.rarity.includes(selectedGrade.value);

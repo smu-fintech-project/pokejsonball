@@ -46,6 +46,10 @@ export async function getAllCertNumbers() {
       throw new Error('Authentication required. Please log in.');
     }
     
+    if (error.response?.status === 403) {
+      throw new Error(error.response?.data?.message || 'Admin access required');
+    }
+    
     throw new Error(error.response?.data?.message || 'Failed to fetch cert numbers');
   }
 }
@@ -72,6 +76,10 @@ export async function getCerts(ids) {
     
     if (error.response?.status === 401) {
       throw new Error('Authentication required. Please log in.');
+    }
+    
+    if (error.response?.status === 403) {
+      throw new Error(error.response?.data?.message || 'Admin access required');
     }
     
     if (error.response?.status === 400) {
@@ -215,4 +223,3 @@ export default {
   logout,
   isAuthenticated
 };
-
