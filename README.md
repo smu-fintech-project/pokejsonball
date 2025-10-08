@@ -1,385 +1,165 @@
-# Pokemon Trading Card Marketplace
+# PokeJsonBall - Pokemon Card Marketplace
 
-A modern, full-stack web application for buying, selling, and trading PSA-certified Pokemon cards. Built with Vue.js, Express, and Firebase, featuring real-time PSA API integration for authentic card data and images.
+A modern web application for trading PSA-certified Pokemon cards. Built with Vue 3, Express, and Firebase.
 
-## Features
+## 🌟 Key Features
 
-- **19 Real PSA Certified Eeveelution Cards** - All cards verified with actual PSA certification numbers
-- **Live PSA Image Integration** - High-resolution card images fetched directly from PSA's CloudFront CDN
-- **PSA Cert Gallery** - Browse PSA-verified cards with metadata, population stats, and sales data
-- **Dark Mode Support** - Toggle between light and dark themes with persistent user preferences
-- **Responsive Design** - Mobile-first design using Tailwind CSS
-- **RESTful API** - Clean backend architecture with modular service layers
-- **Image Proxy** - Built-in CORS bypass for external image loading
-- **Firebase Authentication** - Secure user authentication and authorization
-- **Real-time Price Data** - Integration with Pokemon TCG API for current market prices
+- **19 PSA-Certified Eeveelution Cards** - Real certification numbers and high-res images
+- **Admin-Protected Cert Gallery** - Email whitelist authentication for sensitive features
+- **Database-Driven Content** - All cards fetched from Firebase Firestore
+- **JWT Authentication** - Secure user signup and login
+- **Dark Mode** - Toggle between light and dark themes
+- **Responsive Design** - Mobile-first UI with Tailwind CSS
+- **PSA API Integration** - Real-time card metadata and images
 
-## Tech Stack
+## 🚀 Quick Start
 
-### Frontend
-- **Vue 3** - Progressive JavaScript framework
-- **Vue Router** - Client-side routing
-- **Tailwind CSS** - Utility-first CSS framework
-- **Vite** - Next-generation frontend build tool
+### Prerequisites
+- Node.js v16+
+- Firebase account
+- PSA API key
 
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express** - Web application framework
-- **Firebase Firestore** - Cloud NoSQL database
-- **Axios** - HTTP client for API calls
-- **Firebase Admin SDK** - Backend database and authentication
-- **JWT** - JSON Web Tokens for secure authentication
+### Installation
 
-### External APIs
-- **PSA API** - Card certification and high-resolution images
-- **Pokemon TCG API** - Card data and pricing information
+```bash
+# 1. Clone and install
+git clone <repository-url>
+cd pokejsonball
 
-## Project Structure
+# 2. Install backend
+cd backend && npm install
+
+# 3. Install frontend
+cd ../frontend && npm install
+
+# 4. Setup environment variables (see below)
+
+# 5. Sync cards to database
+cd backend && npm run db:sync-certs
+```
+
+### Environment Setup
+
+**Backend `.env`:**
+```env
+PORT=3001
+FRONTEND_URL=http://localhost:3000
+
+# Firebase
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CLIENT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# API Keys
+PSA_API_KEY=your_psa_api_key
+POKEMON_TCG_API_KEY=your_pokemon_tcg_api_key
+
+# Auth
+JWT_SECRET=your-super-secret-jwt-key
+```
+
+**Frontend `.env`:**
+```env
+VITE_API_BASE=http://localhost:3001
+```
+
+### Running the App
+
+**Terminal 1 - Backend:**
+```bash
+cd backend && npm run dev
+```
+Server runs on http://localhost:3001
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend && npm run dev
+```
+App runs on http://localhost:3000
+
+## 🔐 Admin Access
+
+Add your email to `backend/src/config/admins.js`:
+```javascript
+const ADMIN_EMAILS = [
+  'admin@pokejsonball.com',
+  'youremail@example.com',  // Add here
+];
+```
+
+Only whitelisted emails can access the Cert Gallery (`/certs` page).
+
+## 📡 API Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/cards` | GET | None | Get all cards |
+| `/api/certs?ids=...` | GET | Admin | Get PSA cert details |
+| `/api/auth/signup` | POST | None | Create account |
+| `/api/auth/login` | POST | None | Login user |
+
+## 🗃️ Firebase Collections
+
+- **`cards`** - Card data (cert_number, images, PSA grade, etc.)
+- **`api_cache`** - Cached PSA API responses (30min TTL)
+- **`users`** - User accounts (email, hashed password)
+
+## 🛠️ Available Scripts
+
+**Backend:**
+```bash
+npm run dev            # Start dev server with nodemon
+npm run db:sync-certs  # Sync all 19 PSA cards to database
+```
+
+**Frontend:**
+```bash
+npm run dev      # Start dev server
+npm run build    # Build for production
+```
+
+## 🐛 Common Issues
+
+| Problem | Solution |
+|---------|----------|
+| Port 3001 in use | `lsof -ti:3001 \| xargs kill -9` |
+| JWT_SECRET error | Add `JWT_SECRET=...` to `backend/.env` |
+| No cards showing | Run `npm run db:sync-certs` in backend |
+| Admin access denied | Add your email to `backend/src/config/admins.js` |
+| Firebase error | Check Firebase credentials in `.env` |
+
+## 📂 Project Structure
 
 ```
 pokejsonball/
-├── frontend/                # Vue.js frontend application
+├── frontend/               # Vue 3 app
 │   ├── src/
-│   │   ├── components/     # Reusable Vue components
-│   │   ├── pages/          # Page components
-│   │   ├── router/         # Vue Router configuration
-│   │   ├── utils/          # Utility functions (image proxy, etc.)
-│   │   └── App.vue         # Root component
+│   │   ├── components/    # Reusable components
+│   │   ├── pages/         # Page components
+│   │   └── utils/         # Helper functions
 │   └── package.json
 │
-├── backend/                 # Express backend application
+├── backend/                # Express API
 │   ├── src/
-│   │   ├── routes/         # API route handlers
-│   │   ├── services/       # Business logic (PSA, TCG APIs)
-│   │   ├── middleware/     # Authentication middleware
-│   │   ├── seed/           # Database seeding scripts
-│   │   ├── db.js           # Database configuration
-│   │   └── app.js          # Express app entry point
-│   ├── data/               # SQLite database files
+│   │   ├── routes/        # API endpoints
+│   │   ├── services/      # Business logic
+│   │   ├── middleware/    # Auth middleware
+│   │   └── config/        # Configuration
 │   └── package.json
 │
 └── README.md
 ```
 
-## Getting Started
+## 🎯 Tech Stack
 
-### Prerequisites
+**Frontend:** Vue 3, Vue Router, Tailwind CSS, Vite  
+**Backend:** Node.js, Express, Firebase Firestore, JWT  
+**APIs:** PSA Card API, Pokemon TCG API
 
-- Node.js (v16 or higher)
-- npm or yarn
-- Git
+## 📝 License
 
-### Installation
+MIT License
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd pokejsonball
-   ```
+---
 
-2. **Install backend dependencies**
-   ```bash
-   cd backend
-   npm install
-   ```
-
-3. **Install frontend dependencies**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. **Configure environment variables**
-
-   Create `backend/.env`:
-   ```env
-   PORT=3001
-   FRONTEND_URL=http://localhost:3000
-   DB_PATH=./data/cards.db
-   PSA_API_KEY=your_psa_api_key_here
-   POKEMON_TCG_API_KEY=your_pokemon_tcg_api_key_here
-   ```
-
-   Create `frontend/.env`:
-   ```env
-   VITE_API_BASE=http://localhost:3001
-   ```
-
-5. **Setup the database**
-   ```bash
-   cd backend
-   npm run db:setup
-   ```
-   This will:
-   - Create the SQLite database
-   - Seed 19 real PSA certified Eeveelution cards
-   - Fetch all card images from PSA API
-
-### Running the Application
-
-#### Development Mode
-
-**Terminal 1 - Backend:**
-```bash
-cd backend
-npm run dev
-```
-Backend will run on http://localhost:3001
-
-**Terminal 2 - Frontend:**
-```bash
-cd frontend
-npm run dev
-```
-Frontend will run on http://localhost:3000
-
-#### Production Mode
-
-**Backend:**
-```bash
-cd backend
-npm start
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm run build
-npm run preview
-```
-
-## API Documentation
-
-### Base URL
-```
-http://localhost:3001/api
-```
-
-### Endpoints
-
-#### Get All Cards
-```http
-GET /api/cards
-```
-Returns all 19 PSA certified cards with basic information.
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "cert_number": "116230496",
-    "card_name": "Eevee Holo",
-    "set_name": "Eeveelution",
-    "psa_grade": 10,
-    "release_year": 2021,
-    "image_url": "https://d1htnxwo4o0jhw.cloudfront.net/cert/...",
-    "last_known_price": null
-  }
-]
-```
-
-#### Get Card Details
-```http
-GET /api/cards/:cert_number
-```
-Returns detailed card information including PSA and Pokemon TCG data.
-
-**Response:**
-```json
-{
-  "cert_number": "116230496",
-  "psa": {
-    "cardName": "Eevee Holo",
-    "setName": "Eeveelution",
-    "imageUrl": "https://...",
-    "raw": [...]
-  },
-  "tcg": {
-    "name": "Eevee",
-    "rarity": "Holo Rare",
-    "set": {...},
-    "tcgplayer": {...}
-  },
-  "image_url": "https://...",
-  "last_known_price": 120.00
-}
-```
-
-#### Image Proxy
-```http
-GET /api/proxy-image?url=<encoded_image_url>
-```
-Proxies external images to bypass CORS restrictions.
-
-#### Get PSA Certs (Cert Gallery)
-```http
-GET /api/certs?ids=comma,separated,certs
-```
-Batch fetch PSA certification data with metadata, images, and sales info. Requires authentication.
-
-**Response:**
-```json
-{
-  "success": true,
-  "count": 2,
-  "certs": [
-    {
-      "cert_number": "116230496",
-      "item_title": "Eevee Holo",
-      "grade": "10",
-      "images": { "left": "https://...", "right": "https://..." },
-      "last_sale": { "price": 120.00, "source": "TCG_API_FALLBACK" },
-      "psa_population": "1234",
-      "psa_pop_higher": "0"
-    }
-  ]
-}
-```
-
-## Database Schema
-
-### Cards Table
-```sql
-CREATE TABLE cards (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  cert_number TEXT UNIQUE NOT NULL,
-  card_name TEXT NOT NULL,
-  set_name TEXT NOT NULL,
-  psa_grade INTEGER,
-  release_year INTEGER,
-  pokemon_tcg_id TEXT,
-  series TEXT,
-  image_url TEXT,
-  last_known_price REAL,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### API Cache Table
-```sql
-CREATE TABLE api_cache (
-  key TEXT PRIMARY KEY,
-  payload TEXT NOT NULL,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## Available Scripts
-
-### Backend Scripts
-
-```bash
-npm start              # Start production server
-npm run dev            # Start development server with nodemon
-npm run db:reset       # Reset database and seed cards
-npm run db:fetch-images # Fetch PSA images for all cards
-npm run db:setup       # Reset DB + fetch images (recommended)
-npm run db:sync-certs  # Sync PSA metadata, images, and sales for all cards
-npm test               # Run API endpoint tests
-npm run test:watch     # Run tests in watch mode
-```
-
-### Frontend Scripts
-
-```bash
-npm run dev            # Start development server
-npm run build          # Build for production
-npm run preview        # Preview production build
-```
-
-## PSA Certified Cards
-
-The marketplace includes 19 real PSA certified Eeveelution cards:
-
-| Cert Number | Card Name | PSA Grade | Year |
-|-------------|-----------|-----------|------|
-| 116230496 | Eevee Holo | 10 | 2021 |
-| 110761155 | Vaporeon Holo | 9 | 2020 |
-| 114363745 | Jolteon Holo | 10 | 2021 |
-| 113699124 | Flareon Holo | 9 | 2021 |
-| 113699123 | Espeon Holo | 8 | 2020 |
-| 118630975 | Umbreon Holo | 10 | 2022 |
-| 111515802 | Leafeon Holo | 9 | 2021 |
-| 111144117 | Glaceon Holo | 10 | 2021 |
-| 113550042 | Sylveon Holo | 8 | 2020 |
-| 112196225 | Eevee Holo | 9 | 2021 |
-| 116676192 | Vaporeon Holo | 10 | 2022 |
-| 116676191 | Jolteon Holo | 9 | 2022 |
-| 106930395 | Flareon Holo | 8 | 2020 |
-| 118761371 | Espeon Holo | 10 | 2022 |
-| 122817911 | Umbreon Holo | 9 | 2023 |
-| 120432127 | Leafeon Holo | 8 | 2022 |
-| 116496112 | Glaceon Holo | 10 | 2021 |
-| 128414325 | Sylveon Holo | 9 | 2023 |
-| 112593899 | Eevee Holo | 8 | 2021 |
-
-## Key Features Implementation
-
-### PSA API Integration
-- Fetches high-resolution card images from PSA's CloudFront CDN
-- Validates card authenticity using PSA certification numbers
-- Implements rate limiting and exponential backoff
-- Caches API responses to minimize external requests
-
-### Image Proxy
-- Solves CORS issues with external image sources
-- Caches images for improved performance
-- Supports all major image formats (JPEG, PNG, WebP)
-
-### Dark Mode
-- Class-based dark mode using Tailwind CSS
-- Persists user preference in localStorage
-- Smooth transitions between themes
-- Maintains readability in both modes
-
-### Responsive Design
-- Mobile-first approach
-- Breakpoints for tablet and desktop
-- Touch-friendly UI elements
-- Optimized images for different screen sizes
-
-## Troubleshooting
-
-### Backend won't start
-- Check if port 3001 is available
-- Verify `.env` file exists with correct values
-- Run `npm install` to ensure all dependencies are installed
-
-### Frontend can't connect to backend
-- Ensure backend is running on port 3001
-- Check `VITE_API_BASE` in `frontend/.env`
-- Verify CORS settings in `backend/src/app.js`
-
-### Images not loading
-- Verify PSA_API_KEY is valid in `backend/.env`
-- Check if image proxy endpoint is working: http://localhost:3001/api/proxy-image
-- Run `npm run db:fetch-images` to re-fetch images
-
-### Database issues
-- Delete `backend/data/cards.db*` files
-- Run `npm run db:setup` to recreate database
-- Check write permissions in `backend/data/` directory
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Acknowledgments
-
-- PSA (Professional Sports Authenticator) for card certification data
-- Pokemon TCG API for card and pricing information
-- Vue.js and Express communities for excellent documentation
-- Tailwind CSS for the utility-first CSS framework
-
-## Contact
-
-For questions or support, please open an issue on GitHub.
+**Need help?** Open an issue on GitHub or check the troubleshooting section above.
