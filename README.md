@@ -156,6 +156,22 @@ pokejsonball/
 **Backend:** Node.js, Express, Firebase Firestore, JWT  
 **APIs:** PSA Card API, Pokemon TCG API
 
+## Contributions
+
+How to contribute?
+Commits should be informative and short.
+We follow <a href='https://www.conventionalcommits.org/en/v1.0.0/' >conventional commits</a> .
+
+For branch naming, please use a prefix with category
+
+Prefix with category: 
+feature/: For new features or enhancements.
+bugfix/: For fixing bugs.
+hotfix/: For urgent bug fixes in production.
+release/: For preparing a new release.
+docs/: For documentation changes.
+chore/: For routine maintenance tasks
+
 ## 📝 License
 
 MIT License
