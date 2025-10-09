@@ -3,69 +3,37 @@
     class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
     <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
 
-      <!-- Main header Section -->
-      <div
-        class="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-8 md:p-12 shadow-2xl">
-        <div class="absolute inset-0 bg-black/10"></div>
-        <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
-          <div class="flex-1 text-white">
-            <div class="inline-block px-3 py-1 bg-white/20 rounded-full text-m font-medium mb-4 backdrop-blur-sm">
-              Singapore's #1 Pokemon Trading card Marketplace
-            </div>
-            <h1 class="text-4xl md:text-5xl font-black leading-tight mb-4">
-              Trade<br />
-              <span class="text-yellow-300"> Pokémon Cards</span><br />
-              With Ease
-            </h1>
-            <p class="text-lg text-white/90 max-w-xl mb-6">
-              Join Singapore's newest & most trusted pokemon community. <br />Live prices, PSA-graded cards, and secure
-              P2P
-              trading guaranteed!
-            </p>
-
-            <div class="flex flex-wrap items-center gap-3 mb-6">
-              <button
-                class="px-6 py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-yellow-300 transition-all transform hover:scale-105 shadow-lg"
-                @click="scrollToFeatured">
-                Start Browsing
-              </button>
-              <button class="">
-                <router-link to="/login"
-                  class="px-6 py-3 bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 rounded-xl font-semibold hover:bg-white/20 transition-all">
-                  Login / Sign Up
-                </router-link>
-              </button>
-            </div>
-
-            <div class="flex items-center gap-10 text-sm text-white/80">
-              <div class="flex items-center gap-2">
-                <TrendingUp class="w-6 h-6" />
-                <span>Live Pricing</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <Star class="w-6 h-6" />
-                <span>PSA Verified</span>
-              </div>
-              <div class="flex items-center gap-2">
-
-              </div>
-            </div>
+      <!-- 3D Pokeball Hero Section -->
+      <section class="relative overflow-hidden bg-[radial-gradient(circle_at_center,_#e5e7eb_0%,_#dfe3e8_30%,_#ffffff_100%)] dark:bg-[radial-gradient(circle_at_center,_#0f172a_0%,_#1e293b_100%)] rounded-3xl p-8 md:p-12 shadow-2xl">
+         
+        <div class="text-center">
+          <!-- 3D Pokeball Canvas -->
+          <div ref="canvasContainer" class="w-full h-80 mb-8 cursor-grab active:cursor-grabbing">
+            <canvas ref="canvas" class="w-full h-full"></canvas>
           </div>
-
-          <div class="w-full md:w-96 grid grid-cols-2 gap-3">
-            <div v-if="loading" class="col-span-2 flex items-center justify-center py-8">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            </div>
-            <div v-else v-for="card in sampleCards.slice(0, 4)" :key="card.id"
-              class="relative rounded-2xl bg-white/95 backdrop-blur-sm p-3 shadow-xl transform hover:scale-105 transition-all">
-              <img :src="card.img" :alt="card.title" class="w-full h-36 object-contain" />
-              <div class="absolute top-2 right-2 px-2 py-1 bg-yellow-400 text-black text-xs font-bold rounded-full">
-                S${{ card.price }}
-              </div>
-            </div>
+          
+          <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
+            <span class="inline-block hover:scale-110 transition-transform text-gray-900 dark:text-white">Catch</span>
+            <span class="inline-block hover:scale-110 transition-transform text-red-500"> 'Em</span>
+            <br />
+            <span class="inline-block hover:scale-110 transition-transform text-yellow-500">All</span>
+            <span class="inline-block hover:scale-110 transition-transform text-gray-900 dark:text-white"> Again</span>
+          </h1>
+          
+          <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Join Singapore's newest & most trusted pokemon community. <br />Live prices, PSA-graded cards, and secure P2P trading guaranteed!
+          </p>
+          
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button @click="scrollToFeatured" class="px-8 py-4 bg-red-500 text-white rounded-full font-bold text-lg hover:bg-red-600 transition-all shadow-xl hover:shadow-2xl hover:scale-105">
+              Begin Adventure →
+            </button>
+            <router-link to="/login" class="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-50 transition-all shadow-lg border-2 border-gray-200">
+              Login / Sign Up
+            </router-link>
           </div>
         </div>
-      </div>
+      </section>
 
       <!-- Search & Filters -->
       <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
@@ -329,7 +297,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
 
 const scrollToFeatured = () => {
@@ -338,6 +306,14 @@ const scrollToFeatured = () => {
     section.scrollIntoView({ behavior: 'smooth' })
   }
 }
+
+// Three.js refs
+const canvas = ref(null);
+const canvasContainer = ref(null);
+
+let scene, camera, renderer, pokeball, isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+let rotationVelocity = { x: 0, y: 0 };
 
 // State management
 const sampleCards = ref([]);
@@ -392,9 +368,209 @@ const loadFeaturedCards = async () => {
   }
 };
 
+// Three.js initialization
+function initThreeJS() {
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  script.onload = () => {
+    setupScene();
+  };
+  document.head.appendChild(script);
+}
+
+function setupScene() {
+  const THREE = window.THREE;
+  
+  // Scene
+  scene = new THREE.Scene();
+  
+  // Camera
+  const container = canvasContainer.value;
+  camera = new THREE.PerspectiveCamera(
+    45,
+    container.clientWidth / container.clientHeight,
+    0.1,
+    1000
+  );
+  camera.position.z = 5;
+  
+  // Renderer
+  renderer = new THREE.WebGLRenderer({
+    canvas: canvas.value,
+    antialias: true,
+    alpha: true
+  });
+  renderer.setClearColor(0x000000, 0);
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  
+  // Lights
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+  
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(5, 5, 5);
+  scene.add(directionalLight);
+  
+  const pointLight = new THREE.PointLight(0xffffff, 0.5);
+  pointLight.position.set(-5, -5, 5);
+  scene.add(pointLight);
+  
+  // Create Pokeball
+  pokeball = new THREE.Group();
+  
+  // Top half (red)
+  const topGeometry = new THREE.SphereGeometry(1, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+  const topMaterial = new THREE.MeshPhongMaterial({
+    color: 0xef4444,
+    shininess: 100
+  });
+  const topHalf = new THREE.Mesh(topGeometry, topMaterial);
+  pokeball.add(topHalf);
+  
+  // Bottom half (white)
+  const bottomGeometry = new THREE.SphereGeometry(1, 32, 32, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+  const bottomMaterial = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    shininess: 100
+  });
+  const bottomHalf = new THREE.Mesh(bottomGeometry, bottomMaterial);
+  pokeball.add(bottomHalf);
+  
+  // Black band
+  const bandGeometry = new THREE.TorusGeometry(1, 0.08, 16, 100);
+  const bandMaterial = new THREE.MeshPhongMaterial({
+    color: 0x1f2937,
+    shininess: 100
+  });
+  const band = new THREE.Mesh(bandGeometry, bandMaterial);
+  band.rotation.x = Math.PI / 2;
+  pokeball.add(band);
+  
+  // Center button
+  const buttonGeometry = new THREE.CircleGeometry(0.25, 32);
+  const buttonMaterial = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    shininess: 100
+  });
+  const button = new THREE.Mesh(buttonGeometry, buttonMaterial);
+  button.position.z = 1.01;
+  pokeball.add(button);
+  
+  // Button border
+  const buttonBorderGeometry = new THREE.RingGeometry(0.25, 0.32, 32);
+  const buttonBorderMaterial = new THREE.MeshPhongMaterial({
+    color: 0x1f2937,
+    shininess: 100
+  });
+  const buttonBorder = new THREE.Mesh(buttonBorderGeometry, buttonBorderMaterial);
+  buttonBorder.position.z = 1.02;
+  pokeball.add(buttonBorder);
+  
+  scene.add(pokeball);
+  
+  // Mouse events
+  canvas.value.addEventListener('mousedown', onMouseDown);
+  canvas.value.addEventListener('mousemove', onMouseMove);
+  canvas.value.addEventListener('mouseup', onMouseUp);
+  canvas.value.addEventListener('mouseleave', onMouseUp);
+  
+  // Touch events
+  canvas.value.addEventListener('touchstart', onTouchStart);
+  canvas.value.addEventListener('touchmove', onTouchMove);
+  canvas.value.addEventListener('touchend', onTouchEnd);
+}
+
+function onMouseDown(e) {
+  isDragging = true;
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+}
+
+function onMouseMove(e) {
+  if (!isDragging || !pokeball) return;
+  
+  const deltaX = e.clientX - previousMousePosition.x;
+  const deltaY = e.clientY - previousMousePosition.y;
+  
+  rotationVelocity.x = deltaY * 0.01;
+  rotationVelocity.y = deltaX * 0.01;
+  
+  pokeball.rotation.x += rotationVelocity.x;
+  pokeball.rotation.y += rotationVelocity.y;
+  
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+}
+
+function onMouseUp() {
+  isDragging = false;
+}
+
+function onTouchStart(e) {
+  isDragging = true;
+  const touch = e.touches[0];
+  previousMousePosition = { x: touch.clientX, y: touch.clientY };
+}
+
+function onTouchMove(e) {
+  if (!isDragging || !pokeball) return;
+  
+  const touch = e.touches[0];
+  const deltaX = touch.clientX - previousMousePosition.x;
+  const deltaY = touch.clientY - previousMousePosition.y;
+  
+  rotationVelocity.x = deltaY * 0.01;
+  rotationVelocity.y = deltaX * 0.01;
+  
+  pokeball.rotation.x += rotationVelocity.x;
+  pokeball.rotation.y += rotationVelocity.y;
+  
+  previousMousePosition = { x: touch.clientX, y: touch.clientY };
+}
+
+function onTouchEnd() {
+  isDragging = false;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  
+  if (pokeball && !isDragging) {
+    // Auto-rotate slowly
+    pokeball.rotation.y += 0.005;
+    
+    // Apply damping to rotation velocity
+    rotationVelocity.x *= 0.95;
+    rotationVelocity.y *= 0.95;
+  }
+  
+  if (renderer && scene && camera) {
+    renderer.render(scene, camera);
+  }
+}
+
+function onWindowResize() {
+  if (!camera || !renderer || !canvasContainer.value) return;
+  
+  const container = canvasContainer.value;
+  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(container.clientWidth, container.clientHeight);
+}
+
 // Load cards on component mount
 onMounted(() => {
   loadFeaturedCards();
+  initThreeJS();
+  animate();
+  window.addEventListener('resize', onWindowResize);
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+  window.removeEventListener('resize', onWindowResize);
+  if (renderer) {
+    renderer.dispose();
+  }
 });
 
 function toggleWatchlist(id) {
