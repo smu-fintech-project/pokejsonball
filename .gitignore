@@ -50,7 +50,6 @@ Thumbs.db
 *.tmp
 .cache/
 
-# Optional: Uncomment if you want to ignore package-lock files
-# backend/package-lock.json
-# frontend/package-lock.json
-# yarn.lock
+backend/package-lock.json
+frontend/package-lock.json
+yarn.lock
