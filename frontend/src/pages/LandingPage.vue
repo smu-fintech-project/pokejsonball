@@ -173,8 +173,13 @@
 
               <div class="flex items-center justify-between pt-3 border-t dark:border-slate-700">
                 <div>
-                  <p class="text-2xl font-black text-indigo-600">S${{ card.price }}</p>
-                  <p class="text-xs text-gray-500">Last: S${{ card.lastSold }}</p>
+                  <p class="text-2xl font-black text-indigo-600">
+                    <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+                    {{ card.price }}
+                  </p>
+                  <p class="text-xs text-gray-500">
+                    Last: <img :src="jsbImg" alt="JSB" class="inline h-[17px] w-[17px] align-[-2px] mr-1" />{{ card.lastSold }}
+                  </p>
                 </div>
                 <button @click="openCardModal(card)"
                   class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all">
@@ -225,8 +230,13 @@
               <!-- Price Section -->
               <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border-2 border-green-200 dark:border-green-800">
                 <p class="text-sm text-gray-600 dark:text-slate-400 mb-1">Current Price</p>
-                <p class="text-4xl font-black text-green-600 mb-2">S${{ selectedCard.price }}</p>
-                <p class="text-sm text-gray-500">Last sold: S${{ selectedCard.lastSold }}</p>
+                <p class="text-4xl font-black text-green-600 mb-2">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[29px] w-[29px] align-[-3px] mr-2" />
+                  {{ selectedCard.price }}
+                </p>
+                <p class="text-sm text-gray-500">
+                  Last sold: <img :src="jsbImg" alt="JSB" class="inline h-[17px] w-[17px] align-[-2px] mr-1" />{{ selectedCard.lastSold }}
+                </p>
               </div>
 
               <!-- TODO: REPLACE WITH REAL API DATA FROM POKEMON TCG API -->
@@ -281,7 +291,7 @@
               <div class="flex gap-3 pt-4">
                 <button @click="handleBuyCard" 
                   class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg transform hover:scale-105">
-                  Buy Now - S${{ selectedCard.price }}
+                  Buy Now - <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
                 </button>
                 <button @click="handleContactSeller"
                   class="px-6 py-4 bg-white dark:bg-slate-700 border-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 rounded-xl font-semibold hover:bg-indigo-50 dark:hover:bg-slate-600 transition-all">
@@ -299,6 +309,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
+import jsbImg from '../../images/JSB_image.png';
 
 const scrollToFeatured = () => {
   const section = document.getElementById('featured-cards')
@@ -344,15 +355,15 @@ const loadFeaturedCards = async () => {
     if (cards.length > 0) {
       console.log(`Loaded ${cards.length} cards from backend database`);
       
-      // Map database cards to display format
+      // Map marketplace payload to UI fields using new listings-based API
       sampleCards.value = cards.map(c => ({
         id: c.cert_number,
-        img: c.image_url, // PSA certified card image
-        title: c.card_name,
-        price: c.last_sale_price || '0.00',
-        lastSold: c.last_sale_price || '0.00',
-        rarity: `PSA ${c.psa_grade}`,
-        set: c.set_name || 'Unknown Set',
+        img: c.image_url,
+        title: c.card_name || c.psa?.cardName || 'Unknown Card',
+        price: (c.listing_price ?? 'unlisted'),
+        lastSold: (c.last_known_price ?? '0.00'),
+        rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
+        set: c?.psa?.setName || c.set_name || 'Unknown Set',
         sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',
         sellerId: c?.sellerId || null,
         sellerRating: '156'

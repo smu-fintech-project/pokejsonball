@@ -48,25 +48,19 @@ export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } =
     console.warn('Marketplace cache read failed:', e.message || e);
   }
 
-  // Query all users that have cards array - simple approach: get all users
-  const usersSnapshot = await db.collection('users').get();
-
+  // Query listings via collectionGroup to aggregate across users/{userId}/listings
   const entries = [];
-
-  usersSnapshot.forEach(doc => {
-    const u = doc.data();
-    if (!u || !Array.isArray(u.cards) || u.cards.length === 0) return;
-    const email = u.email || null;
-    if (excludeEmail && email === excludeEmail) return; // skip own cards
-
-    // For each cert in user's cards, push an entry
-    u.cards.forEach(cert => {
-      if (!cert) return;
-      entries.push({
-        cert_number: String(cert),
-        sellerId: doc.id,
-        sellerEmail: email,
-      });
+  const listingsSnap = await db.collectionGroup('listings').get();
+  listingsSnap.forEach(doc => {
+    const l = doc.data();
+    if (!l) return;
+    if (l.status && l.status !== 'active') return; // only active listings
+    if (excludeEmail && l.sellerEmail && l.sellerEmail === excludeEmail) return; // exclude own
+    entries.push({
+      cert_number: String(l.cert_number),
+      sellerId: l.sellerId,
+      sellerEmail: l.sellerEmail || null,
+      listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
     });
   });
 
