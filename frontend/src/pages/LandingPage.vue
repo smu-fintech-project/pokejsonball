@@ -16,8 +16,8 @@
             <span class="inline-block hover:scale-110 transition-transform text-gray-900 dark:text-white">Catch</span>
             <span class="inline-block hover:scale-110 transition-transform text-red-500"> 'Em</span>
             <br />
-            <span class="inline-block hover:scale-110 transition-transform text-yellow-500">All</span>
-            <span class="inline-block hover:scale-110 transition-transform text-gray-900 dark:text-white"> Again</span>
+            <span class="inline-block hover:scale-110 transition-transform text-yellow-500 mr-5">All</span>
+            <span class="inline-block hover:scale-110 transition-transform text-gray-900 dark:text-white">Again</span>
           </h1>
           
           <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
@@ -35,79 +35,147 @@
         </div>
       </section>
 
-      <!-- Search & Filters -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
-        <div class="flex flex-col md:flex-row gap-4">
-          <div class="flex-1 relative">
-            <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input type="text" placeholder="Search for Pikachu, Charizard..." v-model="searchTerm"
-              class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900" />
-          </div>
-          <button @click="showFilters = !showFilters"
-            class="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-all">
-            <Filter class="w-5 h-5" />
-            Filters
-          </button>
-        </div>
+<!-- Main Search & Filter Bar -->
+<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-slate-700">
+  <!-- Search Row -->
+  <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+    <!-- Search Input -->
+    <div class="flex-1 relative">
+      <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <input
+        type="text"
+        placeholder="Search cards..."
+        v-model="searchTerm"
+        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm"
+      />
+    </div>
 
-        <div v-if="showFilters" class="mt-6 pt-6 border-t dark:border-slate-700 grid md:grid-cols-2 gap-6">
-          <div>
-            <div>
-              <label class="block text-m font-semibold mb-3">Price Range</label>
-              <div class="flex gap-2 items-center">
-                <input type="number" min="0" max="1000" v-model.number="priceRange[0]"
-                  class="w-20 px-2 py-1 border rounded" />
-                <span>-</span>
-                <input type="number" min="0" max="1000" v-model.number="priceRange[1]"
-                  class="w-20 px-2 py-1 border rounded" />
-              </div>
-              <p class="text-sm text-gray-500 mt-1">Selected: S${{ priceRange[0] }} - S${{ priceRange[1] }}</p>
-            </div>
-          </div>
-          <div>
-            <label class="block text-m font-semibold mb-3 mr-10">PSA Grade</label>
-            <div class="relative">
-              <select v-model="selectedGrade"
-                class="w-full px-3 py-3 pr-10 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900 appearance-none">
-                <option value="all">All Grades</option>
-                <option value="PSA 10">PSA 10</option>
-                <option value="PSA 9">PSA 9</option>
-                <option value="PSA 8">PSA 8</option>
-              </select>
+    <!-- Filter Toggle -->
+    <button @click="showFilters = !showFilters"
+      :class="[
+        'flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all whitespace-nowrap',
+        showFilters
+          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+          : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600'
+      ]"
+    >
+      <Filter class="w-4 h-4" />
+      <span>Filters</span>
+      <svg :class="['w-4 h-4 transition-transform', showFilters ? 'rotate-180' : '']"
+        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+  </div>
 
-              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
+  
+
+  <!-- Filters Panel -->
+  <div v-if="showFilters" class="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+      <!-- Sort Dropdown -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Sort By</label>
+        <div class="relative">
+          <select
+            v-model="sortBy"
+            class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white text-sm appearance-none cursor-pointer focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 pr-8 transition-all"
+          >
+            <option value="name-asc">Name: A-Z</option>
+            <option value="name-desc">Name: Z-A</option>
+            <option value="price-low">Price: Low→High</option>
+            <option value="price-high">Price: High→Low</option>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+          </select>
+          <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
 
- <!-- Quick Filters -->
-<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
-  <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-    <Star class="w-5 h-5 text-yellow-500" />
-    Quick Filters
-  </h3>
-  <div class="flex gap-2 flex-wrap">
-    <button 
-      v-for="(filter, idx) in quickFilters" 
-      :key="idx" 
-      @click="filter.action"
-      :class="[
-        'px-4 py-2 border-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
-        filterStates[filter.label] 
-          ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg' 
-          : 'border-indigo-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:border-indigo-400 text-gray-700 dark:text-gray-300'
-      ]"
-    >
-      <CheckCircle v-if="filterStates[filter.label]" class="w-4 h-4" />
-      {{ filter.label }}
-    </button>
+      
+
+      <!-- Price Range -->
+      <div class="ml-4">
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Price Range ($)</label>
+        <div class="flex gap-2 items-center"> 
+          <input type="number" min="0" max="1000" v-model.number="priceRange[0]"
+            class="w-16 px-2 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" />
+          <span class="text-gray-400">-</span>
+          <input type="number" min="0" max="1000" v-model.number="priceRange[1]"
+            class="w-16 px-2 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" />
+        </div>
+      </div>
+
+      <!-- PSA Grade -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">PSA Grade</label>
+        <div class="relative">
+          <select v-model="selectedGrade"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none pr-8 transition-all">
+            <option value="all">All</option>
+            <option value="PSA 10">PSA 10</option>
+            <option value="PSA 9">PSA 9</option>
+            <option value="PSA 8">PSA 8</option>
+            <option value="PSA 7">PSA 7</option>
+            <option value="PSA 6">PSA 6</option>
+            <option value="PSA 5">PSA 5</option>
+            <option value="PSA 4">PSA 4</option>
+            <option value="PSA 3">PSA 3</option>
+            <option value="PSA 2">PSA 2</option>
+            <option value="PSA 1">PSA 1</option>
+            
+          </select>
+          <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Rarity & Clear Filters Row -->
+      <div class="flex gap-3 items-end">
+        <div class="flex-1">
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Rarity</label>
+          <div class="relative">
+            <select v-model="selectedRarity"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none pr-8 transition-all">
+              <option value="all">All</option>
+              <option value="Holo Rare">Holo Rare</option>
+              <option value="Rare">Rare</option>
+              <option value="Uncommon">Uncommon</option>
+            </select>
+            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Clear Filters Button -->
+        <button v-if="searchTerm || selectedGrade !== 'all' || selectedRarity !== 'all' || priceRange[0] > 0 || priceRange[1] < 1000 || sortBy !== 'name-asc'" @click="resetAllFilters"
+          class="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
+          Clear All
+        </button>
+      </div>
+    </div>
   </div>
 </div>
-      
+
+<div class="flex items-center gap-3 mr-2 justify-self-end">
+  
+  <button @click="showOwnCards = !showOwnCards"
+    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+    :class="showOwnCards ? 'bg-green-600' : 'bg-gray-300 dark:bg-slate-600'">
+    <span class="sr-only">Toggle owned cards</span>
+    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+      :class="showOwnCards ? 'translate-x-6' : 'translate-x-1'" />
+  </button>
+    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Hide Owned</span>
+</div>
+
       <!-- Watchlist feature -->
       <div v-if="watchlist.length > 0"
         class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-6 shadow-lg border-2 border-red-200 dark:border-red-800">
@@ -122,11 +190,11 @@
 
       <!-- Featured Cards -->
       <div>
-        <div class="flex items-center justify-between mb-6">
+        <div class=" -ml-6 flex items-center justify-between mb-6">
           <h2 id="featured-cards" class="text-2xl font-bold flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"></svg>
             Featured PSA-Certified Cards
-            <span class="text-sm font-normal text-gray-500">({{ filteredCards.length }} cards)</span>
+            <span class="text-m font-normal text-gray-500">Total ({{ filteredCards.length }} cards)</span>
           </h2>
         </div>
 
@@ -297,6 +365,10 @@
 </template>
 
 <script setup>
+
+const sortBy = ref('name-asc');
+const selectedRarity = ref('all');
+
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
 
@@ -368,6 +440,17 @@ const loadFeaturedCards = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const showOwnCards = ref(false);
+// ADD THIS NEW FUNCTION for resetting all filters:
+const resetAllFilters = () => {
+  searchTerm.value = '';
+  priceRange.value = [0, 1000];
+  selectedGrade.value = 'all';
+  selectedRarity.value = 'all';
+  sortBy.value = 'name-asc';
+  showFilters.value = false;
 };
 
 // Three.js initialization
@@ -629,14 +712,50 @@ function handleContactSeller() {
   // Example: router.push({ name: 'messages', params: { sellerId: selectedCard.value.sellerId } });
 }
 
-const filteredCards = computed(() =>
-  sampleCards.value.filter(card => {
+const filteredCards = computed(() => {
+  let cards = sampleCards.value.filter(card => {
     const matchesSearch = card.title.toLowerCase().includes(searchTerm.value.toLowerCase());
     const matchesPrice = parseFloat(card.price) >= priceRange.value[0] && parseFloat(card.price) <= priceRange.value[1];
     const matchesGrade = selectedGrade.value === 'all' || card.rarity.includes(selectedGrade.value);
-    return matchesSearch && matchesPrice && matchesGrade;
-  })
-);
+    const matchesRarity = selectedRarity.value === 'all' || card.rarity.includes(selectedRarity.value);
+    return matchesSearch && matchesPrice && matchesGrade && matchesRarity;
+  });
+
+  // Apply sorting
+  switch(sortBy.value) {
+    case 'name-desc':
+      cards.sort((a, b) => b.title.localeCompare(a.title));
+      break;
+    case 'price-low':
+      cards.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+      break;
+    case 'price-high':
+      cards.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+      break;
+    case 'newest':
+      // Assuming newer cards are at the end of the array
+      cards.reverse();
+      break;
+    case 'oldest':
+      // Keep original order (oldest first)
+      break;
+    case 'name-asc':
+    default:
+      cards.sort((a, b) => a.title.localeCompare(b.title));
+    
+  }
+    // Sort watchlisted cards to the top
+  cards.sort((a, b) => {
+    const aWatchlisted = watchlist.value.includes(a.id);
+    const bWatchlisted = watchlist.value.includes(b.id);
+    if (aWatchlisted && !bWatchlisted) return -1;
+    if (!aWatchlisted && bWatchlisted) return 1;
+    return 0;
+  });
+
+  return cards;
+});
+
 
 const activeQuickFilter = ref('')
 
