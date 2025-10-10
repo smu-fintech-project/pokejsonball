@@ -68,7 +68,7 @@ async function onSubmit() {
       window.dispatchEvent(new Event('storage')) // look for user login
       
       // Navigate to portfolio
-      router.push('/portfolio');
+      router.push('/profile');
     } else {
       // Handle error
       error.value = data.message || 'Login failed';

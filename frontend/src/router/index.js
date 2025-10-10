@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LandingPage from '../pages/LandingPage.vue';
 import Login from '../pages/Login.vue';
 import SignUp from '../pages/SignUp.vue';
-const Portfolio = () => import('../pages/Portfolio.vue');
+const Portfolio = () => import('../pages/Profile.vue');
 const Community = () => import('../pages/Community.vue');
 const About = () => import('../pages/About.vue');
 const CardDetail = () => import('../pages/CardDetail.vue');
@@ -10,7 +10,8 @@ const Certs = () => import('../pages/Certs.vue');
 
 const routes = [
   { path: '/', component: LandingPage, meta: { title: 'Marketplace' } },
-  { path: '/portfolio', component: Portfolio, meta: { title: 'Portfolio' } },
+  { path: '/profile', component: Portfolio, meta: { title: 'Profile' } },
+  { path: '/portfolio', redirect: '/profile' },
   { path: '/community', component: Community, meta: { title: 'Community' } },
   { path: '/about', component: About, meta: { title: 'About' } },
   { path: '/certs', component: Certs, meta: { title: 'PSA Cert Gallery' } },
