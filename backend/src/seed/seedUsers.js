@@ -78,7 +78,19 @@ async function seedUsers() {
       name: u.name,
       password: hashed,
       createdAt: new Date().toISOString(),
+      cards: userCerts,
+      wallet: {
+        balance: 100,
+        currency: 'JSB'
+      }
+    
+
+      
+
     };
+
+
+
 
     const ref = await db.collection('users').add(userDoc);
     console.log(`Created user ${u.email} (id=${ref.id}) with certs: ${JSON.stringify(userCerts)}`);
@@ -105,10 +117,60 @@ async function seedUsers() {
       });
     }
     console.log(`  Seeded ${userCerts.length} listings for user ${u.email}`);
+    
+    await createInitialTransactions(db, ref.id, u.name);
+    
   }
 
   console.log('✅ Seed users complete');
 }
+
+// User Listing Harcoded
+async function createUserCards(db, userId, certNumbers, userName) {
+  const cardsRef = db.collection('users').doc(userId).collection('cards');
+
+  for (const certNumber of certNumbers) {
+    const cardDoc = {
+      cert_number: certNumber,
+      PSA_price: 0,
+      last_sold_price: 0
+    };
+
+    await cardsRef.add(cardDoc);
+  }
+
+  console.log(`  🃏 Created ${certNumbers.length} cards for ${userName}`);
+}
+// Hardcoded transaction History
+async function createInitialTransactions(db, userId, userName) {
+  const transactionsRef = db.collection('users').doc(userId).collection('transactions');
+
+  // Transaction 1: Initial deposit
+  const tx1 = {
+    type: 'deposit',
+    amount: 100,
+    balanceAfter: 100,
+    description: 'Welcome bonus - Initial JSB credits',
+    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    status: 'completed'
+  };
+
+  // Transaction 2: Card purchase
+  const tx2 = {
+    type: 'purchase',
+    amount: 25,
+    balanceAfter: 75,
+    description: 'Purchased Charizard PSA 10 listing',
+    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    status: 'completed'
+  };
+
+  await transactionsRef.add(tx1);
+  await transactionsRef.add(tx2);
+
+  console.log(`  💳 Created 2 transactions for ${userName}`);
+}
+
 
 async function syncCerts(certNumbers) {
   console.log(`\n🔄 Syncing ${certNumbers.length} certs...\n`);
