@@ -26,6 +26,7 @@
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/certs') }">Cert Gallery</router-link>
           <router-link to="/community" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/community') }">Community</router-link>
+            
           <router-link to="/about" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/about') }">About</router-link>
         </div>
@@ -38,6 +39,9 @@
               <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span>
               <span class="text-gray-700 dark:text-gray-200 text-sm truncate max-w-[160px]">{{ userEmail }}</span>
             </div>
+              <router-link to="/wallet" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+              :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/wallet') }">Wallet</router-link>
+
             <button @click="logout"
               class="px-3 py-2 rounded-lg bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-200 dark:hover:bg-slate-700">
               Sign out

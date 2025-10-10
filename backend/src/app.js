@@ -29,6 +29,7 @@ import userRoutes from "./routes/users.js";
 import cardRoutes from "./routes/cardsFirebase.js";
 import cardsV2Routes from "./routes/cardsV2.js";
 import certsRoutes from "./routes/certs.js";
+import walletRoute from "./routes/wallet.js"
 
 const app = express();
 
@@ -100,6 +101,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
 app.use("/api/certs", certsRoutes); // PSA Cert Gallery API
+app.use("/api/wallet",walletRoute);
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running ✅" });
