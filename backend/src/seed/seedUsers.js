@@ -16,6 +16,29 @@ import { upsertCard } from '../db.js';
 async function seedUsers() {
   const db = getFirestore();
 
+  // Hardcoded listing prices per cert for demo. Keys MUST be strings.
+  const PRICES_BY_CERT = {
+    '114363745': 120.0,
+    '116676192': 95.0,
+    '106930395': 210.0,
+    '116676191': 88.0,
+    '118761371': 350.0,
+    '113699124': 140.0,
+    '118630975': 260.0,
+    '113699123': 115.0,
+    '111144117': 99.0,
+    '120432127': 175.0,
+    '128414325': 225.0,
+    '112196225': 80.0,
+    '122817911': 300.0,
+    '116230496': 110.0,
+    '116496112': 130.0,
+    '113550042': 145.0,
+    '112593899': 160.0,
+    '111515802': 190.0,
+    '110761155': 105.0,
+  };
+
   const certs = [
     '114363745', '116676192', '106930395', '116676191',
     '118761371', '113699124', '118630975', '113699123',
@@ -71,6 +94,29 @@ async function seedUsers() {
 
     const ref = await db.collection('users').add(userDoc);
     console.log(`Created user ${u.email} (id=${ref.id}) with certs: ${JSON.stringify(userCerts)}`);
+
+    // Reset and seed listings subcollection for this user
+    const listingsCol = ref.collection('listings');
+    const existingListings = await listingsCol.get();
+    if (!existingListings.empty) {
+      const batch = db.batch();
+      existingListings.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
+
+    for (const cert of userCerts) {
+      const price = PRICES_BY_CERT[String(cert)] ?? 0;
+      await listingsCol.doc(String(cert)).set({
+        cert_number: String(cert),
+        listing_price: price,
+        sellerEmail: u.email,
+        sellerId: ref.id,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    }
+    console.log(`  Seeded ${userCerts.length} listings for user ${u.email}`);
     
     await createInitialTransactions(db, ref.id, u.name);
     
@@ -177,13 +223,13 @@ async function main() {
   // 1️⃣ Seed users
   await seedUsers();
 
-  // 2️⃣ Collect all certs from users
+  // 2️⃣ Collect all certs from listings collectionGroup
   const db = getFirestore();
-  const snap = await db.collection('users').get();
+  const listingsSnap = await db.collectionGroup('listings').get();
   const certsToSync = new Set();
-  snap.forEach(doc => {
-    const data = doc.data();
-    if (Array.isArray(data.cards)) data.cards.forEach(c => certsToSync.add(c));
+  listingsSnap.forEach(doc => {
+    const l = doc.data();
+    if (l?.cert_number) certsToSync.add(String(l.cert_number));
   });
 
   // 3️⃣ Sync certs

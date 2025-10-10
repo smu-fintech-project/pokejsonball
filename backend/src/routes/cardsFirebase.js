@@ -37,6 +37,7 @@ router.get('/', async (req, res) => {
             sellerId: entry.sellerId,
             card_name: cached.card_name || cached.psa?.cardName || null,
             image_url: cached.image_url || (cached.images && cached.images.displayImage) || null,
+            listing_price: entry.listing_price ?? null,
             last_known_price: cached.last_known_price || null,
             psa: cached.psa || null,
             source: 'cache'
@@ -59,6 +60,7 @@ router.get('/', async (req, res) => {
             sellerId: entry.sellerId,
             card_name: d.card_name || null,
             image_url: d.image_url || null,
+            listing_price: entry.listing_price ?? null,
             last_known_price: d.last_known_price || null,
             psa: {
               cardName: d.card_name,
@@ -76,6 +78,7 @@ router.get('/', async (req, res) => {
           sellerId: entry.sellerId,
           card_name: null,
           image_url: null,
+          listing_price: entry.listing_price ?? null,
           last_known_price: null,
           psa: null,
           source: 'minimal'
@@ -138,25 +141,23 @@ router.get('/:cert', async (req, res) => {
       last_known_price: card.last_known_price,
     };
 
-    // Try to discover seller (user who has this cert in their `cards` array)
+    // Discover seller via listings subcollection (preferred)
     try {
-      // dynamic import avoids circular import issues and uses your existing firebase helper
       const { getFirestore } = await import('../services/firebase.js');
       const db = getFirestore();
 
-      const sellersSnap = await db
-        .collection('users')
-        .where('cards', 'array-contains', cert)
+      const listingSnap = await db
+        .collectionGroup('listings')
+        .where('cert_number', '==', cert)
+        .where('status', '==', 'active')
         .limit(1)
         .get();
 
-      if (!sellersSnap.empty) {
-        const sellerDoc = sellersSnap.docs[0];
-        const sellerData = sellerDoc.data();
-        payload.sellerEmail = sellerData.email || null;
-        payload.sellerId = sellerDoc.id;
+      if (!listingSnap.empty) {
+        const listing = listingSnap.docs[0].data();
+        payload.sellerEmail = listing.sellerEmail || null;
+        payload.sellerId = listing.sellerId || null;
       } else {
-        // no seller found (may be seed-less or cards stored elsewhere)
         payload.sellerEmail = null;
         payload.sellerId = null;
       }
