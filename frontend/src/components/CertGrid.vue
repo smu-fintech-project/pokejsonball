@@ -112,7 +112,7 @@ const fetchCerts = async () => {
     }
   } catch (err) {
     console.error('Failed to fetch certs:', err);
-    error.value = err.message || 'An unexpected error occurred';
+    error.value = err.message || 'The An unexpected error occurred';
   } finally {
     loading.value = false;
   }
