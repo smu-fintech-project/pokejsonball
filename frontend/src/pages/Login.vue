@@ -25,6 +25,7 @@
         <button type="button" class="flex-1 py-2 border rounded-lg">Apple</button>
       </div>
     </form>
+    <p v-if="error" class="text-sm text-red-500 mt-2">{{ error }}</p>
   </div>
 </template>
 
@@ -34,7 +35,7 @@ import { useRouter } from 'vue-router';
 const email = ref('');
 const password = ref('');
 const router = useRouter();
-
+const error = ref(''); 
 
  
 
@@ -64,9 +65,10 @@ async function onSubmit() {
       // Store token (like storing auth cookie in ASP.NET)
       localStorage.setItem('token', data.token);
       localStorage.setItem('userEmail', email.value);
+      window.dispatchEvent(new Event('storage')) // look for user login
       
-      // Navigate to profile
-      router.push('/profile');
+      // Navigate to portfolio
+      router.push('/portfolio');
     } else {
       // Handle error
       error.value = data.message || 'Login failed';

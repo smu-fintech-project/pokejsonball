@@ -27,6 +27,65 @@ export async function getAllCards(limit = 200) {
 }
 
 /**
+ * Get marketplace cards aggregated from user documents.
+ * Each user doc may have a `cards` array of cert numbers.
+ * Returns array of { cert_number, sellerId, sellerEmail } (up to `limit`).
+ * Excludes any entries where sellerEmail === excludeEmail.
+ */
+export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } = {}) {
+  const db = getFirestore();
+
+  // Build a cache key to avoid scanning users on every request (short TTL)
+  const cacheKey = `marketplace:exclude:${excludeEmail || 'none'}:limit:${limit}`;
+  try {
+    const cached = await getCache(cacheKey, 30); // 30 seconds cache
+    if (cached) {
+      console.log(`Marketplace cache hit (exclude=${excludeEmail}) -> ${cached.length} items`);
+      return cached;
+    }
+  } catch (e) {
+    // cache read failure should not block listing
+    console.warn('Marketplace cache read failed:', e.message || e);
+  }
+
+  // Query all users that have cards array - simple approach: get all users
+  const usersSnapshot = await db.collection('users').get();
+
+  const entries = [];
+
+  usersSnapshot.forEach(doc => {
+    const u = doc.data();
+    if (!u || !Array.isArray(u.cards) || u.cards.length === 0) return;
+    const email = u.email || null;
+    if (excludeEmail && email === excludeEmail) return; // skip own cards
+
+    // For each cert in user's cards, push an entry
+    u.cards.forEach(cert => {
+      if (!cert) return;
+      entries.push({
+        cert_number: String(cert),
+        sellerId: doc.id,
+        sellerEmail: email,
+      });
+    });
+  });
+
+  // Optionally limit items (keep first N)
+  const limited = entries.slice(0, limit);
+
+  // Store in cache for short TTL
+  try {
+    await setCache(cacheKey, limited);
+  } catch (e) {
+    console.warn('Marketplace cache write failed:', e.message || e);
+  }
+
+  console.log(`Marketplace assembled: ${limited.length} cards (exclude=${excludeEmail})`);
+  return limited;
+}
+
+
+/**
  * Get card by cert number
  */
 export async function getCardByCert(certNumber) {

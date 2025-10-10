@@ -4,23 +4,98 @@
  */
 
 import express from 'express';
-import { getAllCards, getCardByCert, upsertCard, getCache, setCache } from '../services/firebaseDb.js';
+import { getAllCards, getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards } from '../services/firebaseDb.js';
+
+
 
 const router = express.Router();
 
-// GET /api/cards - list cards
+// GET /api/cards - list marketplace cards (excluding caller)
 router.get('/', async (req, res) => {
-  console.log('\n📚 Listing all cards from Firebase...');
-  
+  console.log('\n📚 Listing marketplace cards (aggregated from users) ...');
+
+
   try {
-    const cards = await getAllCards(200);
-    console.log(`✅ Found ${cards.length} cards`);
-    res.json(cards);
+    // Try to detect caller email from auth middleware (if you later attach auth)
+    // Allow override via ?excludeEmail= for testing
+    const excludeEmail = req.query.excludeEmail || (req.user && req.user.email) || null;
+
+    // Get simple marketplace entries: { cert_number, sellerId, sellerEmail }
+    const entries = await getMarketplaceCards({ excludeEmail, limit: 200 });
+
+    // Now optionally enrich entries with cached card payload (avoid heavy external calls)
+    // We try to read the cached payload from api_cache (if you used setCache with 'card:cert')
+    const enrichedPromises = entries.map(async (entry) => {
+      try {
+        const cacheKey = `card:${entry.cert_number}`;
+        const cached = await getCache(cacheKey, 3600); // 1 hour TTL for listing
+        if (cached) {
+          return {
+            cert_number: entry.cert_number,
+            sellerName: entry.sellerEmail, 
+            sellerEmail: entry.sellerEmail,
+            sellerId: entry.sellerId,
+            card_name: cached.card_name || cached.psa?.cardName || null,
+            image_url: cached.image_url || (cached.images && cached.images.displayImage) || null,
+            last_known_price: cached.last_known_price || null,
+            psa: cached.psa || null,
+            source: 'cache'
+          };
+        }
+
+        // If no cache, try to read a potential cards collection doc (if you previously stored card docs)
+        const doc = await (await import('../services/firebase.js')).getFirestore()
+                    .collection('cards')
+                    .where('cert_number', '==', entry.cert_number)
+                    .limit(1)
+                    .get();
+
+        if (!doc.empty) {
+          const d = doc.docs[0].data();
+          return {
+            cert_number: entry.cert_number,
+            sellerName: entry.sellerEmail, 
+            sellerEmail: entry.sellerEmail,
+            sellerId: entry.sellerId,
+            card_name: d.card_name || null,
+            image_url: d.image_url || null,
+            last_known_price: d.last_known_price || null,
+            psa: {
+              cardName: d.card_name,
+              grade: d.psa_grade
+            },
+            source: 'db'
+          };
+        }
+
+        // Minimal placeholder if no cache and no cards doc
+        return {
+          cert_number: entry.cert_number,
+          sellerName: entry.sellerEmail, 
+          sellerEmail: entry.sellerEmail,
+          sellerId: entry.sellerId,
+          card_name: null,
+          image_url: null,
+          last_known_price: null,
+          psa: null,
+          source: 'minimal'
+        };
+      } catch (e) {
+        console.warn('Entry enrichment failed for', entry.cert_number, e.message || e);
+        return { cert_number: entry.cert_number, sellerName: entry.sellerEmail,  sellerEmail: entry.sellerEmail, sellerId: entry.sellerId, source: 'error' };
+      }
+    });
+
+    const enriched = await Promise.all(enrichedPromises);
+
+    res.json(enriched);
+
   } catch (error) {
-    console.error('❌ List cards error:', error.message);
-    res.status(500).json({ error: 'Failed to list cards' });
+    console.error('❌ Marketplace list error:', error?.stack || error?.message || error);
+    res.status(500).json({ error: 'Failed to list marketplace cards' });
   }
 });
+
 
 // GET /api/cards/:cert - get card details with caching
 router.get('/:cert', async (req, res) => {
@@ -48,7 +123,7 @@ router.get('/:cert', async (req, res) => {
     
     console.log(`✅ Found card in Firebase: ${card.card_name}`);
 
-    // Prepare response
+        // Prepare response
     const payload = {
       cert_number: cert,
       ...card,
@@ -63,10 +138,40 @@ router.get('/:cert', async (req, res) => {
       last_known_price: card.last_known_price,
     };
 
-    // Cache the result
+    // Try to discover seller (user who has this cert in their `cards` array)
+    try {
+      // dynamic import avoids circular import issues and uses your existing firebase helper
+      const { getFirestore } = await import('../services/firebase.js');
+      const db = getFirestore();
+
+      const sellersSnap = await db
+        .collection('users')
+        .where('cards', 'array-contains', cert)
+        .limit(1)
+        .get();
+
+      if (!sellersSnap.empty) {
+        const sellerDoc = sellersSnap.docs[0];
+        const sellerData = sellerDoc.data();
+        payload.sellerEmail = sellerData.email || null;
+        payload.sellerId = sellerDoc.id;
+      } else {
+        // no seller found (may be seed-less or cards stored elsewhere)
+        payload.sellerEmail = null;
+        payload.sellerId = null;
+      }
+    } catch (e) {
+      console.warn('Failed to find seller for cert', cert, e.message || e);
+      // keep payload as-is if lookup fails
+      payload.sellerEmail = payload.sellerEmail || null;
+      payload.sellerId = payload.sellerId || null;
+    }
+
+    // Cache the result (with seller info attached)
     await setCache(cacheKey, payload);
 
     res.json({ source: 'live', ...payload });
+
     
   } catch (error) {
     console.error('❌ Card fetch error:', error.message);

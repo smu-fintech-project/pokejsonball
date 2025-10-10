@@ -9,7 +9,7 @@
     "dev": "nodemon src/app.js",
     "test": "node test-api.js",
     "test:watch": "nodemon test-api.js",
-    "db:sync-certs": "node src/seed/syncCerts.js"
+    "seed:users": "node src/seed/seedUsers.js"
   },
   "dependencies": {
     "axios": "^1.7.7",
