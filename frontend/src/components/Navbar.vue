@@ -30,12 +30,27 @@
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/about') }">About</router-link>
         </div>
 
-        <!-- Right buttons (unchanged) -->
+        <!-- Right side -->
         <div class="flex items-center space-x-3 ml-auto">
-          <router-link to="/login"
-            class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Login</router-link>
-          <router-link to="/signup" class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Sign
-            up</router-link>
+          <!-- Authenticated view -->
+          <template v-if="isAuthed">
+            <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span>
+              <span class="text-gray-700 dark:text-gray-200 text-sm truncate max-w-[160px]">{{ userEmail }}</span>
+            </div>
+            <button @click="logout"
+              class="px-3 py-2 rounded-lg bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-200 dark:hover:bg-slate-700">
+              Sign out
+            </button>
+          </template>
+
+          <!-- Logged-out view -->
+          <template v-else>
+            <router-link to="/login"
+              class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Login</router-link>
+            <router-link to="/signup"
+              class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Sign up</router-link>
+          </template>
 
           <button @click="$emit('toggle-dark')"
             class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
@@ -53,20 +68,63 @@
           <span v-if="isDark">🌙</span>
           <span v-else>☀️</span>
         </button>
-        <router-link to="/login"
-          class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Login</router-link>
-        <router-link to="/login"
-          class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 text-sm">Login</router-link>
-        <router-link to="/signup"
-          class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Sign up</router-link>
+
+        <!-- Mobile auth buttons -->
+        <template v-if="isAuthed">
+          <button @click="logout"
+            class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 text-sm">
+            Sign out
+          </button>
+        </template>
+        <template v-else>
+          <router-link to="/login"
+            class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Login</router-link>
+          <router-link to="/signup"
+            class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Sign up</router-link>
+        </template>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router';
-const props = defineProps({ isDark: { type: Boolean, default: false } });
-const route = useRoute();
-const isActive = (path) => route.path === path;
+import { watch, ref, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const props = defineProps({ isDark: { type: Boolean, default: false } })
+const route = useRoute()
+const router = useRouter()
+
+const isActive = (path) => route.path === path
+
+const isAuthed = ref(false)
+const userEmail = ref('')
+
+watch(() => route.path, () => {
+  syncAuthFromStorage()
+})
+
+function syncAuthFromStorage() {
+  const token = localStorage.getItem('token')
+  const email = localStorage.getItem('userEmail')
+  isAuthed.value = !!token && !!email
+  userEmail.value = email || ''
+}
+
+function logout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userEmail')
+  syncAuthFromStorage()
+  router.push('/') // send them home
+}
+
+// init + keep in sync across tabs
+onMounted(() => {
+  syncAuthFromStorage()
+  window.addEventListener('storage', syncAuthFromStorage)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage', syncAuthFromStorage)
+})
 </script>

@@ -41,7 +41,7 @@ npm install
 
 # 5. Sync cards to database
 cd backend
-npm run db:sync-certs
+npm run seed:users
 ```
 
 ### Environment Setup

@@ -270,7 +270,7 @@
                       <User class="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p class="font-semibold">{{ selectedCard.sellerName || 'CardMaster88' }}</p>
+                      <p class="font-semibold">{{ selectedCard.sellerName || selectedCard.sellerEmail || 'Unknown Seller' }}</p>
                       <p class="text-sm text-gray-500">⭐ 4.9 ({{ selectedCard.sellerRating || '156' }} reviews)</p>
                     </div>
                   </div>
@@ -332,8 +332,9 @@ const loadFeaturedCards = async () => {
   loadError.value = null;
   
   try {
-    const resp = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:3001'}/api/cards`);
+    const myEmail = localStorage.getItem('userEmail');
     
+    const resp = await fetch(`http://localhost:3001/api/cards?excludeEmail=${encodeURIComponent(myEmail)}`);
     if (!resp.ok) {
       throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
     }
@@ -352,8 +353,9 @@ const loadFeaturedCards = async () => {
         lastSold: c.last_sale_price || '0.00',
         rarity: `PSA ${c.psa_grade}`,
         set: c.set_name || 'Unknown Set',
-        sellerName: 'CardMaster88', // Default seller (can be dynamic later)
-        sellerRating: '156' // Default rating
+        sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',
+        sellerId: c?.sellerId || null,
+        sellerRating: '156'
       })).filter(card => card.img); // Only show cards with images
       
       console.log(`Displaying ${sampleCards.value.length} PSA-certified cards`);
