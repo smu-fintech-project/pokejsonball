@@ -313,19 +313,19 @@
                 <div class="grid grid-cols-2 gap-4">
                   <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
                     <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Type</p>
-                    <p class="font-semibold">{{ selectedCard.apiData?.types?.join(', ') || 'Fire' }}</p>
+                    <p class="font-semibold">{{ selectedCard.apiData?.types?.join(', ') || 'Unavailable' }}</p>
                   </div>
                   <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
                     <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">HP</p>
-                    <p class="font-semibold">{{ selectedCard.apiData?.hp || '120' }}</p>
+                    <p class="font-semibold">{{ selectedCard.apiData?.hp || 'Unavailable' }}</p>
                   </div>
                   <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
                     <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Rarity</p>
-                    <p class="font-semibold">{{ selectedCard.apiData?.rarity || 'Holo Rare' }}</p>
+                    <p class="font-semibold">{{ selectedCard.apiData?.rarity || 'Unavailable' }}</p>
                   </div>
                   <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
                     <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Artist</p>
-                    <p class="font-semibold">{{ selectedCard.apiData?.artist || 'Ken Sugimori' }}</p>
+                    <p class="font-semibold">{{ selectedCard.apiData?.artist || 'Unavailable' }}</p>
                   </div>
                 </div>
 
