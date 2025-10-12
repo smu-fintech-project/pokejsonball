@@ -10,7 +10,7 @@ dotenv.config();
 
 import bcrypt from 'bcrypt';
 import { getFirestore } from '../services/firebase.js';
-import { getCert } from '../services/psaService.js';
+import { getCert, getPSACardDetails } from '../services/psaService.js';
 import { upsertCard } from '../db.js';
 
 async function seedUsers() {
@@ -180,6 +180,12 @@ async function syncCerts(certNumbers) {
 
     try {
       const certData = await getCert(certNumber);
+      let psaDetails = null;
+      try {
+        psaDetails = await getPSACardDetails(certNumber);
+      } catch (e) {
+        console.warn('  ⚠️ PSA details fetch failed for', certNumber, e.message || e);
+      }
 
       const cardData = {
         cert_number: certNumber,
@@ -187,6 +193,11 @@ async function syncCerts(certNumbers) {
         set_name: certData.brand_title || 'Unknown',
         psa_grade: certData.grade ? parseInt(certData.grade.replace(/[^\d]/g, '')) : null,
         release_year: certData.year ? parseInt(certData.year) : null,
+        // PSA-specific fields for frontend modal
+        year: psaDetails?.year || certData.year || null,
+        grade_description: psaDetails?.gradeDescription || null,
+        variety: psaDetails?.variety || certData.variety_pedigree || null,
+        cert_date: psaDetails?.certification?.dateGraded || null,
         category: certData.category || null,
         psa_population: certData.psa_population?.toString() || null,
         psa_pop_higher: certData.psa_pop_higher?.toString() || null,
