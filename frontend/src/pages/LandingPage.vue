@@ -307,8 +307,6 @@
                 </p>
               </div>
 
-              <!-- TODO: REPLACE WITH REAL API DATA FROM POKEMON TCG API -->
-              <!-- API Integration Point: Fetch card details from https://api.pokemontcg.io/v2/cards/{id} -->
               <div class="space-y-4">
                 <h4 class="font-bold text-lg">Card Information</h4>
                 
@@ -432,8 +430,8 @@ const loadFeaturedCards = async () => {
         id: c.cert_number,
         img: c.image_url,
         title: c.card_name || c.psa?.cardName || 'Unknown Card',
-        price: (c.listing_price ?? 'unlisted'),
-        lastSold: (c.last_known_price ?? '0.00'),
+        price: (c.listing_price ?? 'Not For Sale'),
+        lastSold: (c.last_known_price ?? 'Unknown'),
         rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
         set: c?.psa?.setName || c.set_name || 'Unknown Set',
         sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',

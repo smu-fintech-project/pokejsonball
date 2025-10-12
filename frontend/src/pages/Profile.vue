@@ -67,7 +67,10 @@
                 <div class="text-base font-black text-white">Portfolio Value</div>
               </div>
               <div class="flex items-center justify-center">
-                <div class="text-3xl font-black text-yellow-300">S${{ portfolioValue.toFixed(2) }}</div>
+                <div class="text-3xl font-black text-yellow-300">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+                  {{ portfolioValue.toFixed(2) }}
+                </div>
               </div>
             </div>
           </div>
@@ -134,7 +137,10 @@
                 </div>
 
                 <div class="pt-3 border-t dark:border-slate-600 mb-3">
-                  <p class="text-2xl font-black text-indigo-600">S${{ card.price }}</p>
+                  <p class="text-2xl font-black text-indigo-600">
+                    <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+                    {{ Number(card.price).toFixed(2) }}
+                  </p>
                   <p class="text-xs text-gray-500">Cert: {{ card.cert }}</p>
                 </div>
 
@@ -213,6 +219,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import {
   User, Mail, Clock, TrendingUp, Package, DollarSign, Plus, Edit2, Trash2, X
 } from 'lucide-vue-next'
+import jsbImg from '../../images/JSB_image.png'
 
 // --- Auth / state ---
 const isAuthed = ref(false)
@@ -300,7 +307,7 @@ async function loadOwnedCards() {
       title: c.card_name || c?.psa?.cardName || 'Card',
       set: c.set_name || c?.psa?.setName || '—',
       grade: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
-      price: c.last_known_price ?? c.last_sale_price ?? '0.00',
+      price: Number((c.listing_price ?? "Not For Sale")),
       quantity: 1,
       dateAdded: '' // (optional) if you later store per-user timestamps
     }))
