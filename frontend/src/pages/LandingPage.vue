@@ -309,32 +309,23 @@
 
               <div class="space-y-4">
                 <h4 class="font-bold text-lg">Card Information</h4>
-                
+
                 <div class="grid grid-cols-2 gap-4">
                   <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Type</p>
-                    <p class="font-semibold">{{ selectedCard.apiData?.types?.join(', ') || 'Unavailable' }}</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">PSA Population</p>
+                    <p class="font-semibold">{{ selectedCard.db?.psa_population || 'Unavailable' }}</p>
                   </div>
                   <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">HP</p>
-                    <p class="font-semibold">{{ selectedCard.apiData?.hp || 'Unavailable' }}</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Grade Description</p>
+                    <p class="font-semibold">{{ selectedCard.db?.grade_description || 'Unavailable' }}</p>
                   </div>
                   <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Rarity</p>
-                    <p class="font-semibold">{{ selectedCard.apiData?.rarity || 'Unavailable' }}</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Art Style</p>
+                    <p class="font-semibold">{{ selectedCard.db?.variety || 'Unavailable' }}</p>
                   </div>
                   <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Artist</p>
-                    <p class="font-semibold">{{ selectedCard.apiData?.artist || 'Unavailable' }}</p>
-                  </div>
-                </div>
-
-                <!-- Attacks/Abilities -->
-                <div v-if="selectedCard.apiData?.attacks" class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                  <p class="text-sm font-bold mb-3">Attacks</p>
-                  <div v-for="(attack, idx) in selectedCard.apiData.attacks" :key="idx" class="mb-2 last:mb-0">
-                    <p class="font-semibold">{{ attack.name }} - {{ attack.damage }}</p>
-                    <p class="text-sm text-gray-600 dark:text-slate-400">{{ attack.text }}</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Release Year</p>
+                    <p class="font-semibold">{{ selectedCard.db?.release_year || 'Unavailable' }}</p>
                   </div>
                 </div>
 
@@ -677,30 +668,26 @@ function toggleWatchlist(id) {
 
 // TODO: INTEGRATE WITH POKEMON TCG API
 // Function to fetch card details from API
-async function fetchCardDetails(card) {
-  // Example API integration point:
-  // const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${card.title}"`);
-  // const data = await response.json();
-  // return data.data[0]; // Returns full card data including attacks, abilities, etc.
-  
-  // For now, return mock data
-  return {
-    types: ['Fire'],
-    hp: '120',
-    rarity: 'Holo Rare',
-    artist: 'Ken Sugimori',
-    attacks: [
-      { name: 'Fire Blast', damage: '100', text: 'Discard an Energy card attached to Charizard.' }
-    ]
-  };
+// Fetch v1 database card for modal
+async function fetchCardV1(certNumber) {
+  try {
+    const resp = await fetch(`http://localhost:3001/api/cards/${encodeURIComponent(certNumber)}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const payload = await resp.json();
+    return payload || null;
+  } catch (e) {
+    console.warn('Failed to fetch DB card:', e.message);
+    return null;
+  }
 }
 
 async function openCardModal(card) {
   selectedCard.value = card;
-  
-  // TODO: Uncomment and implement when backend is ready
-  // const apiData = await fetchCardDetails(card);
-  // selectedCard.value.apiData = apiData;
+  // Load DB card first for modal info
+  const dbCard = await fetchCardV1(card.id);
+  if (dbCard) {
+    selectedCard.value = { ...selectedCard.value, db: dbCard };
+  }
 }
 
 function closeModal() {
