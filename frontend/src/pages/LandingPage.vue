@@ -28,7 +28,7 @@
             <button @click="scrollToFeatured" class="px-8 py-4 bg-red-500 text-white rounded-full font-bold text-lg hover:bg-red-600 transition-all shadow-xl hover:shadow-2xl hover:scale-105">
               Begin Adventure →
             </button>
-            <router-link to="/login" class="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-50 transition-all shadow-lg border-2 border-gray-200">
+            <router-link v-if="!isLoggedIn" to="/login" class="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-50 transition-all shadow-lg border-2 border-gray-200">
               Login / Sign Up
             </router-link>
           </div>
@@ -375,6 +375,24 @@ const priceRange = ref([0, 1000]);
 const selectedGrade = ref('all');
 const showFilters = ref(false);
 const selectedCard = ref(null);
+
+const isLoggedIn = ref(false);
+
+//check login status
+const checkLoginStatus = () => {
+  const userEmail = localStorage.getItem('userEmail');
+  const token = localStorage.getItem('token');
+  isLoggedIn.value = !!(userEmail || token);
+};
+
+// Update your onMounted to include the login check
+onMounted(() => {
+  checkLoginStatus(); // Add this line
+  loadFeaturedCards();
+  initThreeJS();
+  animate();
+  window.addEventListener('resize', onWindowResize);
+});
 
 // Fetch cards from backend database
 const loadFeaturedCards = async () => {
