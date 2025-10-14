@@ -3,12 +3,16 @@
     class="bg-white/70 dark:bg-pj-surface/80 backdrop-blur sticky top-0 z-30 border-b border-gray-200 dark:border-slate-700">
     <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
       <div class="flex items-center space-x-3">
-        <div class="w-12 h-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 
-         rounded-2xl flex items-center justify-center text-white font-black text-2xl 
-         shadow-xl transform rotate-2 hover:rotate-0 hover:scale-110 
-         transition-all duration-500 ease-in-out hover:shadow-2xl">
-          PJ
-        </div>
+        <router-link to="/" class="block">
+  <div
+    class="w-12 h-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 
+    rounded-2xl flex items-center justify-center shadow-xl transform rotate-2 
+    hover:rotate-0 hover:scale-110 transition-all duration-500 ease-in-out hover:shadow-2xl overflow-hidden">
+    
+    <img :src="logo" alt="PokeJsonBall Logo"
+      class="w-10 h-10 object-cover rounded-xl select-none pointer-events-none" />
+  </div>
+</router-link>
         <div>
           <router-link to="/" class="text-lg font-semibold">PokeJsonBall</router-link>
           <div class="text-xs text-gray-400 dark:text-slate-400">Pokémon card trading platform </div>
@@ -92,6 +96,7 @@
 </template>
 
 <script setup>
+import logo from '../assets/logo.png'
 import { watch, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
