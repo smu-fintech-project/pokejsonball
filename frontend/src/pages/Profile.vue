@@ -116,20 +116,22 @@
           </div>
 
           <!-- Cards -->
-          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
             <div v-for="card in ownedCards" :key="card.id"
-              class="group relative bg-white dark:bg-slate-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden">
+            class="group relative bg-white dark:bg-slate-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden
+            flex flex-col min-h-[420px]">
               <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-600 dark:to-slate-700">
-                <img :src="card.img" :alt="card.title" class="w-full h-56 object-contain" />
+                <img :src="card.img" :alt="card.title" class="w-full h-48 object-contain" />
                 <div v-if="card.quantity > 1"
                   class="absolute top-2 left-2 px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
                   x{{ card.quantity }}
                 </div>
               </div>
 
-              <div class="p-4">
+              <div class="p-4 flex-1 flex flex-col">
                 <div class="mb-3">
-                  <h3 class="font-bold text-lg">{{ card.title }}</h3>
+                  <h3 class="font-bold text-lg break-words">{{ card.title }}</h3>
                   <p class="text-sm text-gray-500 dark:text-slate-400">{{ card.set }}</p>
                   <span class="inline-block mt-2 px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold rounded-lg">
                     {{ card.grade }}
@@ -143,26 +145,26 @@
                   </p>
                   <p class="text-xs text-gray-500">Cert: {{ card.cert }}</p>
                 </div>
-
-                <div class="flex gap-2">
-                  <!-- Edit Button -->
+                
+                <div class="flex flex-wrap gap-2 mt-auto sm:flex-nowrap">
+                <!-- Edit Button -->
                   <button @click="openEditModal(card)"
-                    class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-500 transition-all">
-                    <Edit2 class="w-4 h-4" />
+                    class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-500 transition-all">
+                    <Edit2 class="w-3 h-3" />
                     Edit
                   </button>
-                  
+
                   <!-- Sell Button -->
                   <button @click="openSellModal(card)"
-                    class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all">
-                    <Plus class="w-4 h-4" />
+                    class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all">
+                    <Plus class="w-3 h-3" />
                     Sell
                   </button>
 
                   <!-- Delete Button -->
                   <button @click="handleDeleteCard(card.id)"
-                    class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-800 transition-all">
-                    <Trash2 class="w-4 h-4" />
+                    class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-800 transition-all">
+                    <Trash2 class="w-3 h-3" />
                     Delete
                   </button>
                 </div>
