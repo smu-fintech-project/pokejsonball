@@ -257,13 +257,35 @@
         <div v-if="sellStep === 'form'" class="space-y-4">
           <div>
             <label class="block text-sm font-semibold mb-2">Selling Price</label>
-            <div class="flex items-center gap-2">
-              <input type="number" min="0" step="0.01" v-model="sellForm.price"
-                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
-                    placeholder="0.00" />
+
+            <!-- wrapper to position icon/unit inside the input -->
+            <div class="relative">
+              <!-- left icon inside the input -->
+              <img
+                :src="jsbImg"
+                alt="JSB"
+                class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5"
+              />
+
+              <!-- the input with extra left/right padding -->
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                v-model="sellForm.price"
+                class="w-full pl-11 pr-14 px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
+                placeholder="0.00"
+              />
+
+              <!-- right unit inside the input -->
+              <span
+                class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-slate-400"
+              >JSB</span>
             </div>
+
             <p class="text-xs text-gray-500 mt-1">Enter the price buyers will see.</p>
           </div>
+
 
           <div>
             <label class="block text-sm font-semibold mb-2">Description <span class="text-gray-400">(optional)</span></label>
