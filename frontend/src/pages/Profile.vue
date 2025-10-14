@@ -145,11 +145,21 @@
                 </div>
 
                 <div class="flex gap-2">
+                  <!-- Edit Button -->
                   <button @click="openEditModal(card)"
                     class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-500 transition-all">
                     <Edit2 class="w-4 h-4" />
                     Edit
                   </button>
+                  
+                  <!-- Sell Button -->
+                  <button @click="openSellModal(card)"
+                    class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all">
+                    <Plus class="w-4 h-4" />
+                    Sell
+                  </button>
+
+                  <!-- Delete Button -->
                   <button @click="handleDeleteCard(card.id)"
                     class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-800 transition-all">
                     <Trash2 class="w-4 h-4" />
@@ -211,6 +221,103 @@
         </div>
       </div>
     </div>
+
+    <!-- ✅ Sell Modal -->
+    <div v-if="showSellModal"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold">
+            {{ sellStep === 'confirm' ? 'Confirm Listing' : 'Sell Card' }}
+          </h3>
+          <button @click="closeSellModal" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
+            <X class="w-6 h-6" />
+          </button>
+        </div>
+
+        <!-- Selected card summary (read-only) -->
+        <div v-if="sellCard"
+            class="mb-6 grid grid-cols-1 sm:grid-cols-[140px,1fr] gap-4 items-start">
+          <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800 rounded-xl p-3">
+            <img :src="sellCard.img" :alt="sellCard.title" class="w-full h-36 object-contain" />
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mb-1">You are selling</p>
+            <h4 class="text-lg font-bold">{{ sellCard.title }}</h4>
+            <p class="text-sm text-gray-500 dark:text-slate-400">
+              Set: {{ sellCard.set }} &nbsp;•&nbsp; {{ sellCard.grade }}
+            </p>
+            <p class="text-xs text-gray-400 mt-1">Cert: {{ sellCard.cert }}</p>
+          </div>
+        </div>
+
+        <!-- Step 1: Form -->
+        <div v-if="sellStep === 'form'" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2">Selling Price</label>
+            <div class="flex items-center gap-2">
+              <input type="number" min="0" step="0.01" v-model="sellForm.price"
+                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
+                    placeholder="0.00" />
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Enter the price buyers will see.</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-2">Description <span class="text-gray-400">(optional)</span></label>
+            <textarea v-model="sellForm.description" rows="3"
+                      class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
+                      placeholder="Any extra details for buyers (condition, notes, etc.)"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-2">Delivery</label>
+            <select v-model="sellForm.delivery"
+                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900">
+              <option value="meetup">Meet up</option>
+              <option value="mail">Mail</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button @click="closeSellModal"
+                    class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
+              Cancel
+            </button>
+            <button @click="submitSellForm"
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-60"
+                    :disabled="!sellForm.price || Number(sellForm.price) <= 0">
+              Sell it
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Confirm -->
+        <div v-else class="space-y-4">
+          <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+            <p class="text-sm text-gray-500 dark:text-slate-300 mb-2">Listing summary</p>
+            <ul class="space-y-1 text-sm">
+              <li><span class="font-semibold">Price:</span> {{ Number(sellForm.price).toFixed(2) }}</li>
+              <li><span class="font-semibold">Delivery:</span> {{ sellForm.delivery === 'meetup' ? 'Meet up' : 'Mail' }}</li>
+              <li v-if="sellForm.description"><span class="font-semibold">Description:</span> {{ sellForm.description }}</li>
+            </ul>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button @click="backToSellForm"
+                    class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
+              Back
+            </button>
+            <button @click="confirmSell"
+                    class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+              Confirm & Publish
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
   </div>
 </template>
 
@@ -354,6 +461,57 @@ const handleDeleteCard = (id) => {
   if (!confirm('Remove this card from your portfolio?')) return
   ownedCards.value = ownedCards.value.filter(c => c.id !== id)
 }
+
+// --- Sell modal state ---
+const showSellModal = ref(false)
+const sellCard = ref(null)
+const sellStep = ref('form')
+const sellForm = reactive({
+  price: '',
+  description: '',
+  delivery: 'meetup'
+})
+
+function openSellModal(card) {
+  sellCard.value = { ...card }         // keep a snapshot of the selected card
+  sellForm.price = ''                  // reset form
+  sellForm.description = ''
+  sellForm.delivery = 'meetup'
+  sellStep.value = 'form'
+  showSellModal.value = true
+}
+
+function closeSellModal() {
+  showSellModal.value = false
+  sellCard.value = null
+}
+
+function submitSellForm() {
+  // basic validation
+  const p = Number(sellForm.price)
+  if (!p || p <= 0) return
+  sellStep.value = 'confirm'
+}
+
+function backToSellForm() {
+  sellStep.value = 'form'
+}
+
+function confirmSell() {
+  // 🔜 Next part: actually persist listing in backend and mark status.
+  // For now, we just log and close.
+  console.log('Prepared listing:', {
+    cert: sellCard.value?.cert,
+    price: Number(sellForm.price),
+    description: sellForm.description?.trim() || '',
+    delivery: sellForm.delivery,
+  })
+  // Optionally update local UI to indicate it's "selling" later.
+  closeSellModal()
+}
+
+
+
 </script>
 
 <style scoped>
