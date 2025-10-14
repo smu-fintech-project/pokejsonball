@@ -28,7 +28,7 @@
             <button @click="scrollToFeatured" class="px-8 py-4 bg-red-500 text-white rounded-full font-bold text-lg hover:bg-red-600 transition-all shadow-xl hover:shadow-2xl hover:scale-105">
               Begin Adventure →
             </button>
-            <router-link to="/login" class="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-50 transition-all shadow-lg border-2 border-gray-200">
+            <router-link v-if="!isLoggedIn" to="/login" class="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-50 transition-all shadow-lg border-2 border-gray-200">
               Login / Sign Up
             </router-link>
           </div>
@@ -135,26 +135,8 @@
         </div>
       </div>
 
-      <!-- Rarity & Clear Filters Row -->
-      <div class="flex gap-3 items-end">
-        <div class="flex-1">
-          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Rarity</label>
-          <div class="relative">
-            <select v-model="selectedRarity"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none pr-8 transition-all">
-              <option value="all">All</option>
-              <option value="Holo Rare">Holo Rare</option>
-              <option value="Rare">Rare</option>
-              <option value="Uncommon">Uncommon</option>
-            </select>
-            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
-              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-
         <!-- Clear Filters Button -->
+      <div class="flex gap-3 items-end">
         <button v-if="searchTerm || selectedGrade !== 'all' || selectedRarity !== 'all' || priceRange[0] > 0 || priceRange[1] < 1000 || sortBy !== 'name-asc'" @click="resetAllFilters"
           class="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
           Clear All
@@ -350,10 +332,6 @@
                   class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg transform hover:scale-105">
                   Buy Now - <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
                 </button>
-                <button @click="handleContactSeller"
-                  class="px-6 py-4 bg-white dark:bg-slate-700 border-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 rounded-xl font-semibold hover:bg-indigo-50 dark:hover:bg-slate-600 transition-all">
-                  Contact Seller
-                </button>
               </div>
             </div>
           </div>
@@ -398,6 +376,24 @@ const selectedGrade = ref('all');
 const showFilters = ref(false);
 const selectedCard = ref(null);
 
+const isLoggedIn = ref(false);
+
+//check login status
+const checkLoginStatus = () => {
+  const userEmail = localStorage.getItem('userEmail');
+  const token = localStorage.getItem('token');
+  isLoggedIn.value = !!(userEmail || token);
+};
+
+// Update your onMounted to include the login check
+onMounted(() => {
+  checkLoginStatus(); // Add this line
+  loadFeaturedCards();
+  initThreeJS();
+  animate();
+  window.addEventListener('resize', onWindowResize);
+});
+
 // Fetch cards from backend database
 const loadFeaturedCards = async () => {
   loading.value = true;
@@ -417,18 +413,19 @@ const loadFeaturedCards = async () => {
       console.log(`Loaded ${cards.length} cards from backend database`);
       
       // Map marketplace payload to UI fields using new listings-based API
-      sampleCards.value = cards.map(c => ({
-        id: c.cert_number,
-        img: c.image_url,
-        title: c.card_name || c.psa?.cardName || 'Unknown Card',
-        price: (c.listing_price ?? 'Not For Sale'),
-        lastSold: (c.last_known_price ?? 'Unknown'),
-        rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
-        set: c?.psa?.setName || c.set_name || 'Unknown Set',
-        sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',
-        sellerId: c?.sellerId || null,
-        sellerRating: '156'
-      })).filter(card => card.img); // Only show cards with images
+sampleCards.value = cards.map(c => ({
+  id: c.cert_number,
+  img: c.image_url,
+  title: c.card_name || c.psa?.cardName || 'Unknown Card',
+  price: (c.listing_price ?? 'Not For Sale'),
+  lastSold: (c.last_known_price ?? 'Unknown'),
+  rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
+  set: c?.psa?.setName || c.set_name || 'Unknown Set',
+  sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',
+  sellerEmail: c?.sellerEmail || null,  // ADD THIS LINE
+  sellerId: c?.sellerId || null,
+  sellerRating: '156'
+})).filter(card => card.img);
       
       console.log(`Displaying ${sampleCards.value.length} PSA-certified cards`);
     } else {
@@ -701,20 +698,18 @@ function handleBuyCard() {
   // Example: router.push({ name: 'checkout', params: { cardId: selectedCard.value.id } });
 }
 
-// TODO: CONNECT TO YOUR MESSAGING SYSTEM
-function handleContactSeller() {
-  // Integrate with your messaging/chat system
-  alert(`Opening chat with ${selectedCard.value.sellerName}`);
-  // Example: router.push({ name: 'messages', params: { sellerId: selectedCard.value.sellerId } });
-}
-
 const filteredCards = computed(() => {
   let cards = sampleCards.value.filter(card => {
     const matchesSearch = card.title.toLowerCase().includes(searchTerm.value.toLowerCase());
     const matchesPrice = parseFloat(card.price) >= priceRange.value[0] && parseFloat(card.price) <= priceRange.value[1];
     const matchesGrade = selectedGrade.value === 'all' || card.rarity.includes(selectedGrade.value);
     const matchesRarity = selectedRarity.value === 'all' || card.rarity.includes(selectedRarity.value);
-    return matchesSearch && matchesPrice && matchesGrade && matchesRarity;
+    
+    // Filter by ownership - when showOwnCards is TRUE, HIDE cards where seller matches user
+    const userEmail = localStorage.getItem('userEmail');
+    const matchesOwnership = !showOwnCards.value || (card.sellerEmail !== userEmail && card.sellerName !== userEmail);
+    
+    return matchesSearch && matchesPrice && matchesGrade && matchesRarity && matchesOwnership;
   });
 
   // Apply sorting
@@ -729,18 +724,16 @@ const filteredCards = computed(() => {
       cards.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
       break;
     case 'newest':
-      // Assuming newer cards are at the end of the array
       cards.reverse();
       break;
     case 'oldest':
-      // Keep original order (oldest first)
       break;
     case 'name-asc':
     default:
       cards.sort((a, b) => a.title.localeCompare(b.title));
-    
   }
-    // Sort watchlisted cards to the top
+  
+  // Sort watchlisted cards to the top
   cards.sort((a, b) => {
     const aWatchlisted = watchlist.value.includes(a.id);
     const bWatchlisted = watchlist.value.includes(b.id);
@@ -752,76 +745,5 @@ const filteredCards = computed(() => {
   return cards;
 });
 
-
-const activeQuickFilter = ref('')
-
-const filterStates = ref({
-  'Pikachu': false,
-  'Charizard': false,
-  'Under S$50': false,
-  'PSA 10': false,
-  'Legendary': false,
-  'Reset': false
-})
-
-// Updated quickFilters with individual state tracking
-const quickFilters = [
-  { 
-    label: 'Pikachu', 
-    action: () => {
-      searchTerm.value = 'Pikachu'
-      filterStates.value['Pikachu'] = !filterStates.value['Pikachu']
-      // Turn off other search-based filters
-      filterStates.value['Charizard'] = false
-      filterStates.value['Legendary'] = false
-    }
-  },
-  { 
-    label: 'Charizard', 
-    action: () => {
-      searchTerm.value = 'Charizard'
-      filterStates.value['Charizard'] = !filterStates.value['Charizard']
-      // Turn off other search-based filters
-      filterStates.value['Pikachu'] = false
-      filterStates.value['Legendary'] = false
-    }
-  },
-  { 
-    label: 'Under S$50', 
-    action: () => {
-      priceRange.value = filterStates.value['Under S$50'] ? [0, 1000] : [0, 50]
-      filterStates.value['Under S$50'] = !filterStates.value['Under S$50']
-    }
-  },
-  { 
-    label: 'PSA 10', 
-    action: () => {
-      selectedGrade.value = filterStates.value['PSA 10'] ? 'all' : 'PSA 10'
-      filterStates.value['PSA 10'] = !filterStates.value['PSA 10']
-    }
-  },
-  { 
-    label: 'Legendary', 
-    action: () => {
-      searchTerm.value = filterStates.value['Legendary'] ? '' : 'Mewtwo'
-      filterStates.value['Legendary'] = !filterStates.value['Legendary']
-      // Turn off other search-based filters
-      filterStates.value['Pikachu'] = false
-      filterStates.value['Charizard'] = false
-    }
-  },
-  { 
-    label: 'Reset', 
-    action: () => {
-      searchTerm.value = ''
-      priceRange.value = [0, 1000]
-      selectedGrade.value = 'all'
-      // Reset all filter states
-      Object.keys(filterStates.value).forEach(key => {
-        filterStates.value[key] = false
-      })
-    }
-  },
-]
 
 </script>

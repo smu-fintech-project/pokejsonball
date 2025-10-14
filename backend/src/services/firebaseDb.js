@@ -49,20 +49,30 @@ export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } =
   }
 
   // Query listings via collectionGroup to aggregate across users/{userId}/listings
-  const entries = [];
+  const entriesMap = new Map(); // Use Map to deduplicate by cert_number
+  
   const listingsSnap = await db.collectionGroup('listings').get();
   listingsSnap.forEach(doc => {
     const l = doc.data();
     if (!l) return;
     if (l.status && l.status !== 'active') return; // only active listings
     if (excludeEmail && l.sellerEmail && l.sellerEmail === excludeEmail) return; // exclude own
-    entries.push({
-      cert_number: String(l.cert_number),
-      sellerId: l.sellerId,
-      sellerEmail: l.sellerEmail || null,
-      listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
-    });
+    
+    const certNumber = String(l.cert_number);
+    
+    // Only add if not already in map (deduplication)
+    if (!entriesMap.has(certNumber)) {
+      entriesMap.set(certNumber, {
+        cert_number: certNumber,
+        sellerId: l.sellerId,
+        sellerEmail: l.sellerEmail || null,
+        listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
+      });
+    }
   });
+
+  // Convert Map to array
+  const entries = Array.from(entriesMap.values());
 
   // Optionally limit items (keep first N)
   const limited = entries.slice(0, limit);
@@ -74,7 +84,7 @@ export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } =
     console.warn('Marketplace cache write failed:', e.message || e);
   }
 
-  console.log(`Marketplace assembled: ${limited.length} cards (exclude=${excludeEmail})`);
+  console.log(`Marketplace assembled: ${limited.length} unique cards (exclude=${excludeEmail})`);
   return limited;
 }
 
