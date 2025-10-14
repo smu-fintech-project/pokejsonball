@@ -96,6 +96,16 @@
           ]">
             Trade History
           </button>
+
+          <button @click="activeTab = 'portfolio'" :class="[
+            'flex-1 px-6 py-4 font-semibold transition-all',
+            activeTab === 'portfolio'
+              ? 'bg-indigo-600 text-white'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          ]">
+            Portfolio
+          </button>
+
         </div>
 
         <!-- Collection Tab -->
@@ -112,7 +122,7 @@
 
           <!-- Loading -->
           <div v-if="loading" class="text-center py-12 text-gray-500 dark:text-slate-400">
-            Loading your portfolio...
+            Loading your profile...
           </div>
 
           <!-- Cards -->
@@ -164,7 +174,7 @@
           <div v-if="!loading && ownedCards.length === 0" class="text-center py-12 text-gray-500 dark:text-slate-400">
             <Package class="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p class="text-lg font-semibold mb-2">No cards in your collection yet</p>
-            <p class="text-sm">Start building your portfolio by adding your first card!</p>
+            <p class="text-sm">Start building your profile by adding your first card!</p>
           </div>
         </div>
 
@@ -173,8 +183,17 @@
           <h2 class="text-2xl font-bold mb-6">Transaction History</h2>
           <div class="text-slate-500 dark:text-slate-400">No transactions yet.</div>
         </div>
+
+        <!-- Portfolio Tab (empty for now) -->
+        <div v-if="activeTab === 'portfolio'" class="p-6">
+          <h2 class="text-2xl font-bold mb-6">Portfolio</h2>
+          <div class="text-slate-500 dark:text-slate-400">Empty.</div>
+        </div>
+
       </div>
 
+
+        
       <!-- Add Card Modal -->
       <!-- (unchanged UI; still mocked locally) -->
       <div v-if="showAddModal"
