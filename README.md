@@ -345,6 +345,32 @@ chore(deps): upgrade Vue to 3.5.13
 - `test`: Adding or updating tests
 - `chore`: Maintenance tasks
 
+## 💡 Git Branch Naming Conventions
+
+Using clear, descriptive branch names is essential for teamwork and clarity. Follow the $\text{type/description}$ pattern and stick to **lowercase** with **hyphens** as separators.
+
+### 🏷️ Recommended Structure: `type/ticket-id-short-description`
+
+| Type Prefix | Purpose | Example |
+| :--- | :--- | :--- |
+| **`feature/`** | New functionality or user story. | `feature/login-with-google` |
+| **`fix/`** | Fixing a bug in existing code. | `fix/navbar-alignment` |
+| **`hotfix/`** | Urgent, critical fix for production. | `hotfix/payment-gateway-failure` |
+| **`refactor/`** | Restructuring code without changing behavior. | `refactor/simplify-api-calls` |
+| **`chore/`** | Build system, configuration, or dependency updates. | `chore/update-react-deps` |
+| **`docs/`** | Changes to documentation (READMEs, comments). | `docs/add-contributing-guide` |
+| **`release/`** | Preparing for a new version release. | `release/v2.0.0` |
+
+### ✅ Best Practices
+
+1.  **Use Ticket IDs:** If you use a project tracker (Jira, GitHub Issues), prefix the description with the ticket ID for easy tracing.
+    * *Example:* `feature/JIRA-101-add-user-avatar`
+2.  **Keep it Concise:** Avoid overly long branch names.
+    * *Bad:* `feature/implementing-the-new-checkout-process-for-logged-in-users`
+    * *Good:* `feature/new-checkout-flow`
+3.  **Use Hyphens:** Always use hyphens (`-`) for spacing. **Avoid** spaces and underscores (`_`).
+
+
 ## 📝 License
 
 MIT License
