@@ -243,5 +243,40 @@ router.post('/:cert/list', async (req, res) => {
 });
 
 
+// POST /api/cards/:cert/undo -> mark listing as "display"
+router.post('/:cert/undo', async (req, res) => {
+    const cert = String(req.params.cert);
+    const { sellerEmail, sellerId } = req.body || {};
+    if (!sellerId) {
+    return res.status(400).json({ error: 'sellerId is required' });
+    }
+
+    try {
+    const { getFirestore } = await import('../services/firebase.js');
+    const db = getFirestore();
+
+    const ref = db.collection('users').doc(sellerId).collection('listings').doc(cert);
+    const snap = await ref.get();
+    if (!snap.exists) {
+      return res.status(404).json({ error: 'Listing not found' });
+    }
+    // (optional) soft ownership check
+    const l = snap.data();
+    if (sellerEmail && l?.sellerEmail && l.sellerEmail !== sellerEmail) {
+      return res.status(403).json({ error: 'Not owner of listing' });
+    }
+
+    await ref.set({
+      status: 'display',
+      updated_at: new Date().toISOString(),
+    }, { merge: true });
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('Failed to undo listing', cert, e.message || e);
+    return res.status(500).json({ error: 'Failed to undo listing' });
+  }
+});
+
 export default router;
 

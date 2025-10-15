@@ -175,11 +175,17 @@
                     Edit
                   </button>
 
-                  <!-- Sell Button -->
-                  <button @click="openSellModal(card)"
-                    class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all">
-                    <Plus class="w-3 h-3" />
-                    Sell
+                  <!-- Sell / Undo -->
+                  <button v-if="card.status !== 'listed'"
+                  @click="openSellModal(card)"
+                  class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all">
+                  <Plus class="w-3 h-3" />
+                  Sell
+                  </button>
+                  <button v-else
+                  @click="undoListing(card)"
+                  class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all">
+                  Undo
                   </button>
 
                   <!-- Delete Button -->
@@ -591,6 +597,36 @@ async function confirmSell() {
     closeSellModal();
   }
 }
+
+async function undoListing(card) {
+  if (!card) return;
+  const cert = card.cert;
+
+  const sellerEmail = localStorage.getItem('userEmail') || userProfile.value.email;
+  const sellerId = localStorage.getItem('userId') || userProfile.value.id || '';
+
+  try {
+    const resp = await fetch(`http://localhost:3001/api/cards/${encodeURIComponent(cert)}/undo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sellerEmail, sellerId }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    // Update local UI
+    const idx = ownedCards.value.findIndex(c => c.cert === cert);
+    if (idx !== -1) {
+      ownedCards.value[idx] = {
+        ...ownedCards.value[idx],
+        status: 'display',
+      };
+    }
+  } catch (e) {
+    console.error('Withdraw failed', e.message);
+    alert('Failed to withdraw listing. Please try again.');
+  }
+}
+
 
 
 
