@@ -128,7 +128,7 @@
           <!-- Cards -->
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
-            <div v-for="card in ownedCards" :key="card.id"
+            <div v-for="card in ownedCards.filter(c => c.status !== 'sold')" :key="card.id"
             class="group relative bg-white dark:bg-slate-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden
             flex flex-col min-h-[420px]">
               <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-600 dark:to-slate-700">
@@ -145,6 +145,17 @@
                   <p class="text-sm text-gray-500 dark:text-slate-400">{{ card.set }}</p>
                   <span class="inline-block mt-2 px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold rounded-lg">
                     {{ card.grade }}
+                  </span>
+                  
+                  <!-- Status pill -->
+                  <span v-if="card.status === 'listed'" class="ml-2 incline-block mt-2 px-2 py-1 
+                  bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-[10px] font-bold rounded">
+                    LISTED
+                  </span>
+                  
+                  <span v-else-if="card.status === 'reserved'"
+                  class="ml-2 inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-[10px] font-bold rounded">
+                  RESERVED
                   </span>
                 </div>
 
@@ -425,9 +436,12 @@ async function loadProfile() {
       const data = await resp.json()
       // your current route only returns { email, portfolio: [] }
       userProfile.value.email = data.email || email
-      // if later you add name/joinDate to backend, hydrate here:
-      // userProfile.value.name = data.name || ''
-      // userProfile.value.joinDate = data.joinDate || ''
+      if (data.id) {
+        userProfile.value.id = data.id
+        localStorage.setItem('userId', data.id)   // <-- store it
+       }
+     if (data.name) userProfile.value.name = data.name
+     if (data.joinDate) userProfile.value.joinDate = data.joinDate
     } else if (resp.status === 401) {
       // token invalid
       isAuthed.value = false
@@ -459,6 +473,7 @@ async function loadOwnedCards() {
       grade: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
       price: Number((c.listing_price ?? "Not For Sale")),
       quantity: 1,
+      status: c.status || 'display',
       dateAdded: '' // (optional) if you later store per-user timestamps
     }))
   } catch (e) {
@@ -540,17 +555,41 @@ function backToSellForm() {
   sellStep.value = 'form'
 }
 
-function confirmSell() {
-  // 🔜 Next part: actually persist listing in backend and mark status.
-  // For now, we just log and close.
-  console.log('Prepared listing:', {
-    cert: sellCard.value?.cert,
-    price: Number(sellForm.price),
-    description: sellForm.description?.trim() || '',
-    delivery: sellForm.delivery,
-  })
-  // Optionally update local UI to indicate it's "selling" later.
-  closeSellModal()
+async function confirmSell() {
+  if (!sellCard.value) return;
+  const cert = sellCard.value.cert;
+  const price = Number(sellForm.price);
+  const description = (sellForm.description || '').trim();
+  const delivery = sellForm.delivery;
+
+  // minimal: read identity from localStorage
+  const sellerEmail = localStorage.getItem('userEmail') || userProfile.value.email;
+  const sellerId = localStorage.getItem('userId') || userProfile.value.id || ''; // set this somewhere in your login flow
+
+  try {
+    const resp = await fetch(`http://localhost:3001/api/cards/${encodeURIComponent(cert)}/list`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sellerEmail, sellerId, price, description, delivery }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    // Update local UI: mark as listed and set new price
+    const idx = ownedCards.value.findIndex(c => c.cert === cert);
+    if (idx !== -1) {
+      ownedCards.value[idx] = {
+        ...ownedCards.value[idx],
+        status: 'listed',
+        price,
+      };
+    }
+  } catch (e) {
+    console.error('List failed', e.message);
+    alert('Failed to publish listing. Please try again.');
+    return;
+  } finally {
+    closeSellModal();
+  }
 }
 
 

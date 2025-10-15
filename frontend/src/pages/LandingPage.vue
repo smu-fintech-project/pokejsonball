@@ -402,7 +402,7 @@ const loadFeaturedCards = async () => {
   try {
     const myEmail = localStorage.getItem('userEmail');
     
-    const resp = await fetch(`http://localhost:3001/api/cards?excludeEmail=${encodeURIComponent(myEmail)}`);
+    const resp = await fetch(`http://localhost:3001/api/cards?only=listed&excludeEmail=${encodeURIComponent(myEmail)}`);
     if (!resp.ok) {
       throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
     }
@@ -413,7 +413,9 @@ const loadFeaturedCards = async () => {
       console.log(`Loaded ${cards.length} cards from backend database`);
       
       // Map marketplace payload to UI fields using new listings-based API
-sampleCards.value = cards.map(c => ({
+sampleCards.value = cards
+.filter(c => (c.status || 'listed') === 'listed')
+.map(c => ({
   id: c.cert_number,
   img: c.image_url,
   title: c.card_name || c.psa?.cardName || 'Unknown Card',

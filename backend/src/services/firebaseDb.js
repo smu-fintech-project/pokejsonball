@@ -36,7 +36,7 @@ export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } =
   const db = getFirestore();
 
   // Build a cache key to avoid scanning users on every request (short TTL)
-  const cacheKey = `marketplace:exclude:${excludeEmail || 'none'}:limit:${limit}`;
+  const cacheKey = `marketplace:exclude:${excludeEmail || 'none'}:limit:${limit}:status:all`;
   try {
     const cached = await getCache(cacheKey, 30); // 30 seconds cache
     if (cached) {
@@ -55,7 +55,7 @@ export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } =
   listingsSnap.forEach(doc => {
     const l = doc.data();
     if (!l) return;
-    if (l.status && l.status !== 'active') return; // only active listings
+    // if (l.status && l.status !== 'listed') return; // only listed listings
     if (excludeEmail && l.sellerEmail && l.sellerEmail === excludeEmail) return; // exclude own
     
     const certNumber = String(l.cert_number);
@@ -67,6 +67,7 @@ export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } =
         sellerId: l.sellerId,
         sellerEmail: l.sellerEmail || null,
         listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
+        status: l.status || 'display',
       });
     }
   });

@@ -39,6 +39,7 @@ router.get('/', async (req, res) => {
             image_url: cached.image_url || (cached.images && cached.images.displayImage) || null,
             set_name: cached.set_name || cached.psa?.setName || null,
             listing_price: entry.listing_price ?? null,
+            status: entry.status || 'display',
             last_known_price: cached.last_known_price || null,
             psa: cached.psa || null,
             source: 'cache'
@@ -63,6 +64,7 @@ router.get('/', async (req, res) => {
             image_url: d.image_url || null,
             set_name: d.set_name || null,
             listing_price: entry.listing_price ?? null,
+            status: entry.status || 'display',
             last_known_price: d.last_known_price || null,
             psa: {
               cardName: d.card_name,
@@ -82,19 +84,21 @@ router.get('/', async (req, res) => {
           image_url: null,
           set_name: null,
           listing_price: entry.listing_price ?? null,
+          status: entry.status || 'display',
           last_known_price: null,
           psa: null,
           source: 'minimal'
         };
       } catch (e) {
         console.warn('Entry enrichment failed for', entry.cert_number, e.message || e);
-        return { cert_number: entry.cert_number, sellerName: entry.sellerEmail,  sellerEmail: entry.sellerEmail, sellerId: entry.sellerId, source: 'error' };
+        return { cert_number: entry.cert_number, sellerName: entry.sellerEmail,  sellerEmail: entry.sellerEmail, sellerId: entry.sellerId, status:'listed', source: 'error' };
       }
     });
 
     const enriched = await Promise.all(enrichedPromises);
 
-    res.json(enriched);
+    const only = (req.query.only || '').toLowerCase();
+    res.json(only === 'listed' ? enriched.filter(x => x.status === 'listed') : enriched);
 
   } catch (error) {
     console.error('❌ Marketplace list error:', error?.stack || error?.message || error);
@@ -152,7 +156,7 @@ router.get('/:cert', async (req, res) => {
       const listingSnap = await db
         .collectionGroup('listings')
         .where('cert_number', '==', cert)
-        .where('status', '==', 'active')
+        .where('status', '==', 'listed')
         .limit(1)
         .get();
 
@@ -201,6 +205,43 @@ router.put('/:cert', async (req, res) => {
     res.status(500).json({ error: 'Failed to update card' });
   }
 });
+
+
+
+// POST /api/cards/:cert/list  -> create/update listing as "listed"
+router.post('/:cert/list', async (req, res) => {
+  const cert = String(req.params.cert);
+  const { sellerEmail, sellerId, price, description = '', delivery = 'meetup' } = req.body || {};
+
+  if (!sellerEmail || !sellerId || !price) {
+    return res.status(400).json({ error: 'sellerEmail, sellerId, and price are required' });
+  }
+
+  try {
+    const { getFirestore } = await import('../services/firebase.js');
+    const db = getFirestore();
+
+    // write to users/{sellerId}/listings/{cert}
+    const ref = db.collection('users').doc(sellerId).collection('listings').doc(cert);
+    await ref.set({
+      cert_number: cert,
+      sellerEmail,
+      sellerId,
+      listing_price: Number(price),
+      description,
+      delivery,
+      status: 'listed',
+      updated_at: new Date().toISOString(),
+    }, { merge: true });
+
+    // (optional) warm cache: card:cert already handled by GET/:cert
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('Failed to list card', cert, e.message || e);
+    return res.status(500).json({ error: 'Failed to list card' });
+  }
+});
+
 
 export default router;
 
