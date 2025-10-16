@@ -40,6 +40,7 @@ router.get('/', async (req, res) => {
             set_name: cached.set_name || cached.psa?.setName || null,
             listing_price: entry.listing_price ?? null,
             last_known_price: cached.last_known_price || null,
+            average_sell_price: cached.average_sell_price || null,
             psa: cached.psa || null,
             source: 'cache'
           };
@@ -64,6 +65,7 @@ router.get('/', async (req, res) => {
             set_name: d.set_name || null,
             listing_price: entry.listing_price ?? null,
             last_known_price: d.last_known_price || null,
+            average_sell_price: d.average_sell_price || null,
             psa: {
               cardName: d.card_name,
               grade: d.psa_grade
@@ -83,6 +85,7 @@ router.get('/', async (req, res) => {
           set_name: null,
           listing_price: entry.listing_price ?? null,
           last_known_price: null,
+          average_sell_price: null,
           psa: null,
           source: 'minimal'
         };
