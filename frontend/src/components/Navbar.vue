@@ -41,7 +41,7 @@
           <template v-if="isAuthed">
             <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700">
               <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span>
-              <span class="text-gray-700 dark:text-gray-200 text-sm truncate max-w-[160px]">{{ userEmail }}</span>
+              <span class="text-gray-700 dark:text-gray-200 text-sm truncate max-w-[160px]">{{username}}</span>
             </div>
               <router-link to="/wallet" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
               :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/wallet') }">Wallet</router-link>
@@ -55,9 +55,9 @@
           <!-- Logged-out view -->
           <template v-else>
             <router-link to="/login"
-              class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Login</router-link>
+              class="px-3 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">Login</router-link>
             <router-link to="/signup"
-              class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Sign up</router-link>
+              class="px-3 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">Sign up</router-link>
           </template>
 
           <button @click="$emit('toggle-dark')"
@@ -84,12 +84,12 @@
             Sign out
           </button>
         </template>
-        <template v-else>
-          <router-link to="/login"
-            class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Login</router-link>
-          <router-link to="/signup"
-            class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Sign up</router-link>
-        </template>
+          <template v-else>
+            <router-link to="/login"
+              class="px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm transition-colors">Login</router-link>
+            <router-link to="/signup"
+              class="px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm transition-colors">Sign up</router-link>
+          </template>
       </div>
     </div>
   </header>
@@ -108,6 +108,7 @@ const isActive = (path) => route.path === path
 
 const isAuthed = ref(false)
 const userEmail = ref('')
+const username = ref('')
 
 watch(() => route.path, () => {
   syncAuthFromStorage()
@@ -116,13 +117,16 @@ watch(() => route.path, () => {
 function syncAuthFromStorage() {
   const token = localStorage.getItem('token')
   const email = localStorage.getItem('userEmail')
+  const storedUsername = localStorage.getItem('username');
   isAuthed.value = !!token && !!email
   userEmail.value = email || ''
+  username.value = storedUsername || '' 
 }
 
 function logout() {
   localStorage.removeItem('token')
   localStorage.removeItem('userEmail')
+  localStorage.removeItem('username')
   syncAuthFromStorage()
   router.push('/') // send them home
 }

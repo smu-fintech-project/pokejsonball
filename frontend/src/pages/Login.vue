@@ -1,28 +1,33 @@
 <template>
   <div class="max-w-md mx-auto bg-white rounded-2xl shadow p-6">
-    <h2 class="text-2xl font-bold mb-2">Welcome back</h2>
+    <h2 class="text-2xl font-bold mb-2 text-red-700">Welcome back</h2>
     <p class="text-sm text-gray-500 mb-6">Log in to access your portfolio and trades.</p>
 
     <form @submit.prevent="onSubmit" class="space-y-4">
       <div>
         <label class="text-xs text-gray-600">Email</label>
-        <input v-model="email" type="email" required class="w-full mt-1 p-3 border rounded-lg" />
+        <input v-model="email" type="email" required class="text-red-700 w-full mt-1 p-3 border rounded-lg" />
       </div>
 
       <div>
         <label class="text-xs text-gray-600">Password</label>
-        <input v-model="password" type="password" required class="w-full mt-1 p-3 border rounded-lg" />
+        <input v-model="password" type="password" required class="text-red-700 w-full mt-1 p-3 border rounded-lg" />
       </div>
 
-      <button type="submit" class="w-full py-3 bg-indigo-600 text-white rounded-lg font-semibold">Sign in</button>
+      <button 
+        type="submit" 
+        class="w-full py-3 bg-red-600 text-white rounded-lg font-semibold 
+              hover:bg-red-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500">
+        Sign in
+      </button>
 
       <div class="text-center text-sm text-gray-500">
         Or continue with
       </div>
 
       <div class="flex gap-3">
-        <button type="button" class="flex-1 py-2 border rounded-lg">Google</button>
-        <button type="button" class="flex-1 py-2 border rounded-lg">Apple</button>
+        <button type="button" class="flex-1 py-2 border rounded-lg text-red-700">Google</button>
+        <button type="button" class="flex-1 py-2 border rounded-lg text-red-700">Apple</button>
       </div>
     </form>
     <p v-if="error" class="text-sm text-red-500 mt-2">{{ error }}</p>
@@ -64,7 +69,8 @@ async function onSubmit() {
     if (response.ok) {
       // Store token (like storing auth cookie in ASP.NET)
       localStorage.setItem('token', data.token);
-      localStorage.setItem('userEmail', email.value);
+      localStorage.setItem('userEmail', data.email)
+      localStorage.setItem('username', data.username);
       window.dispatchEvent(new Event('storage')) // look for user login
       
       // Navigate to portfolio
