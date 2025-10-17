@@ -32,62 +32,79 @@ export async function getAllCards(limit = 200) {
  * Returns array of { cert_number, sellerId, sellerEmail } (up to `limit`).
  * Excludes any entries where sellerEmail === excludeEmail.
  */
+// services/firebaseDb.js
 export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } = {}) {
   const db = getFirestore();
 
-  // Build a cache key to avoid scanning users on every request (short TTL)
-  const cacheKey = `marketplace:exclude:${excludeEmail || 'none'}:limit:${limit}:status:all`;
+  // cache (still useful — keeps the heavy read out of hot path)
+  const cacheKey = `marketplace:limit:${limit}:status:listed`;
   try {
-    const cached = await getCache(cacheKey, 30); // 30 seconds cache
-    if (cached) {
-      console.log(`Marketplace cache hit (exclude=${excludeEmail}) -> ${cached.length} items`);
-      return cached;
-    }
-  } catch (e) {
-    // cache read failure should not block listing
-    console.warn('Marketplace cache read failed:', e.message || e);
-  }
+    const cached = await getCache(cacheKey, 30);
+    if (cached) return cached;
+  } catch {}
 
-  // Query listings via collectionGroup to aggregate across users/{userId}/listings
-  const entriesMap = new Map(); // Use Map to deduplicate by cert_number
-  
-  const listingsSnap = await db.collectionGroup('listings').get();
-  listingsSnap.forEach(doc => {
-    const l = doc.data();
-    if (!l) return;
-    // if (l.status && l.status !== 'listed') return; // only listed listings
-    if (excludeEmail && l.sellerEmail && l.sellerEmail === excludeEmail) return; // exclude own
-    
-    const certNumber = String(l.cert_number);
-    
-    // Only add if not already in map (deduplication)
-    if (!entriesMap.has(certNumber)) {
-      entriesMap.set(certNumber, {
-        cert_number: certNumber,
-        sellerId: l.sellerId,
-        sellerEmail: l.sellerEmail || null,
-        listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
-        status: l.status || 'display',
+  const entriesMap = new Map();
+
+  try {
+    // Primary path: (may require collection-group index/rules)
+    const listingsSnap = await db.collectionGroup('listings')
+      .where('status', '==', 'listed')        // only listed in one go
+      .get();
+
+    listingsSnap.forEach(doc => {
+      const l = doc.data();
+      if (!l) return;
+      const certNumber = String(l.cert_number || '');
+      if (!certNumber) return;
+      if (excludeEmail && l.sellerEmail === excludeEmail) return; // keeps old behavior if you pass it
+
+      if (!entriesMap.has(certNumber)) {
+        entriesMap.set(certNumber, {
+          cert_number: certNumber,
+          sellerId: l.sellerId,
+          sellerEmail: l.sellerEmail || null,
+          listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
+          status: 'listed',
+        });
+      }
+    });
+  } catch (e) {
+    // Fallback path: enumerate users → their listings (no collection-group index required)
+    console.warn('[marketplace] collectionGroup failed, falling back:', e.message || e);
+
+    const usersSnap = await db.collection('users').get();
+    for (const u of usersSnap.docs) {
+      const ls = await u.ref.collection('listings')
+        .where('status', '==', 'listed')
+        .get();
+
+      ls.forEach(d => {
+        const l = d.data();
+        if (!l) return;
+        const certNumber = String(l.cert_number || '');
+        if (!certNumber) return;
+        if (excludeEmail && l.sellerEmail === excludeEmail) return;
+
+        if (!entriesMap.has(certNumber)) {
+          entriesMap.set(certNumber, {
+            cert_number: certNumber,
+            sellerId: l.sellerId,
+            sellerEmail: l.sellerEmail || null,
+            listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
+            status: 'listed',
+          });
+        }
       });
     }
-  });
-
-  // Convert Map to array
-  const entries = Array.from(entriesMap.values());
-
-  // Optionally limit items (keep first N)
-  const limited = entries.slice(0, limit);
-
-  // Store in cache for short TTL
-  try {
-    await setCache(cacheKey, limited);
-  } catch (e) {
-    console.warn('Marketplace cache write failed:', e.message || e);
   }
 
-  console.log(`Marketplace assembled: ${limited.length} unique cards (exclude=${excludeEmail})`);
-  return limited;
+  const entries = Array.from(entriesMap.values()).slice(0, limit);
+
+  try { await setCache(cacheKey, entries); } catch {}
+
+  return entries;
 }
+
 
 
 /**

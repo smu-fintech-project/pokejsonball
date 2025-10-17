@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { getAllCards, getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards } from '../services/firebaseDb.js';
+import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards } from '../services/firebaseDb.js';
 
 
 
@@ -14,92 +14,66 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   console.log('\n📚 Listing marketplace cards (aggregated from users) ...');
 
-
   try {
-    // Try to detect caller email from auth middleware (if you later attach auth)
-    // Allow override via ?excludeEmail= for testing
-    const excludeEmail = req.query.excludeEmail || (req.user && req.user.email) || null;
+    // If you don't want to exclude anyone, don't read excludeEmail at all
+    console.log('[cards] calling getMarketplaceCards...');
+    const entries = await getMarketplaceCards({ limit: 200 });
+    console.log('[cards] got entries:', entries.length);
+    const enriched = await Promise.all(
+      entries.map(async (entry) => {
+        try {
+          const cacheKey = `card:${entry.cert_number}`;
+          const cached = await getCache(cacheKey, 3600); // 1h TTL
 
-    // Get simple marketplace entries: { cert_number, sellerId, sellerEmail }
-    const entries = await getMarketplaceCards({ excludeEmail, limit: 200 });
+          if (cached) {
+            return {
+              cert_number: entry.cert_number,
+              sellerName: entry.sellerEmail,
+              sellerEmail: entry.sellerEmail,
+              sellerId: entry.sellerId,
+              card_name: cached.card_name || cached.psa?.cardName || null,
+              image_url: cached.image_url || cached.images?.displayImage || null,
+              set_name: cached.set_name || cached.psa?.setName || null,
+              listing_price: entry.listing_price ?? null,
+              status: entry.status || 'display',
+              last_known_price: cached.last_known_price || null,
+              psa: cached.psa || null,
+              source: 'cache',
+            };
+          }
 
-    // Now optionally enrich entries with cached card payload (avoid heavy external calls)
-    // We try to read the cached payload from api_cache (if you used setCache with 'card:cert')
-    const enrichedPromises = entries.map(async (entry) => {
-      try {
-        const cacheKey = `card:${entry.cert_number}`;
-        const cached = await getCache(cacheKey, 3600); // 1 hour TTL for listing
-        if (cached) {
+          // Fallback when no cached metadata — still return the listing row
           return {
             cert_number: entry.cert_number,
-            sellerName: entry.sellerEmail, 
+            sellerName: entry.sellerEmail,
             sellerEmail: entry.sellerEmail,
             sellerId: entry.sellerId,
-            card_name: cached.card_name || cached.psa?.cardName || null,
-            image_url: cached.image_url || (cached.images && cached.images.displayImage) || null,
-            set_name: cached.set_name || cached.psa?.setName || null,
+            card_name: null,
+            image_url: null,
+            set_name: null,
             listing_price: entry.listing_price ?? null,
             status: entry.status || 'display',
-            last_known_price: cached.last_known_price || null,
-            psa: cached.psa || null,
-            source: 'cache'
+            last_known_price: null,
+            psa: null,
+            source: 'listing',
           };
-        }
-
-        // If no cache, try to read a potential cards collection doc (if you previously stored card docs)
-        const doc = await (await import('../services/firebase.js')).getFirestore()
-                    .collection('cards')
-                    .where('cert_number', '==', entry.cert_number)
-                    .limit(1)
-                    .get();
-
-        if (!doc.empty) {
-          const d = doc.docs[0].data();
+        } catch (e) {
+          console.warn('Entry enrichment failed for', entry.cert_number, e.message || e);
           return {
             cert_number: entry.cert_number,
-            sellerName: entry.sellerEmail, 
+            sellerName: entry.sellerEmail,
             sellerEmail: entry.sellerEmail,
             sellerId: entry.sellerId,
-            card_name: d.card_name || null,
-            image_url: d.image_url || null,
-            set_name: d.set_name || null,
             listing_price: entry.listing_price ?? null,
             status: entry.status || 'display',
-            last_known_price: d.last_known_price || null,
-            psa: {
-              cardName: d.card_name,
-              grade: d.psa_grade
-            },
-            source: 'db'
+            source: 'error',
           };
         }
-
-        // Minimal placeholder if no cache and no cards doc
-        return {
-          cert_number: entry.cert_number,
-          sellerName: entry.sellerEmail, 
-          sellerEmail: entry.sellerEmail,
-          sellerId: entry.sellerId,
-          card_name: null,
-          image_url: null,
-          set_name: null,
-          listing_price: entry.listing_price ?? null,
-          status: entry.status || 'display',
-          last_known_price: null,
-          psa: null,
-          source: 'minimal'
-        };
-      } catch (e) {
-        console.warn('Entry enrichment failed for', entry.cert_number, e.message || e);
-        return { cert_number: entry.cert_number, sellerName: entry.sellerEmail,  sellerEmail: entry.sellerEmail, sellerId: entry.sellerId, status:'listed', source: 'error' };
-      }
-    });
-
-    const enriched = await Promise.all(enrichedPromises);
+      })
+    );
 
     const only = (req.query.only || '').toLowerCase();
     res.json(only === 'listed' ? enriched.filter(x => x.status === 'listed') : enriched);
-
   } catch (error) {
     console.error('❌ Marketplace list error:', error?.stack || error?.message || error);
     res.status(500).json({ error: 'Failed to list marketplace cards' });
@@ -208,7 +182,7 @@ router.put('/:cert', async (req, res) => {
 
 
 
-// POST /api/cards/:cert/list  -> create/update listing as "listed"
+// POST /api/cards/:cert/list  -> directed from Profile.vue once user click submit and update status as "listed"
 router.post('/:cert/list', async (req, res) => {
   const cert = String(req.params.cert);
   const { sellerEmail, sellerId, price, description = '', delivery = 'meetup' } = req.body || {};

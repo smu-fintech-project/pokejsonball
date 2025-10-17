@@ -7,8 +7,7 @@ const router = express.Router();
 // Protected route: profile info
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    // You likely decode the token to get email. Example:
-    const email = req.user?.email; // however you get it from your auth middleware
+    const email = req.user?.email;
 
     const db = getFirestore();
     const snap = await db.collection('users').where('email', '==', email).limit(1).get();

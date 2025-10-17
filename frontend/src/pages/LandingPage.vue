@@ -349,6 +349,7 @@ const selectedRarity = ref('all');
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
 import jsbImg from '../../images/JSB_image.png';
+//import { getMarketplaceCards  } from '../../backend/src/services/firebaseDb.js';
 
 const scrollToFeatured = () => {
   const section = document.getElementById('featured-cards')
@@ -433,29 +434,13 @@ const loadFeaturedCards = async () => {
   const myEmail = localStorage.getItem('userEmail') || '';
 
   try {
-    // --- Primary: your existing marketplace endpoint (server filters to listed) ---
-    const primary = await getMarketplaceCardsPrimary(myEmail);
+    const primary = await fetch('http://localhost:3001/api/cards');
+
+    console.log(primary);
     if (primary && primary.length) {
       mapToSampleCards(primary);
       return;
     }
-
-    // --- Fallback #1: ask for status=all then filter on client (avoids status== filter on server) ---
-    const allStatus = await getMarketplaceCardsStatusAll(myEmail);
-    if (allStatus && allStatus.length) {
-      const listedOnly = allStatus.filter(c => (c.status || 'display') === 'listed');
-      mapToSampleCards(listedOnly);
-      return;
-    }
-
-    // --- Fallback #2: enumerate users -> read each user's listings -> filter listed ---
-    const byUsers = await getMarketplaceCardsByUsers();
-    if (byUsers && byUsers.length) {
-      const listedOnly = byUsers.filter(c => (c.status || 'display') === 'listed');
-      mapToSampleCards(listedOnly);
-      return;
-    }
-
     // Nothing found
     loadError.value = 'No listed cards found in database.';
   } catch (e) {
@@ -466,85 +451,6 @@ const loadFeaturedCards = async () => {
   }
 };
 
-// PRIMARY: your original route (server should return listed only when only=listed)
-async function getMarketplaceCardsPrimary(excludeEmail) {
-  const url = `http://localhost:3001/api/cards?only=listed&excludeEmail=${encodeURIComponent(excludeEmail)}`;
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-    return await resp.json();
-  } catch (e) {
-    console.warn('[Marketplace Primary] failed:', e?.message || e);
-    return null;
-  }
-}
-
-// FALLBACK #1: ask server for ALL, then we filter listed on the client
-async function getMarketplaceCardsStatusAll(excludeEmail) {
-  const url = `http://localhost:3001/api/cards?status=all&excludeEmail=${encodeURIComponent(excludeEmail)}`;
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-    return await resp.json();
-  } catch (e) {
-    console.warn('[Marketplace Fallback#1 status=all] failed:', e?.message || e);
-    return null;
-  }
-}
-
-// FALLBACK #2: enumerate users -> fetch each user's listings -> flatten
-// Assumes you have /api/users (list users) and /api/users/:id/listings
-async function getMarketplaceCardsByUsers() {
-  try {
-    // 2a) Get users (adjust the path if your API differs)
-    const usersResp = await fetch('http://localhost:3001/api/users');
-    if (!usersResp.ok) throw new Error(`HTTP ${usersResp.status} ${usersResp.statusText}`);
-    const users = await usersResp.json();
-    if (!Array.isArray(users) || users.length === 0) return [];
-
-    // 2b) Get each user's listings in parallel (best effort)
-    const listingPromises = users.map(async (u) => {
-      const userId = u.id || u.uid || u.userId || u._id;
-      if (!userId) return [];
-      const r = await fetch(`http://localhost:3001/api/users/${encodeURIComponent(userId)}/listings`);
-      if (!r.ok) return [];
-      const items = await r.json();
-      // Normalize to expected shape used by your mapper
-      return (items || []).map((l) => ({
-        cert_number: String(l.cert_number || l.cert || ''),
-        sellerId: l.sellerId || userId,
-        sellerEmail: l.sellerEmail || u.email || null,
-        listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
-        status: l.status || 'display',
-        // Optional fields if your API returns them:
-        card_name: l.card_name || null,
-        image_url: l.image_url || null,
-        set_name: l.set_name || null,
-        psa: l.psa || null,
-        last_known_price: l.last_known_price || null
-      }));
-    });
-
-    const results = await Promise.allSettled(listingPromises);
-    // 2c) Flatten and de-duplicate by cert_number
-    const all = [];
-    const seen = new Set();
-    for (const r of results) {
-      if (r.status === 'fulfilled' && Array.isArray(r.value)) {
-        for (const item of r.value) {
-          const key = item.cert_number || '';
-          if (!key || seen.has(key)) continue;
-          seen.add(key);
-          all.push(item);
-        }
-      }
-    }
-    return all;
-  } catch (e) {
-    console.warn('[Marketplace Fallback#2 byUsers] failed:', e?.message || e);
-    return null;
-  }
-}
 
 
 const showOwnCards = ref(false);
