@@ -26,8 +26,6 @@
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/') }">Marketplace</router-link>
           <router-link to="/profile" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/profile') }">Profile</router-link>
-          <router-link to="/certs" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
-            :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/certs') }">Cert Gallery</router-link>
           <router-link to="/community" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/community') }">Community</router-link>
             
