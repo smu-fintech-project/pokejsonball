@@ -13,12 +13,11 @@ const router = express.Router();
 // GET /api/cards - list marketplace cards (excluding caller)
 router.get('/', async (req, res) => {
   console.log('\n📚 Listing marketplace cards (aggregated from users) ...');
-
   try {
-    // If you don't want to exclude anyone, don't read excludeEmail at all
     console.log('[cards] calling getMarketplaceCards...');
     const entries = await getMarketplaceCards({ limit: 200 });
     console.log('[cards] got entries:', entries.length);
+
     const enriched = await Promise.all(
       entries.map(async (entry) => {
         try {
@@ -37,6 +36,7 @@ router.get('/', async (req, res) => {
               listing_price: entry.listing_price ?? null,
               status: entry.status || 'display',
               last_known_price: cached.last_known_price || null,
+              average_sell_price: cached.average_sell_price || null,
               psa: cached.psa || null,
               source: 'cache',
             };
@@ -53,10 +53,10 @@ router.get('/', async (req, res) => {
             set_name: null,
             listing_price: entry.listing_price ?? null,
             status: entry.status || 'display',
-            last_known_price: cached.last_known_price || null,
-            average_sell_price: cached.average_sell_price || null,
-            psa: cached.psa || null,
-            source: 'cache'
+            last_known_price: null,
+            average_sell_price: null,
+            psa: null,
+            source: 'listing',
           };
         } catch (e) {
           console.warn('Entry enrichment failed for', entry.cert_number, e.message || e);
@@ -66,51 +66,24 @@ router.get('/', async (req, res) => {
             sellerEmail: entry.sellerEmail,
             sellerId: entry.sellerId,
             listing_price: entry.listing_price ?? null,
-            status: entry.status || 'display',            
-            last_known_price: d.last_known_price || null,
-            average_sell_price: d.average_sell_price || null,
-            psa: {
-              cardName: d.card_name,
-              grade: d.psa_grade
-            },
-            source: 'db'
+            status: entry.status || 'display',
+            last_known_price: null,
+            average_sell_price: null,
+            psa: null,
+            source: 'error',
           };
         }
       })
     );
 
     const only = (req.query.only || '').toLowerCase();
-    res.json(only === 'listed' ? enriched.filter(x => x.status === 'listed') : enriched);
-        // Minimal placeholder if no cache and no cards doc
-        return {
-          cert_number: entry.cert_number,
-          sellerName: entry.sellerEmail, 
-          sellerEmail: entry.sellerEmail,
-          sellerId: entry.sellerId,
-          card_name: null,
-          image_url: null,
-          set_name: null,
-          listing_price: entry.listing_price ?? null,
-          last_known_price: null,
-          average_sell_price: null,
-          psa: null,
-          source: 'minimal'
-        };
-      } catch (e) {
-        console.warn('Entry enrichment failed for', entry.cert_number, e.message || e);
-        return { cert_number: entry.cert_number, sellerName: entry.sellerEmail,  sellerEmail: entry.sellerEmail, sellerId: entry.sellerId, source: 'error' };
-      }
-    });
-
-    const enriched = await Promise.all(enrichedPromises);
-
-    res.json(enriched);
-
+    return res.json(only === 'listed' ? enriched.filter(x => x.status === 'listed') : enriched);
   } catch (error) {
     console.error('❌ Marketplace list error:', error?.stack || error?.message || error);
-    res.status(500).json({ error: 'Failed to list marketplace cards' });
+    return res.status(500).json({ error: 'Failed to list marketplace cards' });
   }
 });
+
 
 
 // GET /api/cards/:cert - get card details with caching
