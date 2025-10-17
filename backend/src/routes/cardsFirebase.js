@@ -152,20 +152,36 @@ router.get('/:cert', async (req, res) => {
       const { getFirestore } = await import('../services/firebase.js');
       const db = getFirestore();
 
+      // Use simpler query without status filter to avoid index requirement
+      // Then filter in JavaScript
       const listingSnap = await db
         .collectionGroup('listings')
         .where('cert_number', '==', cert)
-        .where('status', '==', 'active')
-        .limit(1)
+        .limit(5) // Get a few in case some are inactive
         .get();
 
       if (!listingSnap.empty) {
-        const listing = listingSnap.docs[0].data();
-        payload.sellerEmail = listing.sellerEmail || null;
-        payload.sellerId = listing.sellerId || null;
+        // Find the first active listing
+        const activeListing = listingSnap.docs.find(doc => {
+          const data = doc.data();
+          return data.status === 'active' || !data.status; // treat missing status as active
+        });
+        
+        if (activeListing) {
+          const listing = activeListing.data();
+          payload.sellerEmail = listing.sellerEmail || null;
+          payload.sellerId = listing.sellerId || null;
+          console.log(`   ✅ Found seller: ${listing.sellerEmail} (${listing.sellerId})`);
+        } else {
+          // No active listing found
+          payload.sellerEmail = null;
+          payload.sellerId = null;
+          console.log(`   ⚠️  No active listing found for cert ${cert}`);
+        }
       } else {
         payload.sellerEmail = null;
         payload.sellerId = null;
+        console.log(`   ⚠️  No listings found for cert ${cert}`);
       }
     } catch (e) {
       console.warn('Failed to find seller for cert', cert, e.message || e);
