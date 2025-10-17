@@ -10,79 +10,119 @@ import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards, get
 
 const router = express.Router();
 
-// GET /api/cards - list marketplace cards 
+// GET /api/cards - list ALL listed cards (including current user's) with full card fields
 router.get('/', async (req, res) => {
-  console.log('\n📚 Listing marketplace cards (aggregated from users) ...');
+  console.log('\n📚 Listing cards (users → listings → cards)…');
+
   try {
-    console.log('[cards] calling getMarketplaceCards...');
-    const entries = await getMarketplaceCards({ limit: 200 });
-    console.log('[cards] got entries:', entries.length);
+    // 1) Load all users and all cards once
+    const [users, cards] = await Promise.all([
+      getAllUsers(500),   
+      getAllCards(5000)
+    ]);
 
-    const enriched = await Promise.all(
-      entries.map(async (entry) => {
-        try {
-          const cacheKey = `card:${entry.cert_number}`;
-          const cached = await getCache(cacheKey, 3600); // 1h TTL
+    // 2) Build a quick lookup: cert_number -> full card doc
+    const cardByCert = new Map();
+    for (const c of cards) {
+      // cert_number lives inside the card doc payload
+      const cert = String(c.cert_number || '');
+      if (!cert) continue;
+      cardByCert.set(cert, c);
+    }
 
-          if (cached) {
-            return {
-              cert_number: entry.cert_number,
-              sellerName: entry.sellerEmail,
-              sellerEmail: entry.sellerEmail,
-              sellerId: entry.sellerId,
-              card_name: cached.card_name || cached.psa?.cardName || null,
-              image_url: cached.image_url || cached.images?.displayImage || null,
-              set_name: cached.set_name || cached.psa?.setName || null,
-              listing_price: entry.listing_price ?? null,
-              status: entry.status || 'display',
-              last_known_price: cached.last_known_price || null,
-              average_sell_price: cached.average_sell_price || null,
-              psa: cached.psa || null,
-              source: 'cache',
-            };
-          }
+    // 3) For each user, fetch their 'listings' with status === 'listed'
+    const { getFirestore } = await import('../services/firebase.js');
+    const db = getFirestore();
 
-          // Fallback when no cached metadata — still return the listing row
-          return {
-            cert_number: entry.cert_number,
-            sellerName: entry.sellerEmail,
-            sellerEmail: entry.sellerEmail,
-            sellerId: entry.sellerId,
-            card_name: null,
-            image_url: null,
-            set_name: null,
-            listing_price: entry.listing_price ?? null,
-            status: entry.status || 'display',
-            last_known_price: null,
-            average_sell_price: null,
-            psa: null,
-            source: 'listing',
-          };
-        } catch (e) {
-          console.warn('Entry enrichment failed for', entry.cert_number, e.message || e);
-          return {
-            cert_number: entry.cert_number,
-            sellerName: entry.sellerEmail,
-            sellerEmail: entry.sellerEmail,
-            sellerId: entry.sellerId,
-            listing_price: entry.listing_price ?? null,
-            status: entry.status || 'display',
-            last_known_price: null,
-            average_sell_price: null,
-            psa: null,
-            source: 'error',
-          };
-        }
-      })
-    );
+    const perUserPromises = users.map(async (u) => {
+      const userId = u.id;
+      if (!userId) return [];
+      const snap = await db
+        .collection('users')
+        .doc(userId)
+        .collection('listings')
+        .where('status', '==', 'listed')
+        .get();
 
+      const out = [];
+      snap.forEach(doc => {
+        const l = doc.data();
+        if (!l) return;
+
+        const cert = String(l.cert_number || '');
+        if (!cert) return;
+
+        const card = cardByCert.get(cert) || {}; // full card doc if exists
+
+        // 4) Merge listing info + full card fields
+        out.push({
+          // listing fields (marketplace needs these)
+          cert_number: cert,
+          sellerId: l.sellerId || userId,
+          sellerEmail: l.sellerEmail || u.email || null,
+          listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
+          status: l.status || 'display',
+
+          // full card fields (so we can build more features later)
+          card_name: card.card_name ?? null,
+          card_number: card.card_number ?? null,
+          category: card.category ?? null,
+          cert_date: card.cert_date ?? null,
+          created_at: card.created_at ?? null,
+          grade_description: card.grade_description ?? null,
+          image_back_url: card.image_back_url ?? null,
+          image_url: card.image_url ?? null,
+          label_type: card.label_type ?? null,
+          last_sale_date: card.last_sale_date ?? null,
+          last_sale_listing_url: card.last_sale_listing_url ?? null,
+          last_sale_market: card.last_sale_market ?? null,
+          last_sale_price: card.last_sale_price ?? null,
+          last_sale_source: card.last_sale_source ?? null,
+          psa_grade: card.psa_grade ?? null,
+          psa_pop_higher: card.psa_pop_higher ?? null,
+          psa_population: card.psa_population ?? null,
+          release_year: card.release_year ?? null,
+          reverse_barcode: card.reverse_barcode ?? null,
+          set_name: card.set_name ?? null,
+          updated_at: card.updated_at ?? null,
+          variety: card.variety ?? null,
+          variety_pedigree: card.variety_pedigree ?? null,
+          year: card.year ?? null,
+
+          // optional convenience sub-object (unchanged UI can still read .psa?.grade)
+          psa: {
+            cardName: card.card_name ?? null,
+            setName: card.set_name ?? null,
+            grade: card.psa_grade ?? null,
+            imageUrl: card.image_url ?? null
+          },
+
+          // keep one more helpful field if you’ve cached averages onto cards:
+          average_sell_price: card.average_sell_price ?? null,
+
+          source: 'joined'
+        });
+      });
+
+      return out;
+    });
+
+    // 5) Flatten
+    const allListed = (await Promise.all(perUserPromises)).flat();
+
+    // Optional: honor ?only=listed though we already filtered above
     const only = (req.query.only || '').toLowerCase();
-    return res.json(only === 'listed' ? enriched.filter(x => x.status === 'listed') : enriched);
+    const result = only === 'listed' ? allListed : allListed;
+
+    console.log(`[cards] returning ${result.length} listed cards`);
+    return res.json(result);
   } catch (error) {
     console.error('❌ Marketplace list error:', error?.stack || error?.message || error);
     return res.status(500).json({ error: 'Failed to list marketplace cards' });
   }
 });
+
+
 // GET /api/cards/ownedCards?email=<userEmail>
 router.get('/ownedCards', async (req, res) => {
   try {

@@ -45,9 +45,8 @@ export async function getAllUsers(limit = 200) {
  * Excludes any entries where sellerEmail === excludeEmail.
  */
 // services/firebaseDb.js
-export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } = {}) {
+export async function getMarketplaceCards({limit = 200 } = {}) {
   const db = getFirestore();
-
   // cache (still useful — keeps the heavy read out of hot path)
   const cacheKey = `marketplace:limit:${limit}:status:listed`;
   try {
@@ -83,7 +82,7 @@ export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } =
   } catch (e) {
     // Fallback path: enumerate users → their listings (no collection-group index required)
     console.warn('[marketplace] collectionGroup failed, falling back:', e.message || e);
-    
+
     const usersSnap = await db.collection('users').get();
     for (const u of usersSnap.docs) {
       const ls = await u.ref.collection('listings')

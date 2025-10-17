@@ -426,6 +426,7 @@ const newCard = reactive({
 async function loadProfile() {
   const token = localStorage.getItem('token')
   const email = localStorage.getItem('userEmail')
+  const username = localStorage.getItem('username')
   if (!token || !email) {
     isAuthed.value = false
     return
