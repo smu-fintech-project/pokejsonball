@@ -190,6 +190,7 @@ async function syncCerts(certNumbers) {
       const cardData = {
         cert_number: certNumber,
         card_name: certData.item_title,
+        card_number: certData.card_number || psaDetails?.cardNumber || null,
         set_name: certData.brand_title || 'Unknown',
         psa_grade: certData.grade ? parseInt(certData.grade.replace(/[^\d]/g, '')) : null,
         release_year: certData.year ? parseInt(certData.year) : null,
