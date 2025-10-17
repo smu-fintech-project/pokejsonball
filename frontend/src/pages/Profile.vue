@@ -404,7 +404,7 @@ const derivedName = computed(() => {
 
 // Stats
 const totalCards = computed(() =>
-  ownedCards.value.reduce((t, c) => t + (c.quantity ?? 1), 0)
+  ownedCards.value.reduce((t, c) => t + (c.quantity ?? 1), 0)  //what is this???
 )
 
 const portfolioValue = computed(() =>
@@ -465,7 +465,8 @@ async function loadOwnedCards() {
   loading.value = true
   try {
     // Get all marketplace entries then filter to this user's email
-    const resp = await fetch('http://localhost:3001/api/cards')
+    const resp = await fetch('http://localhost:3001/api/cards/ownedCards');
+    console.log(resp);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
     const list = await resp.json()
     const mine = list.filter(i => i.sellerEmail === userProfile.value.email)
@@ -474,11 +475,11 @@ async function loadOwnedCards() {
     ownedCards.value = mine.map(c => ({
       id: c.cert_number,
       cert: c.cert_number,
-      img: c.image_url || c?.psa?.imageUrl || '',
-      title: c.card_name || c?.psa?.cardName || 'Card',
-      set: c.set_name || c?.psa?.setName || '—',
-      grade: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
-      price: Number((c.listing_price ?? "Not For Sale")),
+      img: c.image_url,
+      title: c.card_name,
+      set: c.set_name,
+      grade: `PSA ${c.psa.grade}`,
+      price: Number(c.listing_price),
       quantity: 1,
       status: c.status || 'display',
       dateAdded: '' // (optional) if you later store per-user timestamps
@@ -493,7 +494,7 @@ async function loadOwnedCards() {
 
 onMounted(async () => {
   await loadProfile()
-  await loadOwnedCards()
+  await loadOwnedCards()  //loadOwnedCards to be changed
 })
 
 // ------- Existing modal handlers (kept local for now) -------
