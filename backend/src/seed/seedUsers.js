@@ -111,7 +111,7 @@ async function seedUsers() {
         listing_price: price,
         sellerEmail: u.email,
         sellerId: ref.id,
-        status: 'active',
+        status: 'display',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
