@@ -4,13 +4,13 @@
  */
 
 import express from 'express';
-import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards } from '../services/firebaseDb.js';
+import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards, getAllUsers} from '../services/firebaseDb.js';
 
 
 
 const router = express.Router();
 
-// GET /api/cards - list marketplace cards (excluding caller)
+// GET /api/cards - list marketplace cards 
 router.get('/', async (req, res) => {
   console.log('\n📚 Listing marketplace cards (aggregated from users) ...');
   try {
@@ -84,6 +84,15 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/cards/ownedCards - get users own cards
+router.get('/ownedCards', async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    
+  } catch (error) {
+    console.log(error);
+  }
+})
 
 
 // GET /api/cards/:cert - get card details with caching
@@ -184,7 +193,6 @@ router.put('/:cert', async (req, res) => {
     res.status(500).json({ error: 'Failed to update card' });
   }
 });
-
 
 
 // POST /api/cards/:cert/list  -> directed from Profile.vue once user click submit and update status as "listed"

@@ -26,6 +26,18 @@ export async function getAllCards(limit = 200) {
   }));
 }
 
+export async function getAllUsers(limit = 200) {
+  const db = getFirestore();
+  const snapshot = await db.collection(COLLECTIONS.USERS)
+    .limit(limit)
+    .get();
+
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+}
+
 /**
  * Get marketplace cards aggregated from user documents.
  * Each user doc may have a `cards` array of cert numbers.
