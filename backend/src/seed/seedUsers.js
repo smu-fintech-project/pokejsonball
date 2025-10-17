@@ -139,7 +139,7 @@ async function createUserCards(db, userId, certNumbers, userName) {
     await cardsRef.add(cardDoc);
   }
 
-  console.log(`  🃏 Created ${certNumbers.length} cards for ${userName}`);
+  console.log(`Created ${certNumbers.length} cards for ${userName}`);
 }
 // Hardcoded transaction History
 async function createInitialTransactions(db, userId, userName) {
@@ -184,7 +184,7 @@ async function syncCerts(certNumbers) {
       try {
         psaDetails = await getPSACardDetails(certNumber);
       } catch (e) {
-        console.warn('  ⚠️ PSA details fetch failed for', certNumber, e.message || e);
+        console.warn('PSA details fetch failed for', certNumber, e.message || e);
       }
 
       const cardData = {

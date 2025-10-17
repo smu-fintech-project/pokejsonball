@@ -172,7 +172,8 @@ Only whitelisted emails can access the Cert Gallery (`/certs` page).
 ```bash
 npm run dev            # Start dev server with nodemon
 npm start              # Start production server
-npm run db:sync-certs  # Sync all PSA cards to Firebase
+npm run seed:users     # Sync all PSA cards to Firebase
+npm run update:prices  # Update card prices from Pokemon TCG API
 ```
 
 ### Frontend
@@ -181,6 +182,130 @@ npm run dev      # Start dev server with Vite
 npm run build    # Build for production
 npm run preview  # Preview production build
 ```
+
+## 💰 Update Card Prices Script
+
+This script automatically updates all cards in your database with current market pricing data from the Pokémon TCG API.
+
+### What It Does
+
+1. Fetches all cards from your Firebase database
+2. Maps PSA `set_name` to Pokémon TCG API `setId` using hardcoded conversions
+3. Removes leading zeros from card numbers (e.g., "014" → "14")
+4. Constructs a card ID in the format `{setId}-{cardNumber}` (e.g., `sv8pt5-14`)
+5. Fetches card data from API endpoint: `/cards/{cardId}`
+6. Extracts `tcgplayer.prices.*.market` price (tries holofoil, reverseHolofoil, normal, etc.)
+7. Updates each card with `average_sell_price` field
+8. Displays real-time progress indicator and summary statistics
+
+### Usage
+
+```bash
+# From the backend directory
+cd backend
+npm run update:prices
+```
+
+Or run directly:
+```bash
+node src/scripts/updateCardPrices.js
+```
+
+### Set Name Mappings
+
+The script includes hardcoded mappings from PSA set names to Pokémon TCG API set IDs:
+
+```javascript
+{
+  'POKEMON PRE EN-PRISMATIC EVOLUTIONS': 'sv8pt5',
+  'PRISMATIC EVOLUTIONS': 'sv8pt5',
+  'POKEMON SVP EN-SV BLACK STAR PROMO': 'svp',
+  'BLACK STAR PROMOS': 'svp',
+  'BLACK STAR PROMO': 'svp',
+}
+```
+
+**Important:** Cards with unmapped set names will be skipped. Add mappings in `backend/src/scripts/updateCardPrices.js`:
+
+```javascript
+const SET_NAME_TO_ID = {
+  // Existing mappings...
+  'YOUR PSA SET NAME': 'tcg-api-set-id',
+};
+```
+
+### Output Fields
+
+The script adds/updates these fields on each card:
+
+- **`average_sell_price`** - Market price from TCGPlayer in USD, or `null` if unavailable
+- **`price_updated_at`** - ISO timestamp of when the price was last updated
+
+The script tries multiple price types in priority order:
+1. `holofoil` - For holographic cards
+2. `reverseHolofoil` - For reverse holo cards
+3. `normal` - For normal/non-holo cards
+4. `unlimitedHolofoil` - For unlimited edition holos
+5. `1stEditionHolofoil` - For 1st edition holos
+
+### Example Output
+
+```
+🚀 Starting Card Price Update Script
+
+============================================================
+
+📚 Fetching all cards from database...
+✅ Found 50 cards
+
+============================================================
+
+[1/50] (2.0%)
+
+📇 Processing: FLAREON EX (Cert: 114363745)
+   Set: POKEMON PRE EN-PRISMATIC EVOLUTIONS | Number: 014
+   Set ID: sv8pt5
+Fetching card: sv8pt5-14
+Found price (holofoil): $281.86
+  💾 Updated in database
+
+[2/50] (4.0%)
+...
+
+============================================================
+📊 SUMMARY
+============================================================
+Total cards:           50
+Processed:             50
+✅ Success (w/ price): 45
+⚠️  Success (no price): 2
+⚠️  Missing data:       1
+⚠️  No set mapping:     1
+❌ Failed:             1
+============================================================
+
+✨ Script completed!
+```
+
+### Error Handling
+
+| Issue | Behavior |
+|-------|----------|
+| Missing `set_name` or `card_number` | Card skipped, counted in "Missing data" |
+| No set mapping found | Card skipped, counted in "No set mapping" |
+| Card not found (404) | Price set to `null`, logged as warning |
+| No price available | Price set to `null`, counted in "Success (no price)" |
+| API errors | Price set to `null`, error logged to console |
+| Database errors | Logged and counted in "Failed" |
+
+### Notes
+
+- Script processes cards sequentially (no rate limiting)
+- Progress is displayed in real-time
+- Uses existing `upsertCard` function to preserve all other card data
+- Prices are in USD ($) from TCGPlayer
+- Leading zeros are automatically removed from card numbers
+- Optional: Set `POKEMON_TCG_API_KEY` in `.env` for higher API rate limits
 
 ## 📂 Project Structure
 
@@ -207,7 +332,9 @@ pokejsonball/
 │   │   │   ├── admins.js      # Admin email whitelist
 │   │   │   └── certs.js       # PSA cert numbers
 │   │   ├── seed/              # Database seeding
-│   │   │   └── syncCerts.js   # Sync cards to Firebase
+│   │   │   └── seedUsers.js   # Sync cards to Firebase
+│   │   ├── scripts/           # Utility scripts
+│   │   │   └── updateCardPrices.js  # Update card prices from TCG API
 │   │   ├── app.js             # Express app setup
 │   │   └── db.js              # Database connection
 │   └── package.json
