@@ -32,6 +32,7 @@ import cardRoutes from "./routes/cardsFirebase.js";
 import cardsV2Routes from "./routes/cardsV2.js";
 import walletRoute from "./routes/wallet.js";
 import chatRoutes from "./routes/chat.js";
+import portfolioRoutes from "./routes/portfolio.js";
 
 const app = express();
 
@@ -107,6 +108,7 @@ app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
 app.use("/api/wallet", walletRoute);
 app.use("/api/chat", chatRoutes); // Chat/messaging routes
+app.use("/api/portfolio", portfolioRoutes); // Portfolio history and analytics
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running ✅" });
