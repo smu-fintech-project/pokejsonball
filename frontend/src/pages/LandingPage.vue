@@ -284,6 +284,10 @@
                   <img :src="jsbImg" alt="JSB" class="inline h-[29px] w-[29px] align-[-3px] mr-2" />
                   {{ selectedCard.price }}
                 </p>
+                <!-- Market Price Suggestion -->
+                <p v-if="formattedMarketPrice" class="market-price-suggestion text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Market Price: $<span class="font-semibold text-green-400">{{ formattedMarketPrice }}</span>
+                </p>
                 <p class="text-sm text-gray-500">
                   Last sold: <img :src="jsbImg" alt="JSB" class="inline h-[17px] w-[17px] align-[-2px] mr-1" />{{ selectedCard.lastSold }}
                 </p>
@@ -434,12 +438,39 @@ const loadFeaturedCards = async () => {
   const myEmail = localStorage.getItem('userEmail') || '';
 
   try {
-    const primary = await fetch('http://localhost:3001/api/cards');
-
-    console.log(primary);
-    if (primary && primary.length) {
-      mapToSampleCards(primary);
-      return;
+    const myEmail = localStorage.getItem('userEmail');
+    
+    const resp = await fetch(`http://localhost:3001/api/cards?excludeEmail=${encodeURIComponent(myEmail)}`);
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+    
+    const cards = await resp.json();
+    
+    if (cards.length > 0) {
+      console.log(`Loaded ${cards.length} cards from backend database`);
+      
+      // Map marketplace payload to UI fields using new listings-based API
+sampleCards.value = cards.map(c => ({
+  id: c.cert_number,
+  img: c.image_url,
+  title: c.card_name || c.psa?.cardName || 'Unknown Card',
+  price: (c.listing_price ?? 'Not For Sale'),
+  lastSold: c.average_sell_price 
+    ? `$${Number(c.average_sell_price).toFixed(2)}` 
+    : 'Unknown',
+  rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
+  set: c?.psa?.setName || c.set_name || 'Unknown Set',
+  sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',
+  sellerEmail: c?.sellerEmail || null,  // ADD THIS LINE
+  sellerId: c?.sellerId || null,
+  sellerRating: '156',
+  averageSellPrice: c?.average_sell_price || null  // Add market price from backend
+})).filter(card => card.img);
+      
+      console.log(`Displaying ${sampleCards.value.length} PSA-certified cards`);
+    } else {
+      loadError.value = 'No cards found in database. Please sync cards first.';
     }
     // Nothing found
     loadError.value = 'No listed cards found in database.';
@@ -712,6 +743,18 @@ function handleBuyCard() {
   // Example: router.push({ name: 'checkout', params: { cardId: selectedCard.value.id } });
 }
 
+// Computed property to format market price
+const formattedMarketPrice = computed(() => {
+  if (!selectedCard.value || !selectedCard.value.averageSellPrice) {
+    return null;
+  }
+  const price = selectedCard.value.averageSellPrice;
+  if (typeof price === 'number' && price > 0) {
+    return price.toFixed(2); // No dollar sign
+  }
+  return null;
+});
+
 const filteredCards = computed(() => {
   let cards = sampleCards.value.filter(card => {
     const matchesSearch = card.title.toLowerCase().includes(searchTerm.value.toLowerCase());
@@ -761,3 +804,25 @@ const filteredCards = computed(() => {
 
 
 </script>
+
+<style scoped>
+/* Market Price Suggestion Styling */
+.market-price-suggestion {
+  font-size: 0.9rem;
+  color: #6b7280; /* gray-600 */
+  line-height: 1.5;
+}
+
+.dark .market-price-suggestion {
+  color: #9ca3af; /* gray-400 in dark mode */
+}
+
+.market-price-suggestion span {
+  font-weight: 600;
+  color: #4ade80; /* green-400 - light green */
+}
+
+.dark .market-price-suggestion span {
+  color: #4ade80; /* green-400 - light green in dark mode too */
+}
+</style>
