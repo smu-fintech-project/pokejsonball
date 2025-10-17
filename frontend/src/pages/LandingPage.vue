@@ -227,8 +227,9 @@
                     <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
                     {{ card.price }}
                   </p>
-                  <p class="text-xs text-gray-500">
-                    Last: <img :src="jsbImg" alt="JSB" class="inline h-[17px] w-[17px] align-[-2px] mr-1" />{{ card.lastSold }}
+                  <p class="text-sm font-bold">
+                    <span class="text-gray-500">Last Sold: </span>
+                    <span class="text-green-700">{{ card.lastSold }}</span>
                   </p>
                 </div>
                 <button @click="openCardModal(card)"
