@@ -5,22 +5,22 @@
     <!-- Not authenticated: CTA -->
     <div v-if="!isAuthed" class="max-w-md mx-auto py-24 px-6">
       <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-10 text-center">
-        <User class="w-14 h-14 mx-auto mb-4 text-indigo-600" />
+        <User class="w-14 h-14 mx-auto mb-4 text-red-600" />
         <h2 class="text-2xl font-black mb-2">Welcome, Trainer!</h2>
         <p class="text-slate-600 dark:text-slate-300 mb-6">
           Sign in to view your profile and card portfolio.
         </p>
         <div class="flex gap-3 justify-center">
           <router-link
-            to="/login"
-            class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700">
-            Login
-          </router-link>
-          <router-link
-            to="/login"
-            class="px-6 py-3 bg-white dark:bg-slate-700 border-2 border-indigo-600 text-indigo-600 dark:text-indigo-300 rounded-xl font-semibold hover:bg-indigo-50 dark:hover:bg-slate-600">
-            Sign Up
-          </router-link>
+          to="/login"
+          class="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700">
+          Login
+        </router-link>
+        <router-link
+          to="/login"
+          class="px-6 py-3 bg-white dark:bg-slate-700 border-2 border-red-600 text-red-600 dark:text-red-300 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-slate-600">
+          Sign Up
+        </router-link>
         </div>
       </div>
     </div>
@@ -29,7 +29,7 @@
     <div v-else class="max-w-7xl mx-auto px-4 py-8 space-y-6">
 
       <!-- Profile Header -->
-      <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-8 shadow-2xl">
+      <div class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 rounded-3xl p-8 shadow-2xl">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div class="flex items-center gap-6">
             <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
@@ -83,15 +83,16 @@
           <button @click="activeTab = 'collection'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
             activeTab === 'collection'
-              ? 'bg-indigo-600 text-white'
+              ? 'bg-red-600 text-white'
               : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
           ]">
             My Card Collection
           </button>
+
           <button @click="activeTab = 'transactions'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
             activeTab === 'transactions'
-              ? 'bg-indigo-600 text-white'
+              ? 'bg-red-600 text-white'
               : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
           ]">
             Trade History
@@ -100,7 +101,7 @@
           <button @click="activeTab = 'portfolio'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
             activeTab === 'portfolio'
-              ? 'bg-indigo-600 text-white'
+              ? 'bg-red-600 text-white'
               : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
           ]">
             Portfolio
@@ -114,10 +115,10 @@
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold">Your Cards</h2>
             <button @click="showAddModal = true"
-              class="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-lg">
-              <Plus class="w-5 h-5" />
-              Add Card
-            </button>
+          class="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all shadow-lg">
+          <Plus class="w-5 h-5" />
+          Add Card
+        </button>
           </div>
 
           <!-- Loading -->
@@ -239,7 +240,7 @@
             <!-- form fields unchanged -->
             <!-- … -->
             <button @click="handleAddCard"
-              class="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg">
+              class="w-full px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
               Add to Portfolio
             </button>
           </div>
@@ -253,7 +254,7 @@
           <!-- form fields unchanged -->
           <!-- … -->
           <button @click="handleEditCard"
-            class="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg">
+            class="w-full px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
             Save Changes
           </button>
         </div>

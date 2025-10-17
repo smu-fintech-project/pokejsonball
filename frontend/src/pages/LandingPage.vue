@@ -387,6 +387,7 @@ const isLoggedIn = ref(false);
 const checkLoginStatus = () => {
   const userEmail = localStorage.getItem('userEmail');
   const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username');
   isLoggedIn.value = !!(userEmail || token);
 };
 

@@ -12,13 +12,17 @@ router.post("/signup", async (req, res) => {
   try {
     const db = admin.firestore();  // ← Get db reference HERE, inside the route
     
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
     
     // Validate input
-    if (!email || !password) {
+    if (!name || !email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
     
+    if (name.trim().length < 2) {
+      return res.status(400).json({ error: 'Name must be at least 2 characters' });
+    }
+
     if (password.length < 6) {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
@@ -37,16 +41,18 @@ router.post("/signup", async (req, res) => {
     
     // Save user to Firestore
     const userRef = await db.collection('users').add({
+      name: name.trim(),
       email,
       password: hashed,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
     
-    console.log(`✅ User registered: ${email} (ID: ${userRef.id})`);
+    console.log(`✅ User registered: ${name} ${email} (ID: ${userRef.id})`);
     
     res.json({ 
       message: "User registered successfully ✅",
-      userId: userRef.id 
+      userId: userRef.id,
+      name : name.trim()
     });
     
   } catch (error) {
@@ -93,18 +99,20 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { 
         email: userData.email,
-        userId: userDoc.id 
+        userId: userDoc.id,
+        username: userData.name, 
       }, 
       process.env.JWT_SECRET, 
       { expiresIn: "24h" }
     );
     
-    console.log(`✅ User logged in: ${email}`);
+    console.log(`✅ User logged in: ${userData.name} (${email})`);
     
     res.json({ 
       token,
       email: userData.email,
       userId: userDoc.id,
+      username: userData.name,
       message: "Login successful ✅"
     });
     
