@@ -464,25 +464,23 @@ async function loadOwnedCards() {
   if (!isAuthed.value) return
   loading.value = true
   try {
-    // Get all marketplace entries then filter to this user's email
-    const resp = await fetch('http://localhost:3001/api/cards/ownedCards');
-    console.log(resp);
+    const email = userProfile.value.email
+    const resp = await fetch(`http://localhost:3001/api/cards/ownedCards?email=${encodeURIComponent(email)}`)
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
     const list = await resp.json()
-    const mine = list.filter(i => i.sellerEmail === userProfile.value.email)
 
-    // Map to UI shape (no hardcoded values)
-    ownedCards.value = mine.map(c => ({
+    // Map to UI shape (defensive null checks)
+    ownedCards.value = list.map(c => ({
       id: c.cert_number,
       cert: c.cert_number,
-      img: c.image_url,
-      title: c.card_name,
-      set: c.set_name,
-      grade: `PSA ${c.psa.grade}`,
-      price: Number(c.listing_price),
+      img: c.image_url || c?.psa?.imageUrl || '',
+      title: c.card_name || c?.psa?.cardName || 'Card',
+      set: c.set_name || c?.psa?.setName || '—',
+      grade: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
+      price: Number(c.listing_price || 0),
       quantity: 1,
       status: c.status || 'display',
-      dateAdded: '' // (optional) if you later store per-user timestamps
+      dateAdded: '' // optional
     }))
   } catch (e) {
     console.error('Failed to load owned cards:', e.message)
@@ -494,8 +492,11 @@ async function loadOwnedCards() {
 
 onMounted(async () => {
   await loadProfile()
-  await loadOwnedCards()  //loadOwnedCards to be changed
+  if (isAuthed.value) {
+    await loadOwnedCards()
+  }
 })
+
 
 // ------- Existing modal handlers (kept local for now) -------
 const handleAddCard = () => {

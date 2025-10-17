@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards, getAllUsers} from '../services/firebaseDb.js';
+import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards, getAllUsers, getAllCards} from '../services/firebaseDb.js';
 
 
 
@@ -83,14 +83,104 @@ router.get('/', async (req, res) => {
     return res.status(500).json({ error: 'Failed to list marketplace cards' });
   }
 });
-
-// GET /api/cards/ownedCards - get users own cards
+// GET /api/cards/ownedCards?email=<userEmail>
 router.get('/ownedCards', async (req, res) => {
   try {
-    const users = await getAllUsers();
-    
+    const email = (req.query.email || '').trim()
+    if (!email) {
+      return res.status(400).json({ error: 'email query param is required' })
+    }
+
+    // 1) Find the current user by email
+    const users = await getAllUsers()
+    const me = users.find(u => (u.email || u.userEmail) === email)
+    if (!me) {
+      // no such user in users collection -> return empty set
+      return res.json([])
+    }
+
+    // 2) Read this user's listings (ownership lives here)
+    const { getFirestore } = await import('../services/firebase.js')
+    const db = getFirestore()
+    const listingsSnap = await db
+      .collection('users')
+      .doc(me.id)
+      .collection('listings')
+      .get()
+
+    const listings = []
+    listingsSnap.forEach(d => {
+      const l = d.data()
+      if (!l) return
+      listings.push({
+        cert_number: String(l.cert_number),
+        sellerId: l.sellerId || me.id,
+        sellerEmail: l.sellerEmail || email,
+        listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
+        status: l.status || 'display'
+      })
+    })
+
+    if (!listings.length) {
+      return res.json([])
+    }
+    // 3) Join with cards for display fields (return full card fields)
+  const cards = await getAllCards(1000) // unchanged
+  const byCert = new Map(cards.map(c => [String(c.cert_number), c]))
+
+  const owned = listings.map(l => {
+  const c = byCert.get(l.cert_number) || {}
+
+  // Build psa object from either c.psa or c.psa_grade
+  const psaObj = c.psa || (typeof c.psa_grade !== 'undefined' ? { grade: c.psa_grade } : null)
+
+  return {
+    // --- Listing (ownership) fields ---
+    cert_number: l.cert_number,
+    sellerEmail: l.sellerEmail,
+    sellerId: l.sellerId,
+    listing_price: l.listing_price,
+    status: l.status,
+
+    // --- Full card fields (pass-through; default to null if missing) ---
+    card_name: c.card_name ?? null,
+    card_number: c.card_number ?? null,
+    category: c.category ?? null,
+    cert_date: c.cert_date ?? null,
+    // cert_number already included from listing
+    created_at: c.created_at ?? null,
+    grade_description: c.grade_description ?? null,
+    image_back_url: c.image_back_url ?? null,
+    image_url: c.image_url ?? null,
+    label_type: c.label_type ?? null,
+    last_sale_date: c.last_sale_date ?? null,
+    last_sale_listing_url: c.last_sale_listing_url ?? null,
+    last_sale_market: c.last_sale_market ?? null,
+    last_sale_price: c.last_sale_price ?? null,
+    last_sale_source: c.last_sale_source ?? null,
+    psa_grade: c.psa_grade ?? null,
+    psa_pop_higher: c.psa_pop_higher ?? null,
+    psa_population: c.psa_population ?? null,
+    release_year: c.release_year ?? null,
+    reverse_barcode: c.reverse_barcode ?? null,
+    set_name: c.set_name ?? null,
+    updated_at: c.updated_at ?? null,
+    variety: c.variety ?? null,
+    variety_pedigree: c.variety_pedigree ?? null,
+    year: c.year ?? null,
+
+    // Keep helpful extras if you had them elsewhere
+    last_known_price: c.last_known_price ?? null,
+
+    // Normalized psa object for UI convenience
+    psa: psaObj
+  }
+})
+
+return res.json(owned)
   } catch (error) {
-    console.log(error);
+    console.error('ownedCards error:', error?.message || error)
+    return res.status(500).json({ error: 'Failed to load owned cards' })
   }
 })
 

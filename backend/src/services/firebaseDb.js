@@ -83,7 +83,7 @@ export async function getMarketplaceCards({ excludeEmail = null, limit = 200 } =
   } catch (e) {
     // Fallback path: enumerate users → their listings (no collection-group index required)
     console.warn('[marketplace] collectionGroup failed, falling back:', e.message || e);
-
+    
     const usersSnap = await db.collection('users').get();
     for (const u of usersSnap.docs) {
       const ls = await u.ref.collection('listings')
