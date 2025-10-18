@@ -355,6 +355,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
 import jsbImg from '../../images/JSB_image.png';
 
+
 const scrollToFeatured = () => {
   const section = document.getElementById('featured-cards')
   if (section) {
@@ -393,60 +394,62 @@ const checkLoginStatus = () => {
 
 // Update your onMounted to include the login check
 onMounted(() => {
-  checkLoginStatus(); // Add this line
+  checkLoginStatus(); 
   loadFeaturedCards();
   initThreeJS();
   animate();
   window.addEventListener('resize', onWindowResize);
 });
 
-// Fetch cards from backend database
 const loadFeaturedCards = async () => {
   loading.value = true;
   loadError.value = null;
-  
   try {
-    const myEmail = localStorage.getItem('userEmail');
-    
-    const resp = await fetch(`http://localhost:3001/api/cards?excludeEmail=${encodeURIComponent(myEmail)}`);
-    if (!resp.ok) {
-      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-    }
-    
+    const resp = await fetch('http://localhost:3001/api/cards');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+
     const cards = await resp.json();
-    
-    if (cards.length > 0) {
-      console.log(`Loaded ${cards.length} cards from backend database`);
-      
-      // Map marketplace payload to UI fields using new listings-based API
-sampleCards.value = cards.map(c => ({
-  id: c.cert_number,
-  img: c.image_url,
-  title: c.card_name || c.psa?.cardName || 'Unknown Card',
-  price: (c.listing_price ?? 'Not For Sale'),
-  lastSold: c.average_sell_price 
-    ? `$${Number(c.average_sell_price).toFixed(2)}` 
-    : 'Unknown',
-  rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
-  set: c?.psa?.setName || c.set_name || 'Unknown Set',
-  sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',
-  sellerEmail: c?.sellerEmail || null,  // ADD THIS LINE
-  sellerId: c?.sellerId || null,
-  sellerRating: '156',
-  averageSellPrice: c?.average_sell_price || null  // Add market price from backend
-})).filter(card => card.img);
-      
-      console.log(`Displaying ${sampleCards.value.length} PSA-certified cards`);
+
+    if (Array.isArray(cards) && cards.length > 0) {
+      // Map marketplace payload to UI fields
+      sampleCards.value = cards
+        .map(c => ({
+          id: c.cert_number,
+          img: c.image_url,
+          title: c.card_name || c.psa?.cardName || 'Unknown Card',
+          // use a number so price-range filter works
+          price: Number(c.listing_price ?? 0),
+          lastSold: c.average_sell_price ? `$${Number(c.average_sell_price).toFixed(2)}` : 'Unknown',
+          rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
+          set: c?.psa?.setName || c.set_name || 'Unknown Set',
+          sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',
+          sellerEmail: c?.sellerEmail || null,
+          sellerId: c?.sellerId || null,
+          sellerRating: '156',
+          averageSellPrice: c?.average_sell_price || null
+        }))
+        .filter(card => card.img); // keep if you only want cards with images
+
+      // ✅ important: clear any previous error
+      loadError.value = null;
+
+      if (sampleCards.value.length === 0) {
+        // If everything got filtered out by the image filter, show a helpful message.
+        loadError.value = 'Cards loaded but none have images to display.';
+      }
     } else {
       loadError.value = 'No cards found in database. Please sync cards first.';
     }
   } catch (e) {
-    console.error('Failed to load cards from backend:', e.message);
+    console.error('Failed to load cards from backend:', e?.message || e);
     loadError.value = 'Unable to load cards. Please check if the backend is running.';
   } finally {
     loading.value = false;
   }
 };
+
+
+
 
 const showOwnCards = ref(false);
 // ADD THIS NEW FUNCTION for resetting all filters:
