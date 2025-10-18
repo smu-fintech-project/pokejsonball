@@ -113,6 +113,7 @@ router.post("/login", async (req, res) => {
       email: userData.email,
       userId: userDoc.id,
       username: userData.name,
+      userId: userDoc.id,  // Include userId for Socket.IO chat
       message: "Login successful ✅"
     });
     
