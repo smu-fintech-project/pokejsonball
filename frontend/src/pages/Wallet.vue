@@ -48,16 +48,39 @@
       </div>
     </div>
   </div>
+  <AddFundsModal v-if="showAddFunds" @close="showAddFunds = false" @success="handleAddFundsSuccess" />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import AddFundsModal from '../components/AddFundsModal.vue'
 
 const router = useRouter()
 const loading = ref(true)
 const wallet = ref({ balance: 0, currency: 'JSB' })
 const transactions = ref([])
+
+const showAddFunds = ref(false)
+function handleAddFunds() {
+  showAddFunds.value = true
+}
+
+async function handleAddFundsSuccess() {
+  showAddFunds.value = false;
+  const oldBalance = wallet.value.balance;
+  await waitForWalletUpdate(oldBalance);
+}
+
+async function waitForWalletUpdate(oldBalance) {
+  let tries = 0;
+  while (tries < 10) { 
+    await new Promise(res => setTimeout(res, 2000)); // wait 2 seconds
+    await loadWallet();
+    if (wallet.value.balance !== oldBalance) break;
+    tries++;
+  }
+}
 
 onMounted(async () => {
   await loadWallet()
@@ -102,13 +125,9 @@ async function loadWallet() {
   }
 }
 
-function handleAddFunds() {
-  alert('Add Funds feature coming soon!')
-}
-
-function getTypeColor(type) {
-  return type === 'deposit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-}
+// function getTypeColor(type) {
+//   return type === 'deposit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+// }
 
 function getAmountColor(type) {
   return type === 'deposit' ? 'text-green-600' : 'text-red-600'

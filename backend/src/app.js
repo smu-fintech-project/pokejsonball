@@ -23,7 +23,10 @@ try {
 }
 // =========================================================
 
-// NOW import routes (after Firebase is initialized)
+// Import blockchain/Stripe webhook route BEFORE express.json()
+import stripeWebhookRouter from "./routes/stripeWebhook.js";
+
+// Import other routes
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import cardRoutes from "./routes/cardsFirebase.js";
@@ -32,6 +35,9 @@ import certsRoutes from "./routes/certs.js";
 import walletRoute from "./routes/wallet.js"
 
 const app = express();
+
+
+app.use("/api/stripe/webhook", stripeWebhookRouter);
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -60,27 +66,26 @@ console.log(`FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID || '❌ Miss
 console.log(`JWT_SECRET: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing'}`);
 console.log(`PSA_API_KEY: ${process.env.PSA_API_KEY ? '✅ Configured' : '❌ Missing'}`);
 console.log(`POKEMON_TCG_API_KEY: ${process.env.POKEMON_TCG_API_KEY ? '✅ Configured' : '❌ Missing'}`);
+console.log(`Stripe Secret Key: ${process.env.STRIPE_SECRET_KEY ? '✅ Configured' : '❌ Missing'}`);
+console.log(`Stripe Webhook Key: ${process.env.STRIPE_WEBHOOK_SECRET ? '✅ Configured' : '❌ Missing'}`);
+
 
 // Image proxy to bypass CORS on external images
 app.get("/api/proxy-image", async (req, res) => {
   const { url } = req.query;
   console.log(`\n📸 Image Proxy Request: ${url}`);
-  
   if (!url) {
     console.error('❌ Image proxy error: Missing URL parameter');
     return res.status(400).json({ error: "Missing url parameter" });
   }
-  
   try {
     console.log(`⬇️ Fetching image from: ${url}`);
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       timeout: 10000
     });
-    
     const contentType = response.headers['content-type'] || 'image/png';
     console.log(`✅ Image fetched successfully (${contentType})`);
-    
     res.set('Content-Type', contentType);
     res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     res.send(response.data);
@@ -95,13 +100,13 @@ app.get("/api/proxy-image", async (req, res) => {
   }
 });
 
-// Routes
+// Other routes 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
 app.use("/api/certs", certsRoutes); // PSA Cert Gallery API
-app.use("/api/wallet",walletRoute);
+app.use("/api/wallet", walletRoute);
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running ✅" });
@@ -117,7 +122,7 @@ app.use((err, req, res, next) => {
     url: req.url,
     method: req.method
   });
-  
+
   res.status(500).json({
     success: false,
     error: 'INTERNAL_SERVER_ERROR',
