@@ -214,10 +214,103 @@
           <div class="text-slate-500 dark:text-slate-400">No transactions yet.</div>
         </div>
 
-        <!-- Portfolio Tab (empty for now) -->
+        <!-- Portfolio Tab -->
         <div v-if="activeTab === 'portfolio'" class="p-6">
-          <h2 class="text-2xl font-bold mb-6">Portfolio</h2>
-          <div class="text-slate-500 dark:text-slate-400">Empty.</div>
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold">Portfolio Growth</h2>
+            
+            <!-- Timeframe selector -->
+            <div class="flex gap-2 bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
+              <button
+                v-for="option in timeframeOptions"
+                :key="option.value"
+                @click="timeframe = option.value"
+                :class="[
+                  'px-4 py-2 rounded-md font-semibold text-sm transition-all',
+                  timeframe === option.value
+                    ? 'bg-red-600 text-white shadow-md'
+                    : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                ]"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div v-if="portfolioLoading" class="text-center py-12 text-gray-500 dark:text-slate-400">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+            <p>Loading portfolio data...</p>
+          </div>
+
+          <!-- Empty state -->
+          <div v-else-if="portfolioHistory.length === 0" class="text-center py-12">
+            <TrendingUp class="w-16 h-16 mx-auto mb-4 opacity-50 text-gray-400 dark:text-slate-500" />
+            <p class="text-lg font-semibold mb-2 text-gray-600 dark:text-slate-400">No Portfolio History</p>
+            <p class="text-sm text-gray-500 dark:text-slate-500">
+              Your portfolio history will appear here once you own cards.
+            </p>
+          </div>
+
+          <!-- Chart -->
+          <div v-else class="space-y-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Current Value -->
+              <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
+                <div class="flex items-center gap-2 text-purple-600 dark:text-purple-400 text-sm mb-1">
+                  <DollarSign class="w-4 h-4" />
+                  <span class="font-semibold">Current Value</span>
+                </div>
+                <div class="text-2xl font-black text-purple-900 dark:text-purple-100">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
+                  {{ currentPortfolioValue.toFixed(2) }}
+                </div>
+              </div>
+
+              <!-- Change (24h) -->
+              <div :class="[
+                'rounded-xl p-4 border',
+                portfolioChange >= 0
+                  ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700'
+                  : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700'
+              ]">
+                <div :class="[
+                  'flex items-center gap-2 text-sm mb-1 font-semibold',
+                  portfolioChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                ]">
+                  <TrendingUp v-if="portfolioChange >= 0" class="w-4 h-4" />
+                  <TrendingUp v-else class="w-4 h-4 rotate-180" />
+                  <span>Change ({{ timeframe }})</span>
+                </div>
+                <div :class="[
+                  'text-2xl font-black',
+                  portfolioChange >= 0 ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'
+                ]">
+                  {{ portfolioChange >= 0 ? '+' : '' }}{{ portfolioChange.toFixed(2) }}%
+                </div>
+              </div>
+
+              <!-- All Time High -->
+              <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700">
+                <div class="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm mb-1">
+                  <TrendingUp class="w-4 h-4" />
+                  <span class="font-semibold">All Time High</span>
+                </div>
+                <div class="text-2xl font-black text-yellow-900 dark:text-yellow-100">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
+                  {{ allTimeHigh.toFixed(2) }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="bg-white dark:bg-slate-700 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-slate-600">
+              <div class="h-96">
+                <PortfolioChart :chartData="filteredChartData" />
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -383,11 +476,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
   User, Mail, Clock, TrendingUp, Package, DollarSign, Plus, Edit2, Trash2, X
 } from 'lucide-vue-next'
 import jsbImg from '../../images/JSB_image.png'
+import PortfolioChart from '../components/PortfolioChart.vue'
 
 // --- Auth / state ---
 const isAuthed = ref(false)
@@ -395,6 +489,17 @@ const userProfile = ref({ name: '', email: '', joinDate: '' })
 const ownedCards = ref([])         // fetched from backend
 const loading = ref(false)
 const activeTab = ref('collection')
+
+// --- Portfolio state ---
+const portfolioHistory = ref([])
+const portfolioLoading = ref(false)
+const timeframe = ref('All')
+const timeframeOptions = [
+  { label: '1M', value: '1M' },
+  { label: '6M', value: '6M' },
+  { label: '1Y', value: '1Y' },
+  { label: 'All', value: 'All' }
+]
 
 // derives a friendly name from email if no name present
 const derivedName = computed(() => {
@@ -410,6 +515,57 @@ const totalCards = computed(() =>
 const portfolioValue = computed(() =>
   ownedCards.value.reduce((t, c) => t + (Number(c.price || 0) * (c.quantity ?? 1)), 0)
 )
+
+// Portfolio computed properties
+const filteredChartData = computed(() => {
+  if (!portfolioHistory.value || portfolioHistory.value.length === 0) {
+    return []
+  }
+
+  const now = new Date()
+  let cutoffDate = null
+
+  switch (timeframe.value) {
+    case '1M':
+      cutoffDate = new Date(now.setMonth(now.getMonth() - 1))
+      break
+    case '6M':
+      cutoffDate = new Date(now.setMonth(now.getMonth() - 6))
+      break
+    case '1Y':
+      cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1))
+      break
+    case 'All':
+    default:
+      return portfolioHistory.value
+  }
+
+  return portfolioHistory.value.filter(item => {
+    const itemDate = new Date(item.time)
+    return itemDate >= cutoffDate
+  })
+})
+
+const currentPortfolioValue = computed(() => {
+  if (portfolioHistory.value.length === 0) return 0
+  return portfolioHistory.value[portfolioHistory.value.length - 1]?.value || 0
+})
+
+const portfolioChange = computed(() => {
+  if (filteredChartData.value.length < 2) return 0
+  
+  const firstValue = filteredChartData.value[0]?.value || 0
+  const lastValue = filteredChartData.value[filteredChartData.value.length - 1]?.value || 0
+  
+  if (firstValue === 0) return 0
+  
+  return ((lastValue - firstValue) / firstValue) * 100
+})
+
+const allTimeHigh = computed(() => {
+  if (portfolioHistory.value.length === 0) return 0
+  return Math.max(...portfolioHistory.value.map(item => item.value || 0))
+})
 
 // UI state (modals)
 const showAddModal = ref(false)
@@ -490,6 +646,46 @@ async function loadOwnedCards() {
     loading.value = false
   }
 }
+
+async function loadPortfolioHistory() {
+  if (!isAuthed.value) return
+  
+  portfolioLoading.value = true
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.error('No token found')
+      return
+    }
+
+    const resp = await fetch('http://localhost:3001/api/portfolio/history', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}`)
+    }
+
+    const data = await resp.json()
+    portfolioHistory.value = data
+
+    console.log(`Loaded ${data.length} portfolio data points`)
+  } catch (e) {
+    console.error('Failed to load portfolio history:', e.message)
+    portfolioHistory.value = []
+  } finally {
+    portfolioLoading.value = false
+  }
+}
+
+// Watch for tab changes
+watch(activeTab, (newTab) => {
+  if (newTab === 'portfolio' && portfolioHistory.value.length === 0) {
+    loadPortfolioHistory()
+  }
+})
 
 onMounted(async () => {
   await loadProfile()
