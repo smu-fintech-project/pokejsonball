@@ -332,10 +332,17 @@
               </div>
 
               <!-- Action Buttons -->
-              <div class="flex gap-3 pt-4">
+              <div class="flex flex-col gap-3 pt-4">
                 <button @click="handleBuyCard" 
-                  class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg transform hover:scale-105">
+                  class="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg transform hover:scale-105">
                   Buy Now - <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
+                </button>
+                <button 
+                  @click="handleMessageSeller" 
+                  :disabled="messagingLoading"
+                  class="w-full px-6 py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  <span v-if="messagingLoading">Creating conversation...</span>
+                  <span v-else>💬 Message Seller</span>
                 </button>
               </div>
             </div>
@@ -352,8 +359,12 @@ const sortBy = ref('name-asc');
 const selectedRarity = ref('all');
 
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
 import jsbImg from '../../images/JSB_image.png';
+import { getCurrentUser, getAuthToken } from '@/utils/auth';
+
+const router = useRouter();
 
 
 const scrollToFeatured = () => {
@@ -708,6 +719,74 @@ function handleBuyCard() {
   // Integrate with your backend payment/transaction system
   alert(`Initiating purchase for ${selectedCard.value.title} at S$${selectedCard.value.price}`);
   // Example: router.push({ name: 'checkout', params: { cardId: selectedCard.value.id } });
+}
+
+// Message seller functionality
+const messagingLoading = ref(false);
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+/**
+ * Handle "Message Seller" button click
+ * Creates or finds a conversation and redirects to Messages page
+ */
+async function handleMessageSeller() {
+  const currentUser = getCurrentUser();
+  
+  // Check if user is logged in
+  if (!currentUser.isAuthenticated) {
+    alert('Please log in to message the seller');
+    router.push('/login');
+    return;
+  }
+  
+  messagingLoading.value = true;
+  
+  try {
+    const token = getAuthToken();
+    
+    // Debug: Log the entire card object
+    
+    // Use sellerId from the selected card, or fallback to mock
+    const sellerId = selectedCard.value.sellerId || selectedCard.value.db?.sellerId || 'igyU5vIHYTADDrgHLt8X';
+    const cardId = selectedCard.value.id;
+    
+    
+    // Call find-or-create API
+    const response = await fetch(`${API_URL}/api/chat/find-or-create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        sellerId: sellerId,
+        cardId: cardId
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      
+      // Close modal
+      closeModal();
+      
+      // Redirect to Messages page with the conversation active
+      router.push({
+        path: '/messages',
+        query: { conversation: data.conversationId }
+      });
+    } else {
+      console.error('❌ Failed to create conversation:', data.error);
+      alert(data.error || 'Failed to start conversation');
+    }
+    
+  } catch (err) {
+    console.error('❌ Network error:', err);
+    alert('Network error. Please try again.');
+  } finally {
+    messagingLoading.value = false;
+  }
 }
 
 // Computed property to format market price

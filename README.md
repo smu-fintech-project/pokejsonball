@@ -5,12 +5,14 @@ A modern web application for trading PSA-certified Pokemon cards with real-time 
 ## 🌟 Key Features
 
 - **19 PSA-Certified Eeveelution Cards** - Real certification numbers and high-res images
+- **Real-time Chat System** - Socket.IO powered messaging between buyers and sellers
 - **Portfolio Growth Charts** - TradingView Lightweight Charts with historical data tracking
 - **Real-time Chat System** - Socket.IO powered messaging between buyers and sellers
 - **Price Updates** - Automatic card pricing from Pokemon TCG API
 - **Admin-Protected Cert Gallery** - Email whitelist authentication for sensitive features
 - **Database-Driven Content** - All cards fetched from Firebase Firestore
 - **JWT Authentication** - Secure user signup and login
+- **Live Notifications** - Real-time message alerts with unread badges
 - **Dark Mode** - Toggle between light and dark themes
 - **Admin Protection** - Email whitelist for sensitive features
 - **Smart Caching** - API response caching with TTL
@@ -181,6 +183,273 @@ npm run update:prices
 }
 ```
 
+## 💬 Real-Time Chat & Messaging
+
+### Overview
+
+PokeJsonBall features a fully-functional real-time chat system that allows buyers and sellers to communicate about specific card listings. Built with Socket.IO and Firebase Firestore, the system provides instant messaging, message persistence, and live notifications.
+
+### Key Features
+
+- **Real-time Messaging** - Instant bidirectional communication using WebSockets
+- **Persistent Storage** - All messages saved to Firestore for message history
+- **Conversation Management** - Organized by buyer, seller, and card listing
+- **Live Notifications** - Red badge alerts for unread messages
+- **Auto-Discovery** - Finds or creates conversations automatically
+- **JWT Authentication** - Secure Socket.IO connections with token-based auth
+- **Two-Column Layout** - Conversation list (left) and active chat (right)
+- **Message Status** - Read receipts and unread message counts
+- **Typing Indicators** - See when the other user is typing
+
+### Architecture
+
+```
+Frontend (Vue.js)              Backend (Express + Socket.IO)        Database (Firestore)
+┌─────────────────┐           ┌──────────────────────┐             ┌─────────────────┐
+│  Messages.vue   │◄─Socket───┤  socketRefactored.js │◄───CRUD────┤  conversations  │
+│  (Conversation  │  (Real-   │  - JWT Auth          │             │  - participants │
+│   List)         │   time)   │  - Personal Rooms    │             │  - lastMessage  │
+└────────┬────────┘           │  - Broadcast Events  │             └─────────────────┘
+         │                     └──────────────────────┘                      │
+         │                                                          ┌─────────────────┐
+         └─────────────────────REST API (HTTP)──────────────────►  │    messages     │
+                               GET /api/chat/my-conversations      │  - text         │
+                               GET /api/chat/:id/messages          │  - senderId     │
+                               POST /api/chat/find-or-create       │  - read status  │
+                                                                    └─────────────────┘
+```
+
+### API Endpoints
+
+#### Chat REST APIs
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/chat/find-or-create` | POST | JWT | Find or create a conversation for buyer/seller/card |
+| `/api/chat/my-conversations` | GET | JWT | Get all conversations for logged-in user |
+| `/api/chat/:conversationId/messages` | GET | JWT | Get message history with pagination |
+
+**Example: Find or Create Conversation**
+```bash
+POST /api/chat/find-or-create
+Authorization: Bearer <jwt_token>
+
+{
+  "sellerId": "user123",
+  "cardId": "113699124"
+}
+
+Response:
+{
+  "success": true,
+  "conversationId": "Ttm7GBkwCjkQCl9hxOcR",
+  "isNew": false
+}
+```
+
+**Example: Get Conversations**
+```bash
+GET /api/chat/my-conversations
+Authorization: Bearer <jwt_token>
+
+Response:
+{
+  "success": true,
+  "conversations": [
+    {
+      "id": "Ttm7GBkwCjkQCl9hxOcR",
+      "participants": ["buyer123", "seller456"],
+      "cardId": "113699124",
+      "lastMessage": "Is this card still available?",
+      "lastMessageAt": "2025-10-17T12:34:56.789Z",
+      "unreadCount": 2,
+      "otherUser": {
+        "id": "seller456",
+        "name": "Dave",
+        "email": "dave@example.com"
+      },
+      "card": {
+        "name": "ESPEON EX",
+        "imageUrl": "https://...",
+        "price": 140
+      }
+    }
+  ]
+}
+```
+
+#### Socket.IO Events
+
+**Client → Server:**
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `connect` | `{ auth: { token } }` | Authenticate with JWT token |
+| `join_conversation` | `{ conversationId }` | Join a conversation room |
+| `send_message` | `{ conversationId, text }` | Send a message |
+| `typing_start` | `{ conversationId }` | Notify typing started |
+| `typing_stop` | `{ conversationId }` | Notify typing stopped |
+
+**Server → Client:**
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `conversation_joined` | `{ conversationId, roomId }` | Successfully joined room |
+| `new_message` | `{ id, text, senderId, createdAt, read }` | New message in active conversation |
+| `conversation_updated` | `{ ...conversationObject }` | Conversation list update |
+| `new_message_notification` | `{ conversationId, senderName, messageText }` | Global notification for new messages |
+| `user_typing` | `{ userId, conversationId }` | Other user is typing |
+| `user_stopped_typing` | `{ userId, conversationId }` | Other user stopped typing |
+| `message_sent` | `{ success: true, messageId }` | Message send confirmation |
+
+### Frontend Components
+
+**1. Messages.vue** - Main chat page with two-column layout
+- Left pane: Conversation list with search and sorting
+- Right pane: Active chat window
+- Real-time conversation updates via Socket.IO
+- Auto-selects conversation from URL query parameter
+
+**2. ChatWindow.vue** - Reusable chat interface
+- Message history with infinite scroll
+- Real-time message reception
+- Send message with Enter key support
+- Automatic scroll to bottom
+- Read receipts and timestamps
+
+**3. Composables:**
+- **`useChatRefactored.js`** - Chat logic and Socket.IO connection management
+- **`useGlobalNotifications.js`** - Global notification system for unread messages
+
+### Usage Flow
+
+1. **User clicks "Message Seller" on a card**
+   ```javascript
+   // Frontend calls API to find/create conversation
+   POST /api/chat/find-or-create { sellerId, cardId }
+   // Redirects to /messages?conversation=<id>
+   ```
+
+2. **Messages page loads**
+   ```javascript
+   // Fetch all conversations
+   GET /api/chat/my-conversations
+   
+   // Connect to Socket.IO with JWT
+   socket = io(API_URL, { auth: { token } })
+   
+   // Join personal room for notifications
+   socket.on('connect', () => {
+     // Server auto-joins user_<userId> room
+   })
+   ```
+
+3. **User selects a conversation**
+   ```javascript
+   // Load message history
+   GET /api/chat/:conversationId/messages
+   
+   // Join conversation room
+   socket.emit('join_conversation', { conversationId })
+   ```
+
+4. **User sends a message**
+   ```javascript
+   // Send via Socket.IO
+   socket.emit('send_message', { 
+     conversationId, 
+     text: 'Is this card still available?' 
+   })
+   
+   // Backend:
+   // 1. Saves to Firestore 'messages' collection
+   // 2. Updates 'lastMessage' in conversation
+   // 3. Broadcasts to conversation room: emit('new_message')
+   // 4. Notifies both users' personal rooms: emit('conversation_updated')
+   ```
+
+5. **Recipient receives notification**
+   ```javascript
+   // Real-time updates:
+   socket.on('new_message', (message) => {
+     // Updates chat window if conversation is open
+   })
+   
+   socket.on('conversation_updated', (conversation) => {
+     // Updates conversation list (left pane)
+   })
+   
+   socket.on('new_message_notification', (notif) => {
+     // Shows red badge in navbar
+   })
+   ```
+
+### Database Schema
+
+**Conversations Collection:**
+```javascript
+{
+  id: "Ttm7GBkwCjkQCl9hxOcR",
+  participants: ["buyer123", "seller456"],
+  buyerId: "buyer123",
+  sellerId: "seller456",
+  cardId: "113699124",
+  lastMessage: "Is this card still available?",
+  lastMessageAt: Timestamp,
+  createdAt: Timestamp,
+  updatedAt: Timestamp
+}
+```
+
+**Messages Collection:**
+```javascript
+{
+  id: "msg789",
+  conversationId: "Ttm7GBkwCjkQCl9hxOcR",
+  senderId: "buyer123",
+  text: "Is this card still available?",
+  read: false,
+  createdAt: Timestamp
+}
+```
+
+### Security Features
+
+- **JWT Authentication** - All Socket.IO connections require valid JWT token
+- **Authorization Checks** - Users can only access their own conversations
+- **Input Validation** - Server validates all message content
+- **Rate Limiting** - Built-in Socket.IO connection limits
+- **XSS Protection** - Vue automatically escapes message content
+
+### Testing
+
+**Test Users:**
+```javascript
+// Seed users with cards
+npm run seed:users
+
+// Test accounts:
+alice@gmail.com / password123
+dave@gmail.com / password123
+carol@gmail.com / password123
+```
+
+**Manual Test Flow:**
+1. Log in as Alice
+2. Click "Message Seller" on a card owned by Dave
+3. Send a message to Dave
+4. Log in as Dave (in another browser/incognito)
+5. Check `/messages` - should see Alice's message in real-time
+6. Reply to Alice
+7. Both users should see messages instantly
+
+## 🗃️ Firebase Collections
+
+- **`cards`** - Card data (cert_number, images, PSA grade, etc.)
+- **`api_cache`** - Cached PSA API responses (30min TTL)
+- **`users`** - User accounts (email, hashed password)
+- **`conversations`** - Chat conversations between buyers and sellers
+- **`messages`** - Individual chat messages with read status
 Portfolio value = sum of `average_sell_price` for all user's active listings.
 
 ## 🗃️ Firebase Collections
@@ -247,6 +516,13 @@ pokejsonball/
 │   │   ├── routes/            # API endpoints
 │   │   │   ├── auth.js        # Authentication routes
 │   │   │   ├── cardsFirebase.js  # Card routes
+│   │   │   ├── cardsV2.js     # Alternative card routes
+│   │   │   ├── certs.js       # Admin cert routes
+│   │   │   ├── chat.js        # Chat/messaging routes
+│   │   │   └── users.js       # User routes
+│   │   ├── models/            # Database models
+│   │   │   ├── Conversation.js  # Conversation Firestore operations
+│   │   │   └── Message.js     # Message Firestore operations
 │   │   │   ├── chat.js        # Chat system routes
 │   │   │   ├── portfolio.js   # Portfolio history API
 │   │   │   ├── users.js       # User routes
@@ -260,13 +536,18 @@ pokejsonball/
 │   │   │   ├── pokemonTCGService.js  # Pokemon TCG API
 │   │   │   └── psaService.js  # PSA API integration
 │   │   ├── middleware/        # Express middleware
-│   │   │   ├── auth.js        # JWT authentication
+│   │   │   ├── auth.js        # JWT & Socket.IO authentication
 │   │   │   └── adminAuth.js   # Admin authorization
 │   │   ├── scripts/           # Utility scripts
 │   │   │   ├── updateCardPrices.js      # Price updates + snapshots
 │   │   │   └── seedPortfolioHistory.js  # Backfill historical data
 │   │   ├── seed/              # Database seeding
 │   │   │   └── seedUsers.js   # Sync cards to Firebase
+│   │   ├── scripts/           # Utility scripts
+│   │   │   └── updateCardPrices.js  # Update card prices from TCG API
+│   │   ├── socketRefactored.js  # Socket.IO real-time chat server
+│   │   ├── app.js             # Express app setup
+│   │   └── db.js              # Database connection
 │   │   ├── socketRefactored.js
 │   │   └── app.js             # Express app setup
 │   └── package.json
@@ -279,25 +560,31 @@ pokejsonball/
 │   │   │   ├── PortfolioChart.vue   # TradingView chart
 │   │   │   ├── CertCard.vue   # Individual cert card
 │   │   │   ├── CertGrid.vue   # Grid for certs
+│   │   │   ├── ChatWindow.vue # Real-time chat window
 │   │   │   ├── ListingCard.vue  # Card listing item
-│   │   │   └── Navbar.vue     # Navigation bar
+│   │   │   └── Navbar.vue     # Navigation bar (with notification badge)
 │   │   ├── pages/             # Page components
-│   │   │   ├── LandingPage.vue   # Home page
+│   │   │   ├── LandingPage.vue   # Home page (with "Message Seller")
 │   │   │   ├── About.vue      # About page
 │   │   │   ├── CardDetail.vue # Card detail view
 │   │   │   ├── Certs.vue      # Admin cert gallery
 │   │   │   ├── Community.vue  # Community page
 │   │   │   ├── Messages.vue   # Chat messages page
 │   │   │   ├── Login.vue      # Login page
+│   │   │   ├── Messages.vue   # Chat/messaging page
 │   │   │   ├── SignUp.vue     # Signup page
 │   │   │   ├── Portfolio.vue  # User portfolio
 │   │   │   └── Profile.vue    # User profile with portfolio chart
 │   │   ├── composables/       # Vue composables
+│   │   │   ├── useChatRefactored.js  # Chat logic and Socket.IO
+│   │   │   ├── useGlobalNotifications.js  # Message notifications
+│   │   │   └── usePSADetails.js  # PSA data fetching
 │   │   │   ├── usePSADetails.js  # PSA data fetching
 │   │   │   ├── useChatRefactored.js
 │   │   │   └── useGlobalNotifications.js
 │   │   ├── utils/             # Helper functions
 │   │   │   ├── api.js         # API client
+│   │   │   ├── auth.js        # Auth helpers (getCurrentUser, getAuthToken)
 │   │   │   └── imageProxy.js  # Image proxy helper
 │   │   ├── router/            # Vue Router config
 │   │   │   └── index.js
@@ -314,6 +601,8 @@ pokejsonball/
 - **Routing**: Vue Router 4
 - **Styling**: Tailwind CSS
 - **Build Tool**: Vite
+- **HTTP Client**: Fetch API
+- **Real-time**: Socket.IO Client
 - **HTTP Client**: Axios
 - **Real-time**: Socket.IO Client
 - **Charts**: TradingView Lightweight Charts
@@ -323,6 +612,7 @@ pokejsonball/
 - **Framework**: Express.js
 - **Real-time**: Socket.IO
 - **Database**: Firebase Firestore
+- **Real-time**: Socket.IO (WebSockets)
 - **Authentication**: JWT (JSON Web Tokens)
 - **Password Hashing**: bcrypt
 - **External APIs**: PSA API, Pokemon TCG API
@@ -331,6 +621,18 @@ pokejsonball/
 
 | Problem | Solution |
 |---------|----------|
+| Port 3001 already in use | Kill the process: `lsof -ti:3001 \| xargs kill -9` |
+| JWT_SECRET error | Add `JWT_SECRET=...` to `backend/.env` |
+| No cards showing up | Run `npm run seed:users` in backend folder |
+| Admin access denied | Add your email to `backend/src/config/admins.js` |
+| Firebase error | Verify Firebase credentials in `backend/.env` |
+| CORS errors on images | Images are proxied through `/api/proxy-image` |
+| API rate limits | Cached responses reduce API calls (30min TTL) |
+| **Chat messages not appearing** | Check Socket.IO connection in browser console; ensure JWT token is valid |
+| **"Invalid Date" in messages** | Clear browser cache and refresh; timestamps are now ISO strings |
+| **Duplicate conversations** | Log out and log back in to refresh user ID after running `seed:users` |
+| **WebSocket connection fails** | Ensure backend is running on port 3001; check `FRONTEND_URL` in `.env` |
+| **Firestore index error** | Click the Firebase Console link in the error message to create index |
 
 | Port 3001 in use | `lsof -ti:3001 \| xargs kill -9` |
 | JWT_SECRET error | Add to `backend/.env` |

@@ -7,6 +7,7 @@ const Portfolio = () => import('../pages/Profile.vue');
 const Community = () => import('../pages/Community.vue');
 const About = () => import('../pages/About.vue');
 const CardDetail = () => import('../pages/CardDetail.vue');
+const Messages = () => import('../pages/Messages.vue');
 
 
 const routes = [
@@ -17,6 +18,7 @@ const routes = [
   { path: '/about', component: About, meta: { title: 'About' } },
   { path: '/card/:id', component: CardDetail, meta: { title: 'Card' } },
   { path: '/wallet', component: Wallet, meta: { title: 'My Wallet' } },
+  { path: '/messages', component: Messages, meta: { title: 'Messages' } },
   { path: '/login', component: Login, meta: { title: 'Login' } },
   { path: '/signup', component:SignUp, meta:{title: 'Sign Up'}}
 ];

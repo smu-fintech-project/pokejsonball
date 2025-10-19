@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import axios from "axios";
 import admin from "firebase-admin";
+import http from "http";
+import { initializeSocket } from "./socketRefactored.js"; // Using refactored version with JWT auth
 
 // Load environment variables FIRST
 dotenv.config();
@@ -33,6 +35,9 @@ import chatRoutes from "./routes/chat.js";
 import portfolioRoutes from "./routes/portfolio.js";
 
 const app = express();
+
+// Create HTTP server (required for Socket.IO)
+const httpServer = http.createServer(app);
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -111,6 +116,11 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
+// ====== Initialize Socket.IO for real-time chat ======
+const io = initializeSocket(httpServer, process.env.FRONTEND_URL || 'http://localhost:3000');
+console.log('✅ Socket.IO initialized for real-time chat');
+// =====================================================
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('\n❌ Unhandled Error:', {
@@ -127,7 +137,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+// Use httpServer.listen() instead of app.listen() for Socket.IO compatibility
+httpServer.listen(PORT, () => {
   console.log('\n' + '='.repeat(50));
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 Database: Firebase Firestore`);
@@ -135,5 +146,6 @@ app.listen(PORT, () => {
   console.log(`🔐 Auth: http://localhost:${PORT}/api/auth`);
   console.log(`📦 API V1: http://localhost:${PORT}/api/cards`);
   console.log(`📦 API V2: http://localhost:${PORT}/api/v2/cards`);
+  console.log(`💬 Socket.IO: Real-time chat enabled`);
   console.log('='.repeat(50) + '\n');
 });

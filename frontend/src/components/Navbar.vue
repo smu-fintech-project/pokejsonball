@@ -41,7 +41,15 @@
               <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span>
               <span class="text-gray-700 dark:text-gray-200 text-sm truncate max-w-[160px]">{{username}}</span>
             </div>
-              <router-link to="/wallet" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+            <router-link to="/messages" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 relative"
+              :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/messages') }">
+              Messages
+              <!-- Notification Badge -->
+              <span v-if="hasUnreadMessages" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                {{ unreadCount > 9 ? '9+' : unreadCount }}
+              </span>
+            </router-link>
+            <router-link to="/wallet" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
               :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/wallet') }">Wallet</router-link>
 
             <button @click="logout"
@@ -97,6 +105,7 @@
 import logo from '../assets/logo.png'
 import { watch, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGlobalNotifications } from '@/composables/useGlobalNotifications'
 
 const props = defineProps({ isDark: { type: Boolean, default: false } })
 const route = useRoute()
@@ -108,23 +117,48 @@ const isAuthed = ref(false)
 const userEmail = ref('')
 const username = ref('')
 
+// Global notifications for real-time message alerts
+const {
+  hasUnreadMessages,
+  unreadCount,
+  connect: connectNotifications,
+  disconnect: disconnectNotifications,
+  markAsRead
+} = useGlobalNotifications()
+
 watch(() => route.path, () => {
   syncAuthFromStorage()
+  
+  // Mark notifications as read when visiting messages page
+  if (route.path === '/messages') {
+    markAsRead()
+  }
 })
 
 function syncAuthFromStorage() {
   const token = localStorage.getItem('token')
   const email = localStorage.getItem('userEmail')
   const storedUsername = localStorage.getItem('username');
+  const wasAuthed = isAuthed.value
   isAuthed.value = !!token && !!email
   userEmail.value = email || ''
-  username.value = storedUsername || '' 
+  username.value = storedUsername || ''
+  
+  // Connect/disconnect notifications based on auth state
+  if (isAuthed.value && !wasAuthed) {
+    // User just logged in
+    connectNotifications()
+  } else if (!isAuthed.value && wasAuthed) {
+    // User just logged out
+    disconnectNotifications()
+  }
 }
 
 function logout() {
   localStorage.removeItem('token')
   localStorage.removeItem('userEmail')
   localStorage.removeItem('username')
+  localStorage.removeItem('userId')
   syncAuthFromStorage()
   router.push('/') // send them home
 }
@@ -133,9 +167,15 @@ function logout() {
 onMounted(() => {
   syncAuthFromStorage()
   window.addEventListener('storage', syncAuthFromStorage)
+  
+  // Connect notifications if already logged in
+  if (isAuthed.value) {
+    connectNotifications()
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('storage', syncAuthFromStorage)
+  disconnectNotifications()
 })
 </script>
