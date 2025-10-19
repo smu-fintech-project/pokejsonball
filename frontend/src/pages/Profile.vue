@@ -114,11 +114,13 @@
 
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold">Your Cards</h2>
-            <button @click="showAddModal = true"
-          class="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all shadow-lg">
-          <Plus class="w-5 h-5" />
-          Add Card
-        </button>
+            <router-link
+              to="/upload"
+              class="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all shadow-lg"
+            >
+              <Plus class="w-5 h-5" />
+              Add Card
+            </router-link>
           </div>
 
           <!-- Loading -->
