@@ -18,13 +18,17 @@ router.get('/profile', authMiddleware, async (req, res) => {
     const doc = snap.docs[0];
     const data = doc.data();
 
-    return res.json({
+     return res.json({
       id: doc.id,                 
       email: data.email,
       name: data.name || '',
-      joinDate: data.createdAt || ''
-      // portfolio: data.portfolio ?? []     // to be added later
+      username: data.name || '',
+      userId: doc.id,
+      joinDate: data.createdAt || '',
+      cards: data.cards || [],   //returns owned cert numbers
+      portfolio: data.cards || []  
     });
+    
   } catch (e) {
     console.error('profile error', e);
     return res.status(500).json({ error: 'Failed to load profile' });

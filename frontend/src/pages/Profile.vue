@@ -88,6 +88,15 @@
           ]">
             My Card Collection
           </button>
+          <!-- New Offers tab button -->
+          <button @click="activeTab = 'offers'" :class="[
+            'flex-1 px-6 py-4 font-semibold transition-all',
+            activeTab === 'offers'
+              ? 'bg-red-600 text-white'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          ]">
+            Offers
+          </button>
 
           <button @click="activeTab = 'transactions'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
@@ -108,7 +117,7 @@
           </button>
 
         </div>
-
+        
         <!-- Collection Tab -->
         <div v-if="activeTab === 'collection'" class="p-6">
 
@@ -208,11 +217,62 @@
           </div>
         </div>
 
-        <!-- Transactions Tab (empty for now) -->
-        <div v-if="activeTab === 'transactions'" class="p-6">
-          <h2 class="text-2xl font-bold mb-6">Transaction History</h2>
-          <div class="text-slate-500 dark:text-slate-400">No transactions yet.</div>
+<!-- Transactions Tab -->
+<div v-if="activeTab === 'transactions'" class="p-6">
+  <h2 class="text-2xl font-bold mb-6">Transaction History</h2>
+  
+  <div v-if="loadingTransactions" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    <p class="mt-2 text-gray-500">Loading transactions...</p>
+  </div>
+  
+  <div v-else-if="transactionHistory.length === 0" class="text-center py-12">
+    <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
+      <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    </div>
+    <p class="text-gray-500 dark:text-slate-400 text-lg font-semibold">No transactions yet</p>
+    <p class="text-sm text-gray-400 dark:text-slate-500 mt-2">Your transaction history will appear here</p>
+  </div>
+  
+  <div v-else class="space-y-3">
+    <div v-for="tx in transactionHistory" :key="tx.id"
+      class="flex items-center justify-between p-5 rounded-xl border-2 border-gray-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all">
+      <div class="flex items-center gap-4">
+        <!-- Transaction Icon -->
+        <div :class="[
+          'w-12 h-12 rounded-full flex items-center justify-center',
+          tx.type === 'deposit' || tx.type === 'sale' ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'
+        ]">
+          <svg v-if="tx.type === 'deposit' || tx.type === 'sale'" class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <svg v-else class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+          </svg>
         </div>
+        
+        <div>
+          <p class="font-bold text-gray-900 dark:text-white">{{ tx.description }}</p>
+          <p class="text-sm text-gray-500 dark:text-slate-400">{{ formatTransactionDate(tx.timestamp) }}</p>
+          <p v-if="tx.cert_number" class="text-xs text-gray-400 mt-1">Cert: {{ tx.cert_number }}</p>
+        </div>
+      </div>
+      
+      <div class="text-right">
+        <p class="text-xl font-black" :class="tx.type === 'deposit' || tx.type === 'sale' ? 'text-green-600' : 'text-red-600'">
+          {{ tx.type === 'deposit' || tx.type === 'sale' ? '+' : '-' }}
+          <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mx-1" />
+          {{ Number(tx.amount).toFixed(2) }}
+        </p>
+        <p class="text-sm text-gray-500 dark:text-slate-400">
+          Balance: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(tx.balanceAfter).toFixed(2) }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
         <!-- Portfolio Tab -->
         <div v-if="activeTab === 'portfolio'" class="p-6">
@@ -313,9 +373,158 @@
           </div>
         </div>
 
+<!-- ✨ COMPLETE FIXED: Offers Tab -->
+<div v-if="activeTab === 'offers'" class="p-6">
+  <div class="space-y-6">
+    <!-- Received Offers (Offers on your cards) -->
+    <div>
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        📥 Received Offers
+        <span v-if="receivedOffers.length > 0" class="text-lg font-normal text-gray-500">
+          ({{ receivedOffers.length }})
+        </span>
+      </h2>
+
+      <div v-if="loadingOffers" class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <p class="mt-2 text-gray-500">Loading offers...</p>
       </div>
 
+      <div v-else-if="receivedOffers.length === 0" class="text-center py-8 text-gray-500">
+        <p>No pending offers on your cards</p>
+      </div>
 
+      <div v-else class="space-y-4">
+        <div v-for="offer in receivedOffers" :key="offer.id"
+          class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2 border-gray-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+                  <User class="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p class="font-bold">{{ offer.buyer_name || 'Unknown Buyer' }}</p>
+                  <p class="text-xs text-gray-500">{{ formatOfferDate(offer.created_at) }}</p>
+                </div>
+              </div>
+
+              <div class="ml-13">
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                  Offered for: <span class="font-semibold">{{ offer.card_name || 'Unknown Card' }}</span>
+                </p>
+                <p class="text-sm text-gray-500">
+                  Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
+                </p>
+                
+                <div class="mt-3 flex items-center gap-2">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Offer Amount:</span>
+                  <span class="text-2xl font-black text-green-600">
+                    <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />
+                    {{ Number(offer.offer_amount || 0).toFixed(2) }}
+                  </span>
+                  <span v-if="offer.offer_amount < offer.listing_price" 
+                    class="text-sm text-orange-600 font-semibold">
+                    ({{ ((offer.offer_amount / offer.listing_price) * 100).toFixed(0) }}% of listing)
+                  </span>
+                </div>
+
+                <p v-if="offer.message" class="mt-3 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                  "{{ offer.message }}"
+                </p>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-2">
+              <button @click="acceptOffer(offer.id)"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all whitespace-nowrap">
+                ✓ Accept
+              </button>
+              <button @click="rejectOffer(offer.id)"
+                class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all whitespace-nowrap">
+                ✕ Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="border-t-2 border-gray-200 dark:border-slate-700"></div>
+
+    <!-- Sent Offers (Offers you made) -->
+    <div>
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        📤 Sent Offers
+        <span v-if="sentOffers.length > 0" class="text-lg font-normal text-gray-500">
+          ({{ sentOffers.length }})
+        </span>
+      </h2>
+
+      <div v-if="sentOffers.length === 0" class="text-center py-8 text-gray-500">
+        <p>You haven't made any offers yet</p>
+      </div>
+
+      <div v-else class="space-y-4">
+        <div v-for="offer in sentOffers" :key="offer.id"
+          class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2"
+          :class="{
+            'border-yellow-300 dark:border-yellow-700': offer.status === 'pending',
+            'border-green-300 dark:border-green-700': offer.status === 'accepted',
+            'border-red-300 dark:border-red-700': offer.status === 'rejected',
+            'border-gray-200 dark:border-slate-600': !offer.status
+          }">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <p class="font-bold">{{ offer.card_name || 'Unknown Card' }}</p>
+                <span class="px-2 py-1 rounded text-xs font-bold"
+                  :class="{
+                    'bg-yellow-100 text-yellow-700': offer.status === 'pending',
+                    'bg-green-100 text-green-700': offer.status === 'accepted',
+                    'bg-red-100 text-red-700': offer.status === 'rejected'
+                  }">
+                  {{ (offer.status || 'pending').toUpperCase() }}
+                </span>
+              </div>
+
+              <p class="text-xs text-gray-500 mb-3">{{ formatOfferDate(offer.created_at) }}</p>
+
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Your Offer:</span>
+                <span class="text-xl font-black text-indigo-600">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[18px] w-[18px] align-[-2px] mr-1" />
+                  {{ Number(offer.offer_amount || 0).toFixed(2) }}
+                </span>
+              </div>
+
+              <p class="text-sm text-gray-500">
+                Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
+              </p>
+
+              <p v-if="offer.message" class="mt-2 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                "{{ offer.message }}"
+              </p>
+
+              <p v-if="offer.status === 'accepted' && offer.accepted_at" class="mt-3 text-sm text-green-600 font-semibold">
+                ✅ Accepted on {{ formatOfferDate(offer.accepted_at) }}
+              </p>
+              <p v-else-if="offer.status === 'rejected' && offer.rejected_at" class="mt-3 text-sm text-red-600 font-semibold">
+                ❌ Rejected on {{ formatOfferDate(offer.rejected_at) }}
+              </p>
+              <p v-else-if="offer.status === 'pending'" class="mt-3 text-sm text-yellow-600 font-semibold">
+                ⏳ Waiting for seller's response
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
         
       <!-- Add Card Modal -->
       <!-- (unchanged UI; still mocked locally) -->
@@ -501,6 +710,61 @@ const timeframeOptions = [
   { label: 'All', value: 'All' }
 ]
 
+// Transaction history state
+const transactionHistory = ref([]);
+const loadingTransactions = ref(false);
+
+// Load transaction history
+async function loadTransactionHistory() {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    console.warn('⚠️ No token found');
+    return;
+  }
+
+  loadingTransactions.value = true;
+  try {
+    const resp = await fetch('http://localhost:3001/api/wallet', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      transactionHistory.value = data.transactions || [];
+      console.log('✅ Loaded', transactionHistory.value.length, 'transactions');
+    } else {
+      console.error('❌ Failed to load transactions:', resp.status);
+      transactionHistory.value = [];
+    }
+  } catch (error) {
+    console.error('❌ Failed to load transactions:', error);
+    transactionHistory.value = [];
+  } finally {
+    loadingTransactions.value = false;
+  }
+}
+
+// Format transaction date
+function formatTransactionDate(isoString) {
+  if (!isoString) return 'Unknown date';
+  
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    return 'Invalid date';
+  }
+}
+
 // derives a friendly name from email if no name present
 const derivedName = computed(() => {
   const email = userProfile.value.email || ''
@@ -618,32 +882,95 @@ async function loadProfile() {
 }
 
 async function loadOwnedCards() {
-  if (!isAuthed.value) return
-  loading.value = true
+  if (!isAuthed.value) return;
+  loading.value = true;
+  
   try {
-    const email = userProfile.value.email
-    const resp = await fetch(`http://localhost:3001/api/cards/ownedCards?email=${encodeURIComponent(email)}`)
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-    const list = await resp.json()
-
-    // Map to UI shape (defensive null checks)
-    ownedCards.value = list.map(c => ({
-      id: c.cert_number,
-      cert: c.cert_number,
-      img: c.image_url || c?.psa?.imageUrl || '',
-      title: c.card_name || c?.psa?.cardName || 'Card',
-      set: c.set_name || c?.psa?.setName || '—',
-      grade: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
-      price: Number(c.listing_price || 0),
-      quantity: 1,
-      status: c.status || 'display',
-      dateAdded: '' // optional
-    }))
+    const token = localStorage.getItem('token');
+    const email = userProfile.value.email;
+    
+    // First, get the user's owned cards from their profile
+    const userResp = await fetch('http://localhost:3001/api/users/profile', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    if (!userResp.ok) throw new Error(`HTTP ${userResp.status}`);
+    const userData = await userResp.json();
+    
+    console.log('👤 User data:', userData);
+    console.log('🎴 User owns these cert numbers:', userData.cards);
+    
+    // Get the cert numbers this user owns
+    const ownedCertNumbers = userData.cards || [];
+    
+    if (ownedCertNumbers.length === 0) {
+      console.log('📭 No cards owned by this user');
+      ownedCards.value = [];
+      loading.value = false;
+      return;
+    }
+    
+    // Fetch full card details for each cert number
+    const cardPromises = ownedCertNumbers.map(async (certNumber) => {
+      try {
+        console.log(`🔍 Fetching details for cert: ${certNumber}`);
+        
+        // Get card details from cards endpoint
+        const cardResp = await fetch(`http://localhost:3001/api/cards/${encodeURIComponent(certNumber)}`);
+        if (!cardResp.ok) {
+          console.warn(`⚠️ Failed to fetch card ${certNumber}: HTTP ${cardResp.status}`);
+          return null;
+        }
+        
+        const cardData = await cardResp.json();
+        console.log(`✅ Got card data for ${certNumber}:`, cardData);
+        
+        // Check if this user has an active listing for this card
+        let listingPrice = 0;
+        let listingStatus = 'display';
+        
+        try {
+          const listingsResp = await fetch(`http://localhost:3001/api/cards/ownedCards?email=${encodeURIComponent(email)}`);
+          if (listingsResp.ok) {
+            const listings = await listingsResp.json();
+            const listing = listings.find(l => String(l.cert_number) === String(certNumber));
+            if (listing) {
+              listingPrice = listing.listing_price || 0;
+              listingStatus = listing.status || 'display';
+            }
+          }
+        } catch (e) {
+          console.warn(`⚠️ Failed to check listing for ${certNumber}:`, e.message);
+        }
+        
+        return {
+          id: certNumber,
+          cert: certNumber,
+          img: cardData.image_url || cardData?.psa?.imageUrl || '',
+          title: cardData.card_name || cardData?.psa?.cardName || 'Card',
+          set: cardData.set_name || cardData?.psa?.setName || '—',
+          grade: cardData?.psa?.grade ? `PSA ${cardData.psa.grade}` : 'PSA —',
+          price: Number(listingPrice),
+          quantity: 1,
+          status: listingStatus,
+          dateAdded: ''
+        };
+      } catch (e) {
+        console.error(`❌ Error fetching card ${certNumber}:`, e.message);
+        return null;
+      }
+    });
+    
+    const cards = await Promise.all(cardPromises);
+    ownedCards.value = cards.filter(c => c !== null);
+    
+    console.log(`✅ Loaded ${ownedCards.value.length} owned cards`);
+    
   } catch (e) {
-    console.error('Failed to load owned cards:', e.message)
-    ownedCards.value = []
+    console.error('❌ Failed to load owned cards:', e.message);
+    ownedCards.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
@@ -691,6 +1018,9 @@ onMounted(async () => {
   await loadProfile()
   if (isAuthed.value) {
     await loadOwnedCards()
+    await loadReceivedOffers()
+    await loadSentOffers()
+    await loadTransactionHistory()
   }
 })
 
@@ -827,6 +1157,177 @@ async function undoListing(card) {
   }
 }
 
+// START OF OFFERS STATE
+const receivedOffers = ref([]);
+const sentOffers = ref([]);
+const loadingOffers = ref(false);
+
+// Load received offers (offers on your cards)
+async function loadReceivedOffers() {
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('userId');
+  
+  console.log('🔍 Loading received offers for userId:', userId);
+  
+  if (!token) {
+    console.warn('⚠️ No token found');
+    return;
+  }
+
+  loadingOffers.value = true;
+  try {
+    const resp = await fetch('http://localhost:3001/api/offers/received', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    console.log('📥 Offers response status:', resp.status);
+
+    if (resp.ok) {
+      const data = await resp.json();
+      console.log('📥 Received offers data:', data);
+      receivedOffers.value = data.offers || [];
+      console.log('✅ Loaded', receivedOffers.value.length, 'received offers');
+    } else {
+      console.error('❌ Failed to load offers:', resp.status);
+      receivedOffers.value = [];
+    }
+  } catch (error) {
+    console.error('❌ Failed to load received offers:', error);
+    receivedOffers.value = [];
+  } finally {
+    loadingOffers.value = false;
+  }
+}
+
+// Load sent offers (offers buyers made)
+async function loadSentOffers() {
+  const token = localStorage.getItem('token');
+  
+  console.log('🔍 Loading sent offers');
+  
+  if (!token) {
+    console.warn('⚠️ No token found');
+    return;
+  }
+
+  try {
+    const resp = await fetch('http://localhost:3001/api/offers/sent', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    console.log('📤 Sent offers response status:', resp.status);
+
+    if (resp.ok) {
+      const data = await resp.json();
+      console.log('📤 Sent offers data:', data);
+      sentOffers.value = data.offers || [];
+      console.log('✅ Loaded', sentOffers.value.length, 'sent offers');
+    } else {
+      console.error('❌ Failed to load sent offers:', resp.status);
+      sentOffers.value = [];
+    }
+  } catch (error) {
+    console.error('❌ Failed to load sent offers:', error);
+    sentOffers.value = [];
+  }
+}
+
+// Accept an offer
+async function acceptOffer(offerId) {
+  if (!confirm('Accept this offer? The card will be transferred and payment will be processed.')) {
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  try {
+    const resp = await fetch(`http://localhost:3001/api/offers/${offerId}/accept`, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await resp.json();
+
+    if (resp.ok) {
+      alert('✅ Offer accepted! Transaction completed successfully.');
+      // Reload data
+      await loadReceivedOffers();
+      await loadSentOffers();
+      await loadOwnedCards();
+    } else {
+      alert(`❌ Failed to accept offer: ${data.error || data.message || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Failed to accept offer:', error);
+    alert('❌ Failed to accept offer. Please try again.');
+  }
+}
+
+// Reject an offer
+async function rejectOffer(offerId) {
+  if (!confirm('Reject this offer?')) {
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  try {
+    const resp = await fetch(`http://localhost:3001/api/offers/${offerId}/reject`, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (resp.ok) {
+      alert('Offer rejected');
+      await loadReceivedOffers();
+    } else {
+      alert('Failed to reject offer');
+    }
+  } catch (error) {
+    console.error('Failed to reject offer:', error);
+    alert('Failed to reject offer');
+  }
+}
+
+
+// Format date helper
+function formatOfferDate(isoString) {
+  if (!isoString) return 'Unknown date';
+  
+  try {
+    const date = new Date(isoString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Invalid date';
+  }
+}
+
+// Update your onMounted to load offers
+onMounted(async () => {
+  await loadProfile();
+  if (isAuthed.value) {
+    await loadOwnedCards();
+    await loadReceivedOffers();
+    await loadSentOffers();
+  }
+});
 
 
 
