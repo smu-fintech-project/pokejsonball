@@ -123,101 +123,6 @@ router.post('/purchase-jsb', authenticateToken, async (req, res) => {
 });
 
 
-// POST /api/wallet/cashout
-router.post('/cashout', authenticateToken, async (req, res) => {
-  try {
-    const { jsbAmount } = req.body;
-    const userId = req.userId;
-    const db = admin.firestore();
-
-    const MIN_WITHDRAWAL = 500;
-    if (jsbAmount < MIN_WITHDRAWAL) {
-      return res.status(400).json({
-        success: false,
-        error: 'BELOW_MINIMUM',
-        message: `Minimum withdrawal is ${MIN_WITHDRAWAL} JSB`
-      });
-    }
-
-    const userRef = db.collection('users').doc(userId);
-    const userDoc = await userRef.get();
-
-    if (!userDoc.exists) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    const userData = userDoc.data();
-
-    if (!userData.stripeConnectedAccountId) {
-      return res.status(400).json({
-        success: false,
-        error: 'NO_BANK_ACCOUNT',
-        message: 'Please connect your bank account first'
-      });
-    }
-
-    const currentBalance = userData.wallet?.balance || 0;
-    if (currentBalance < jsbAmount) {
-      return res.status(400).json({
-        success: false,
-        error: 'INSUFFICIENT_BALANCE',
-        message: 'Insufficient JSB balance'
-      });
-    }
-
-    const cashAmount = jsbAmount / 100;
-
-    const transfer = await stripeService.createTransfer(
-      cashAmount,
-      userData.stripeConnectedAccountId,
-      {
-        userId,
-        jsbAmount,
-        type: 'jsb_cashout'
-      }
-    );
-
-    await db.runTransaction(async (transaction) => {
-      const freshUserDoc = await transaction.get(userRef);
-      const freshBalance = freshUserDoc.data().wallet?.balance || 0;
-
-      if (freshBalance < jsbAmount) {
-        throw new Error('Insufficient balance');
-      }
-
-      transaction.update(userRef, {
-        'wallet.balance': freshBalance - jsbAmount
-      });
-
-      const txRef = userRef.collection('transactions').doc();
-      transaction.set(txRef, {
-        type: 'withdrawal',
-        amount: jsbAmount,
-        cashValue: cashAmount,
-        transferId: transfer.id,
-        description: `Cash out ${jsbAmount} JSB`,
-        timestamp: new Date().toISOString(),
-        balanceAfter: freshBalance - jsbAmount
-      });
-    });
-
-    res.json({
-      success: true,
-      transferId: transfer.id,
-      message: 'Withdrawal initiated. Funds will arrive in 2-7 business days.'
-    });
-  } catch (error) {
-    console.error("Cashout error:", error);
-    res.status(500).json({
-      success: false,
-      error: 'CASHOUT_FAILED',
-      message: error.message
-    });
-  }
-});
 
 
 // Check Stripe Connect account status
@@ -331,7 +236,7 @@ router.post('/create-connect-account', authenticateToken, async (req, res) => {
   }
 });
 
-// Cash out endpoint (replaces your existing /cashout)
+// Cash out endpoint
 router.post('/cash-out', authenticateToken, async (req, res) => {
   try {
     const { amount } = req.body; // Amount in JSB
@@ -388,8 +293,8 @@ router.post('/cash-out', authenticateToken, async (req, res) => {
       });
     }
     
-    // Convert JSB to USD (100 JSB = $1)
-    const cashAmount = amount / 100;
+    // Conversion rate 1 JSB = 1 SGD
+    const cashAmount = amount;
     
     // Create Stripe transfer
     const transfer = await stripeService.createTransfer(

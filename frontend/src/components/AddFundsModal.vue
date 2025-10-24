@@ -69,16 +69,20 @@ async function setupStripe() {
 }
 
 async function confirmPayment() {
-  const { error: stripeError } = await stripe.confirmPayment({
+  const { error: stripeError , paymentIntent } = await stripe.confirmPayment({
     elements,
     confirmParams: {
-      return_url: window.location.origin + '/wallet'
+      return_url: window.location.origin + '/wallet?payment=success'
     },
     redirect: 'if_required'
   })
   if (stripeError) {
     error.value = stripeError.message
-  } else {
+    return
+  } 
+
+  if (paymentIntent && paymentIntent.status === 'succeeded') {
+    await new Promise(resolve => setTimeout(resolve, 500))
     emit('success')
   }
 }
