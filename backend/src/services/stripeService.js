@@ -21,31 +21,39 @@ export const stripeService = {
   },
 
   // For cash-outs (Stripe Connect)
-  async createConnectedAccount(email) {
+   async createConnectAccount(email) {
     return await stripe.accounts.create({
       type: 'express',
-      email,
+      country: 'SG',
+      email: email,
       capabilities: {
         transfers: { requested: true }
-      }
+      },
+      business_type: 'individual'
     });
   },
 
-  async createAccountLink(accountId) {
+  async getConnectAccount(accountId) {
+    return await stripe.accounts.retrieve(accountId);
+  },
+
+  async createAccountLink(accountId, refreshUrl, returnUrl) {
     return await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${process.env.FRONTEND_URL}/wallet/reauth`,
-      return_url: `${process.env.FRONTEND_URL}/wallet`,
-      type: 'account_onboarding'
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
+      type: 'account_onboarding',
+      collect: 'eventually_due'
     });
   },
 
-  async createTransfer(amount, destinationAccountId, metadata) {
+  async createTransfer(cashAmount, destinationAccountId, metadata) {
     return await stripe.transfers.create({
-      amount: Math.round(amount * 100),
+      amount: Math.round(cashAmount * 100),
       currency: 'sgd',
       destination: destinationAccountId,
-      metadata
+      description: 'JSB Cash Out',
+      metadata: metadata
     });
   }
 };

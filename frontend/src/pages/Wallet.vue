@@ -4,12 +4,20 @@
     <div class="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 mb-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-bold">My Wallet</h2>
-        <button 
-          @click="handleAddFunds"
-          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-        >
-          + Add Funds
-        </button>
+        <div class="flex gap-2">
+          <button 
+            @click="handleAddFunds"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            + Add Funds
+          </button>
+          <button 
+            @click="handleCashOut"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+          >
+            - Cash Out
+          </button>
+        </div>
       </div>
       <div class="flex items-center gap-4">
         <div class="text-4xl font-bold text-indigo-600">
@@ -32,7 +40,6 @@
         <div v-for="tx in transactions" :key="tx.id" 
              class="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 dark:hover:bg-slate-700">
           <div class="flex items-center gap-4">
-         
             <div>
               <p class="font-semibold">{{ tx.description }}</p>
               <p class="text-sm text-gray-500">{{ formatDate(tx.timestamp) }}</p>
@@ -48,13 +55,22 @@
       </div>
     </div>
   </div>
+  
   <AddFundsModal v-if="showAddFunds" @close="showAddFunds = false" @success="handleAddFundsSuccess" />
+  <CashOutModal 
+    v-if="showCashOut" 
+    :show="showCashOut"
+    :wallet-balance="wallet.balance"
+    @close="showCashOut = false" 
+    @success="handleCashOutSuccess" 
+  />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AddFundsModal from '../components/AddFundsModal.vue'
+import CashOutModal from '../components/CashOutModal.vue'
 
 const router = useRouter()
 const loading = ref(true)
@@ -62,23 +78,35 @@ const wallet = ref({ balance: 0, currency: 'JSB' })
 const transactions = ref([])
 
 const showAddFunds = ref(false)
+const showCashOut = ref(false)
+
 function handleAddFunds() {
   showAddFunds.value = true
 }
 
+function handleCashOut() {
+  showCashOut.value = true
+}
+
 async function handleAddFundsSuccess() {
-  showAddFunds.value = false;
-  const oldBalance = wallet.value.balance;
-  await waitForWalletUpdate(oldBalance);
+  showAddFunds.value = false
+  const oldBalance = wallet.value.balance
+  await waitForWalletUpdate(oldBalance)
+}
+
+async function handleCashOutSuccess() {
+  showCashOut.value = false
+  const oldBalance = wallet.value.balance
+  await waitForWalletUpdate(oldBalance)
 }
 
 async function waitForWalletUpdate(oldBalance) {
-  let tries = 0;
+  let tries = 0
   while (tries < 10) { 
-    await new Promise(res => setTimeout(res, 2000)); // wait 2 seconds
-    await loadWallet();
-    if (wallet.value.balance !== oldBalance) break;
-    tries++;
+    await new Promise(res => setTimeout(res, 2000))
+    await loadWallet()
+    if (wallet.value.balance !== oldBalance) break
+    tries++
   }
 }
 
@@ -124,10 +152,6 @@ async function loadWallet() {
     loading.value = false
   }
 }
-
-// function getTypeColor(type) {
-//   return type === 'deposit' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-// }
 
 function getAmountColor(type) {
   return type === 'deposit' ? 'text-green-600' : 'text-red-600'

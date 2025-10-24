@@ -3,6 +3,7 @@ import LandingPage from '../pages/LandingPage.vue';
 import Login from '../pages/Login.vue';
 import SignUp from '../pages/SignUp.vue';
 import Wallet from '../pages/Wallet.vue';
+import StripeReturn from '../pages/StripeReturn.vue'
 const Portfolio = () => import('../pages/Profile.vue');
 const Community = () => import('../pages/Community.vue');
 const About = () => import('../pages/About.vue');
@@ -19,6 +20,7 @@ const routes = [
   { path: '/certs', component: Certs, meta: { title: 'PSA Cert Gallery' } },
   { path: '/card/:id', component: CardDetail, meta: { title: 'Card' } },
   { path: '/wallet', component: Wallet, meta: { title: 'My Wallet' } },
+  { path: '/stripe-return', component: StripeReturn, meta : {title : 'Stripe Returnn'}},
   { path: '/login', component: Login, meta: { title: 'Login' } },
   { path: '/signup', component:SignUp, meta:{title: 'Sign Up'}}
 ];
