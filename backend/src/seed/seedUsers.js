@@ -58,6 +58,8 @@ async function seedUsers() {
   const passwordPlain = 'password123';
   const hashed = await bcrypt.hash(passwordPlain, 10);
 
+  const createdUsers = [];
+
   for (let i = 0; i < users.length; i++) {
     const u = users[i];
     const userCerts = [];
@@ -94,6 +96,7 @@ async function seedUsers() {
 
     const ref = await db.collection('users').add(userDoc);
     console.log(`Created user ${u.email} (id=${ref.id}) with certs: ${JSON.stringify(userCerts)}`);
+    createdUsers.push({ id: ref.id, email: u.email, name: u.name });
 
     // Reset and seed listings subcollection for this user
     const listingsCol = ref.collection('listings');
@@ -121,6 +124,8 @@ async function seedUsers() {
     await createInitialTransactions(db, ref.id, u.name);
     
   }
+
+  await seedSampleReviews(db, createdUsers);
 
   console.log('✅ Seed users complete');
 }
@@ -169,6 +174,156 @@ async function createInitialTransactions(db, userId, userName) {
   await transactionsRef.add(tx2);
 
   console.log(`  💳 Created 2 transactions for ${userName}`);
+}
+
+async function seedSampleReviews(db, users) {
+  if (!users.length) {
+    console.log('Skipping review seeding — no users created');
+    return;
+  }
+
+  console.log('\n📝 Seeding sample reviews...');
+
+  const byEmail = new Map(users.map(user => [user.email, user]));
+
+  const SAMPLE_REVIEWS = [
+    {
+      revieweeEmail: 'alice@gmail.com',
+      entries: [
+        {
+          reviewerEmail: 'bob@gmail.com',
+          rating: 4.9,
+          role: 'buyer',
+          comment: 'Alice shipped quickly and the card was flawless.',
+          daysAgo: 2
+        },
+        {
+          reviewerEmail: 'carol@gmail.com',
+          rating: 4.8,
+          role: 'seller',
+          comment: 'Smooth deal with Alice—she confirmed receipt right away.',
+          daysAgo: 10
+        }
+      ]
+    },
+    {
+      revieweeEmail: 'bob@gmail.com',
+      entries: [
+        {
+          reviewerEmail: 'alice@gmail.com',
+          rating: 4.6,
+          role: 'seller',
+          comment: 'Bob negotiated politely and released funds on time.',
+          daysAgo: 5
+        },
+        {
+          reviewerEmail: 'dave@gmail.com',
+          rating: 4.9,
+          role: 'buyer',
+          comment: 'Card arrived double-sleeved with a top loader—perfect!',
+          daysAgo: 12
+        }
+      ]
+    },
+    {
+      revieweeEmail: 'carol@gmail.com',
+      entries: [
+        {
+          reviewerEmail: 'eve@gmail.com',
+          rating: 5.0,
+          role: 'buyer',
+          comment: 'Carol added tracking immediately and included a bonus token.',
+          daysAgo: 1
+        },
+        {
+          reviewerEmail: 'alice@gmail.com',
+          rating: 4.7,
+          role: 'seller',
+          comment: 'Very responsive during our trade—would work with Carol again.',
+          daysAgo: 8
+        }
+      ]
+    },
+    {
+      revieweeEmail: 'dave@gmail.com',
+      entries: [
+        {
+          reviewerEmail: 'carol@gmail.com',
+          rating: 4.5,
+          role: 'buyer',
+          comment: 'Dave kept me updated throughout shipping and was appreciative.',
+          daysAgo: 4
+        },
+        {
+          reviewerEmail: 'bob@gmail.com',
+          rating: 4.8,
+          role: 'seller',
+          comment: 'Listing was honest and payment cleared immediately.',
+          daysAgo: 11
+        }
+      ]
+    },
+    {
+      revieweeEmail: 'eve@gmail.com',
+      entries: [
+        {
+          reviewerEmail: 'dave@gmail.com',
+          rating: 5.0,
+          role: 'buyer',
+          comment: 'Eve packaged the slabs like a pro—arrived mint.',
+          daysAgo: 3
+        },
+        {
+          reviewerEmail: 'alice@gmail.com',
+          rating: 4.9,
+          role: 'seller',
+          comment: 'Friendly swap with Eve—confirmations were lightning fast.',
+          daysAgo: 6
+        }
+      ]
+    }
+  ];
+
+  for (const block of SAMPLE_REVIEWS) {
+    const reviewee = byEmail.get(block.revieweeEmail);
+    if (!reviewee) {
+      console.warn(`  ⚠️ Skipping reviews for ${block.revieweeEmail} — user not found`);
+      continue;
+    }
+
+    const reviewsRef = db.collection('users').doc(reviewee.id).collection('reviews');
+
+    // Remove existing reviews for idempotency
+    const existing = await reviewsRef.get();
+    if (!existing.empty) {
+      const batch = db.batch();
+      existing.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
+
+    for (const entry of block.entries) {
+      const reviewer = byEmail.get(entry.reviewerEmail);
+      const createdAt = entry.createdAt
+        ? entry.createdAt
+        : new Date(Date.now() - (entry.daysAgo ?? 0) * 24 * 60 * 60 * 1000).toISOString();
+
+      const reviewDoc = {
+        reviewerEmail: entry.reviewerEmail,
+        reviewerName: reviewer?.name || entry.reviewerEmail,
+        reviewerId: reviewer?.id || null,
+        role: entry.role,
+        rating: entry.rating,
+        comment: entry.comment,
+        createdAt
+      };
+
+      await reviewsRef.add(reviewDoc);
+    }
+
+    console.log(`  ⭐ Seeded ${block.entries.length} reviews for ${reviewee.email}`);
+  }
+
+  console.log('✅ Sample reviews seeded');
 }
 
 

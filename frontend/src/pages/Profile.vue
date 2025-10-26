@@ -107,6 +107,15 @@
             Portfolio
           </button>
 
+          <button @click="activeTab = 'reviews'" :class="[
+            'flex-1 px-6 py-4 font-semibold transition-all',
+            activeTab === 'reviews'
+              ? 'bg-red-600 text-white'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          ]">
+            Reviews
+          </button>
+
         </div>
 
         <!-- Collection Tab -->
@@ -315,6 +324,125 @@
           </div>
         </div>
 
+        <!-- Reviews Tab -->
+        <div v-if="activeTab === 'reviews'" class="p-6 space-y-6">
+          <div class="flex flex-col lg:flex-row gap-6">
+            <div class="lg:w-1/3 bg-gradient-to-br from-red-600 via-red-500 to-red-400 rounded-2xl p-6 text-white shadow-xl">
+              <div class="flex items-center gap-2 text-white/80 text-sm">
+                <Star class="w-5 h-5 text-yellow-300" />
+                <span>Average Rating</span>
+              </div>
+              <div class="mt-4 text-5xl font-black">{{ averageRating.toFixed(1) }}</div>
+              <div class="mt-2 flex items-center gap-1">
+                <div
+                  v-for="n in starRange"
+                  :key="`avg-${n}`"
+                  class="relative w-6 h-6"
+                >
+                  <Star class="w-6 h-6 text-white/30 dark:text-white/20" />
+                  <Star
+                    class="w-6 h-6 text-yellow-300 fill-yellow-300 absolute inset-0"
+                    :style="{ clipPath: `inset(0 ${100 - getStarFillPercentage(averageRating, n)}% 0 0)` }"
+                  />
+                </div>
+              </div>
+              <div class="mt-4 text-white/80 text-sm">
+                {{ totalReviews }} {{ totalReviewsLabel }}
+              </div>
+            </div>
+
+            <div class="flex-1 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-slate-700">
+              <h3 class="text-lg font-semibold flex items-center gap-2 mb-4 text-gray-800 dark:text-slate-100">
+                <MessageCircle class="w-5 h-5 text-red-500" />
+                Rating Breakdown
+              </h3>
+              <div class="space-y-3">
+                <div
+                  v-for="item in ratingBreakdown"
+                  :key="`breakdown-${item.rating}`"
+                  class="flex items-center gap-3"
+                >
+                  <div class="w-12 text-sm font-semibold text-gray-500 dark:text-slate-300">
+                    {{ item.rating }}★
+                  </div>
+                  <div class="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-red-500 rounded-full transition-all"
+                      :style="{ width: `${item.percentage}%` }"
+                    ></div>
+                  </div>
+                  <div class="w-12 text-right text-sm font-semibold text-gray-500 dark:text-slate-300">
+                    {{ item.percentage }}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Recent Reviews</h3>
+            <div
+              v-if="reviewsLoading"
+              class="text-center py-12 text-gray-500 dark:text-slate-400 border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl"
+            >
+              <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600 mx-auto mb-4"></div>
+              <p>Fetching reviews...</p>
+            </div>
+            <div
+              v-else-if="totalReviews === 0"
+              class="text-center py-12 text-gray-500 dark:text-slate-400 border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl"
+            >
+              <MessageCircle class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-slate-600" />
+              <p>Reviews will appear here once other trainers share their experience.</p>
+            </div>
+            <div v-else class="space-y-4">
+              <article
+                v-for="review in reviews"
+                :key="review.id"
+                class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <p class="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                        {{ review.reviewerName || review.reviewer || review.reviewerEmail || 'Anonymous Trainer' }}
+                      </p>
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-200"
+                      >
+                        <BadgeCheck class="w-3.5 h-3.5" />
+                        Review from {{ review.role === 'seller' ? 'Seller' : 'Buyer' }}
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-slate-400">
+                      {{ formatReviewDate(review.createdAt) }}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div
+                      v-for="n in starRange"
+                      :key="`${review.id}-${n}`"
+                      class="relative w-4 h-4"
+                    >
+                      <Star class="w-4 h-4 text-gray-300 dark:text-slate-600" />
+                      <Star
+                        class="w-4 h-4 text-yellow-400 fill-yellow-400 absolute inset-0"
+                        :style="{ clipPath: `inset(0 ${100 - getStarFillPercentage(review.rating, n)}% 0 0)` }"
+                      />
+                    </div>
+                    <span class="ml-2 text-sm font-semibold text-gray-600 dark:text-slate-300">
+                      {{ formatRatingDisplay(review.rating) }}
+                    </span>
+                  </div>
+                </div>
+                <p class="mt-4 text-gray-700 dark:text-slate-300 leading-relaxed">
+                  {{ review.comment || 'No comment provided.' }}
+                </p>
+              </article>
+            </div>
+          </div>
+        </div>
+
       </div>
 
 
@@ -480,7 +608,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
-  User, Mail, Clock, TrendingUp, Package, DollarSign, Plus, Edit2, Trash2, X
+  User, Mail, Clock, TrendingUp, Package, DollarSign, Plus, Edit2, Trash2, X,
+  Star, MessageCircle, BadgeCheck
 } from 'lucide-vue-next'
 import jsbImg from '../../images/JSB_image.png'
 import PortfolioChart from '../components/PortfolioChart.vue'
@@ -491,6 +620,61 @@ const userProfile = ref({ name: '', email: '', joinDate: '' })
 const ownedCards = ref([])         // fetched from backend
 const loading = ref(false)
 const activeTab = ref('collection')
+
+// --- Reviews ---
+const starRange = [1, 2, 3, 4, 5]
+const ratingScale = [5, 4, 3, 2, 1]
+const reviews = ref([])
+const reviewsLoading = ref(false)
+
+const normalizeRating = (rating) => {
+  const num = typeof rating === 'number' ? rating : parseFloat(rating)
+  return Number.isNaN(num) ? 0 : num
+}
+
+const formatRatingDisplay = (rating) => normalizeRating(rating).toFixed(1)
+const formatReviewDate = (value) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+const totalReviews = computed(() => reviews.value.length)
+const totalReviewsLabel = computed(() => (totalReviews.value === 1 ? 'review' : 'reviews'))
+const averageRating = computed(() => {
+  if (!totalReviews.value) return 0
+  const sum = reviews.value.reduce((acc, review) => acc + normalizeRating(review.rating), 0)
+  return sum / totalReviews.value
+})
+const ratingBreakdown = computed(() => {
+  const counts = ratingScale.reduce((acc, rating) => {
+    acc[rating] = 0
+    return acc
+  }, {})
+
+  reviews.value.forEach(review => {
+    const bucket = Math.round(normalizeRating(review.rating))
+    if (bucket >= 1 && bucket <= 5) {
+      counts[bucket] += 1
+    }
+  })
+
+  return ratingScale.map(rating => {
+    const count = counts[rating]
+    const percentage = totalReviews.value ? Math.round((count / totalReviews.value) * 100) : 0
+    return { rating, count, percentage }
+  })
+})
+const getStarFillPercentage = (rating, position) => {
+  const value = normalizeRating(rating)
+  const lowerBound = position - 1
+  if (value >= position) return 100
+  if (value <= lowerBound) return 0
+  const fraction = value - lowerBound
+  const roundedFraction = Math.round(fraction * 10) / 10
+  return Math.round(Math.min(Math.max(roundedFraction * 100, 0), 100))
+}
 
 // --- Portfolio state ---
 const portfolioHistory = ref([])
@@ -649,6 +833,31 @@ async function loadOwnedCards() {
   }
 }
 
+async function loadReviews() {
+  if (!isAuthed.value) return
+  if (reviewsLoading.value) return
+
+  reviewsLoading.value = true
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Missing auth token')
+
+    const resp = await fetch('http://localhost:3001/api/users/reviews', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+
+    const data = await resp.json()
+    reviews.value = Array.isArray(data.reviews) ? data.reviews : []
+  } catch (e) {
+    console.error('Failed to load reviews:', e.message)
+    reviews.value = []
+  } finally {
+    reviewsLoading.value = false
+  }
+}
+
 async function loadPortfolioHistory() {
   if (!isAuthed.value) return
   
@@ -687,12 +896,16 @@ watch(activeTab, (newTab) => {
   if (newTab === 'portfolio' && portfolioHistory.value.length === 0) {
     loadPortfolioHistory()
   }
+  if (newTab === 'reviews' && reviews.value.length === 0 && !reviewsLoading.value) {
+    loadReviews()
+  }
 })
 
 onMounted(async () => {
   await loadProfile()
   if (isAuthed.value) {
     await loadOwnedCards()
+    await loadReviews()
   }
 })
 
