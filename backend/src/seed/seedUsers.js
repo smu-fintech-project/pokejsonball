@@ -104,18 +104,18 @@ async function seedUsers() {
       await batch.commit();
     }
 
-    for (const cert of userCerts) {
-      const price = PRICES_BY_CERT[String(cert)] ?? 0;
-      await listingsCol.doc(String(cert)).set({
-        cert_number: String(cert),
-        listing_price: price,
-        sellerEmail: u.email,
-        sellerId: ref.id,
-        status: 'display',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-    }
+  for (const cert of userCerts) {
+    const price = PRICES_BY_CERT[String(cert)] ?? 0;
+    await listingsCol.doc(String(cert)).set({
+      cert_number: String(cert),
+      listing_price: price,
+      sellerEmail: u.email,
+      sellerId: ref.id,
+      status: 'active',  // ← Changed from 'display' to 'active'
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+  }
     console.log(`  Seeded ${userCerts.length} listings for user ${u.email}`);
     
     await createInitialTransactions(db, ref.id, u.name);

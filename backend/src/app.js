@@ -5,6 +5,8 @@ import axios from "axios";
 import admin from "firebase-admin";
 import http from "http";
 import { initializeSocket } from "./socketRefactored.js"; // Using refactored version with JWT auth
+import offersRoutes from './routes/offers.js';
+import transactionsRoutes from './routes/transactions.js';
 
 // Load environment variables FIRST
 dotenv.config();
@@ -39,6 +41,15 @@ const app = express();
 // Create HTTP server (required for Socket.IO)
 const httpServer = http.createServer(app);
 
+// Configure CORS to allow frontend origin
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
+
+// ✅ Parse JSON bodies BEFORE routes
+app.use(express.json());
+
 // Logging middleware
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
@@ -50,12 +61,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configure CORS to allow frontend origin
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
-app.use(express.json());
+
+
+
 
 // Log environment configuration
 console.log('\n🔧 Environment Configuration:');
@@ -109,6 +117,8 @@ app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG 
 app.use("/api/wallet", walletRoute);
 app.use("/api/chat", chatRoutes); // Chat/messaging routes
 app.use("/api/portfolio", portfolioRoutes); // Portfolio history and analytics
+app.use('/api/offers', offersRoutes);
+app.use('/api/transactions', transactionsRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running ✅" });
