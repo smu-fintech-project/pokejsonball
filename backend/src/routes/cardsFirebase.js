@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards, getAllUsers, getAllCards} from '../services/firebaseDb.js';
+import { getCardByCert, upsertCard, getCache, setCache, getAllUsers, getAllCards} from '../services/firebaseDb.js';
 
 
 
