@@ -82,8 +82,11 @@ async function confirmPayment() {
   } 
 
   if (paymentIntent && paymentIntent.status === 'succeeded') {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise(resolve => setTimeout(resolve, 2000))
     emit('success')
+    emit('close')
+    return
   }
+  
 }
 </script>

@@ -360,21 +360,13 @@ onMounted(async () => {
     return
   }
 
-  // Paynow/Grab Pay transaction
-  const urlParams = new URLSearchParams(window.location.search)
-  const paymentStatus = urlParams.get('payment')
-  
-  if (paymentStatus === 'success') {
-    // Remove the query parameter from URL
-    window.history.replaceState({}, '', '/wallet')
-    
-    // Wait for webhook to process (2 seconds)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-  }
-
+ 
+  await new Promise(resolve => setTimeout(resolve, 2500))
   await loadWallet()
   await loadAccountStatus()
   await loadTransactions()
+
+  
 })
 
 async function loadWallet() {
