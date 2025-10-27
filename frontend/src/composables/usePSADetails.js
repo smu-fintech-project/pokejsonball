@@ -4,6 +4,7 @@
  */
 
 import { ref } from 'vue';
+import { apiUrl } from '@/utils/api';
 
 // Global cache to avoid re-fetching
 const metadataCache = new Map();
@@ -32,8 +33,7 @@ export function usePSADetails() {
       console.log(`📡 Fetching details for cert ${certNumber}...`);
 
       // Fetch from your backend API (which calls PSA API)
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-      const response = await fetch(`${API_BASE}/api/cards/${certNumber}`);
+      const response = await fetch(apiUrl(`/api/cards/${certNumber}`));
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);

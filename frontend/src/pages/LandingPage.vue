@@ -470,7 +470,7 @@ async function handleMakeOffer() {
       offer_amount: offerAmount.value
     });
 
-    const response = await fetch('http://localhost:3001/api/offers', {
+    const response = await fetch(apiUrl('/api/offers'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -533,6 +533,7 @@ import {
 } from "lucide-vue-next";
 import jsbImg from "../../images/JSB_image.png";
 import { getCurrentUser, getAuthToken } from '@/utils/auth';
+import { apiUrl } from '@/utils/api';
 
 const router = useRouter();
 
@@ -588,7 +589,7 @@ const loadFeaturedCards = async () => {
   loading.value = true;
   loadError.value = null;
   try {
-    const resp = await fetch("http://localhost:3001/api/cards");
+    const resp = await fetch(apiUrl("/api/cards"));
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
 
     const cards = await resp.json();
@@ -884,7 +885,7 @@ function toggleWatchlist(id) {
 async function fetchCardV1(certNumber) {
   try {
     const resp = await fetch(
-      `http://localhost:3001/api/cards/${encodeURIComponent(certNumber)}`
+      apiUrl(`/api/cards/${encodeURIComponent(certNumber)}`)
     );
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const payload = await resp.json();
@@ -953,7 +954,7 @@ async function handleBuyCard() {
 
     console.log('📤 Sending request:', requestBody);
 
-    const response = await fetch('http://localhost:3001/api/transactions/buy-now', {
+    const response = await fetch(apiUrl('/api/transactions/buy-now'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -987,7 +988,6 @@ async function handleBuyCard() {
 
 // Message seller functionality
 const messagingLoading = ref(false);
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
  * Handle "Message Seller" button click
@@ -1013,7 +1013,7 @@ async function handleMessageSeller() {
     const cardId = selectedCard.value.id;
     
     // Call find-or-create API
-    const response = await fetch(`${API_URL}/api/chat/find-or-create`, {
+    const response = await fetch(apiUrl(`/api/chat/find-or-create`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

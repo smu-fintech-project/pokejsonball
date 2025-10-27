@@ -37,6 +37,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { apiUrl } from '@/utils/api';
+
 const email = ref('');
 const password = ref('');
 const router = useRouter();
@@ -55,7 +57,7 @@ async function onSubmit() {
 
   try {
     // Call your backend API (like calling ASP.NET controller)
-    const response = await fetch('http://localhost:3001/api/auth/login', {
+    const response = await fetch(apiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

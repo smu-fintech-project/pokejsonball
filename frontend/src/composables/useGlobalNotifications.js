@@ -1,6 +1,7 @@
 import { ref, onUnmounted } from 'vue';
 import { io } from 'socket.io-client';
 import { getAuthToken, getCurrentUser } from '@/utils/auth';
+import { API_BASE } from '@/utils/api';
 
 /**
  * Global notification system for real-time updates
@@ -12,8 +13,6 @@ export function useGlobalNotifications() {
   const hasUnreadMessages = ref(false);
   const unreadCount = ref(0);
   const latestNotification = ref(null);
-  
-  const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   /**
    * Connect to socket for global notifications
@@ -21,13 +20,14 @@ export function useGlobalNotifications() {
   const connect = () => {
     const token = getAuthToken();
     const user = getCurrentUser();
-    
+    const serverUrl = API_BASE.replace(/\/+$/, '');
+
     if (!token || !user.isAuthenticated) {
       return;
     }
 
     try {
-      socket.value = io(SERVER_URL, {
+      socket.value = io(serverUrl, {
         auth: { token },
         transports: ['websocket', 'polling'],
         reconnection: true,

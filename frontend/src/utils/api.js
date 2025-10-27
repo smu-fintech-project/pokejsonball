@@ -4,10 +4,18 @@
 
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+export const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
 
 /**
- * Get authentication token from localStorage
+ * Build a full backend URL (useful for legacy fetch() calls).
+ * Example: fetch(apiUrl('/api/cards'))
+ */
+export function apiUrl(path = '') {
+  return `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+/**
+ * Get authentication token from localStorage/sessionStorage
  */
 const getAuthToken = () => {
   return localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -16,27 +24,27 @@ const getAuthToken = () => {
 /**
  * Create axios instance with auth headers
  */
-const createApiClient = () => {
+export const createApiClient = () => {
   const token = getAuthToken();
-  
+
   return axios.create({
     baseURL: API_BASE,
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
-    }
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
   });
 };
 
 /**
  * Get all cards
- * 
+ *
  * @param {Object} params - Query parameters (limit, offset, grade, set)
  * @returns {Promise<Object>}
  */
 export async function getAllCards(params = {}) {
   const client = createApiClient();
-  
+
   try {
     const response = await client.get('/api/cards', { params });
     return response.data;
@@ -48,13 +56,13 @@ export async function getAllCards(params = {}) {
 
 /**
  * Get card by cert number
- * 
+ *
  * @param {string} certNumber - PSA cert number
  * @returns {Promise<Object>}
  */
 export async function getCardByCert(certNumber) {
   const client = createApiClient();
-  
+
   try {
     const response = await client.get(`/api/v2/cards/${certNumber}`);
     return response.data;
@@ -66,13 +74,13 @@ export async function getCardByCert(certNumber) {
 
 /**
  * Get batch cards
- * 
+ *
  * @param {string[]} certNumbers - Array of cert numbers
  * @returns {Promise<Object>}
  */
 export async function getBatchCards(certNumbers) {
   const client = createApiClient();
-  
+
   try {
     const response = await client.post('/api/v2/cards/batch', { certNumbers });
     return response.data;
@@ -84,21 +92,21 @@ export async function getBatchCards(certNumbers) {
 
 /**
  * Login user
- * 
- * @param {string} email 
- * @param {string} password 
+ *
+ * @param {string} email
+ * @param {string} password
  * @returns {Promise<Object>}
  */
 export async function login(email, password) {
   const client = axios.create({ baseURL: API_BASE });
-  
+
   try {
     const response = await client.post('/api/auth/login', { email, password });
-    
+
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
-    
+
     return response.data;
   } catch (error) {
     console.error('login error:', error);
@@ -108,20 +116,22 @@ export async function login(email, password) {
 
 /**
  * Register user
- * 
+ *
  * @param {Object} userData - User registration data
  * @returns {Promise<Object>}
  */
 export async function register(userData) {
   const client = axios.create({ baseURL: API_BASE });
-  
+
   try {
+    // If your backend uses /api/auth/signup instead of /register, swap the path here:
+    // const response = await client.post('/api/auth/signup', userData);
     const response = await client.post('/api/auth/register', userData);
-    
+
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
-    
+
     return response.data;
   } catch (error) {
     console.error('register error:', error);
@@ -139,7 +149,7 @@ export function logout() {
 
 /**
  * Check if user is authenticated
- * 
+ *
  * @returns {boolean}
  */
 export function isAuthenticated() {
@@ -147,11 +157,14 @@ export function isAuthenticated() {
 }
 
 export default {
+  API_BASE,
+  apiUrl,
+  createApiClient,
   getAllCards,
   getCardByCert,
   getBatchCards,
   login,
   register,
   logout,
-  isAuthenticated
+  isAuthenticated,
 };

@@ -1,6 +1,7 @@
 import { ref, onUnmounted } from 'vue';
 import { io } from 'socket.io-client';
 import { getAuthToken } from '@/utils/auth';
+import { API_BASE } from '@/utils/api';
 
 /**
  * Composable for persistent, authenticated Socket.IO chat
@@ -16,14 +17,15 @@ export function useChat() {
   const typingUsers = ref([]);
   const error = ref(null);
   
-  const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  
 
   /**
    * Connect to Socket.IO with JWT authentication
    */
   const connect = () => {
     const token = getAuthToken();
-    
+    const serverUrl = API_BASE.replace(/\/+$/, '');
+
     if (!token) {
       error.value = 'Authentication required. Please log in.';
       console.error('❌ No auth token found');
@@ -31,7 +33,7 @@ export function useChat() {
     }
 
     try {
-      socket.value = io(SERVER_URL, {
+      socket.value = io(serverUrl, {
         auth: { token }, // JWT token in auth handshake
         transports: ['websocket', 'polling'],
         reconnection: true,

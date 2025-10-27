@@ -36,6 +36,14 @@ import walletRoute from "./routes/wallet.js";
 import chatRoutes from "./routes/chat.js";
 import portfolioRoutes from "./routes/portfolio.js";
 
+function requireCronToken(req, res, next) {
+  const token = req.query.token || req.headers['x-cron-token'];
+  if (!token || token !== process.env.CRON_SECRET) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  next();
+}
+
 const app = express();
 
 // Create HTTP server (required for Socket.IO)

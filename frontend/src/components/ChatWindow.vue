@@ -92,7 +92,8 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useChat } from '@/composables/useChatRefactored';
 import { getCurrentUser, getAuthToken } from '@/utils/auth';
-
+import { apiUrl } from '@/utils/api';
+ 
 // Props
 const props = defineProps({
   conversationId: {
@@ -129,8 +130,6 @@ const messagesContainer = ref(null);
 
 let typingTimer = null;
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
 /**
  * Load message history from API
  */
@@ -141,8 +140,7 @@ const loadMessages = async (conversationId) => {
   try {
     const token = getAuthToken();
     
-    const response = await fetch(
-      `${API_URL}/api/chat/${conversationId}/messages`,
+    const response = await fetch(apiUrl(`/api/chat/${conversationId}/messages`),
       {
         headers: {
           'Authorization': `Bearer ${token}`

@@ -101,6 +101,7 @@ import { useRoute } from 'vue-router';
 import { getAuthToken, getCurrentUser } from '@/utils/auth';
 import ChatWindow from '@/components/ChatWindow.vue';
 import { io } from 'socket.io-client';
+import { apiUrl, API_BASE} from '@/utils/api';
 
 const route = useRoute();
 
@@ -112,7 +113,6 @@ const error = ref(null);
 // Socket for real-time conversation list updates
 let socket = null;
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
  * Fetch all conversations for the current user
@@ -130,7 +130,7 @@ const fetchConversations = async () => {
       return;
     }
     
-    const response = await fetch(`${API_URL}/api/chat/my-conversations`, {
+    const response = await fetch(apiUrl(`/api/chat/my-conversations`), {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -166,13 +166,14 @@ const selectConversation = (conversationId) => {
 const connectSocket = () => {
   const token = getAuthToken();
   const user = getCurrentUser();
-  
+  const serverUrl = API_BASE.replace(/\/+$/, '');
+
   if (!token || !user.isAuthenticated) {
     return;
   }
 
   try {
-    socket = io(API_URL, {
+    socket = io(serverUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true
