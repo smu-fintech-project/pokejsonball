@@ -245,7 +245,7 @@ async function calculateCurrentPortfolioValue(db, userId) {
 /**
  * Create portfolio snapshots for all users (called after updating card prices)
  */
-async function createPortfolioSnapshots() {
+export async function createPortfolioSnapshots() {
   console.log('\n📸 Creating Portfolio Snapshots...');
   console.log('=' .repeat(60));
   
@@ -308,7 +308,7 @@ async function createPortfolioSnapshots() {
 /**
  * Main function - Update all cards
  */
-async function updateAllCardPrices() {
+export async function updateAllCardPrices() {
   console.log('🚀 Starting Card Price Update Script\n');
   console.log('=' .repeat(60));
   
@@ -388,16 +388,18 @@ async function updateAllCardPrices() {
     console.error('\n❌ Fatal error:', error);
     process.exit(1);
   }
+  await createPortfolioSnapshots();
 }
 
-// Run the script
-updateAllCardPrices()
-  .then(() => {
-    console.log('👋 Exiting...');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('💥 Unhandled error:', error);
-    process.exit(1);
-  });
+if (process.env.RUN_CLI === '1') {
+  updateAllCardPrices()
+    .then(() => {
+      console.log('👋 Exiting...');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('💥 Unhandled error:', error);
+      process.exit(1);
+    });
+}
 

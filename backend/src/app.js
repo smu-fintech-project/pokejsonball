@@ -35,6 +35,11 @@ import cardsV2Routes from "./routes/cardsV2.js";
 import walletRoute from "./routes/wallet.js";
 import chatRoutes from "./routes/chat.js";
 import portfolioRoutes from "./routes/portfolio.js";
+// CRON ENDPOINTS
+import { seedUsers } from './seed/seedUsers.js';
+import { backfillPortfolioHistory } from './scripts/seedPortfolioHistory.js';
+import { updateAllCardPrices, createPortfolioSnapshots } from './scripts/updateCardPrices.js';
+
 
 function requireCronToken(req, res, next) {
   const token = req.query.token || req.headers['x-cron-token'];
@@ -130,6 +135,21 @@ app.use('/api/transactions', transactionsRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running ✅" });
+});
+
+app.post('/api/seed/users', requireCronToken, async (req, res) => {
+  await seedUsers();
+  res.json({ ok: true });
+});
+
+app.post('/api/seed/history', requireCronToken, async (req, res) => {
+  await seedPortfolioHistory();
+  res.json({ ok: true });
+});
+
+app.post('/api/update/prices', requireCronToken, async (req, res) => {
+  await updateCardPrices();
+  res.json({ ok: true });
 });
 
 const PORT = process.env.PORT || 3001;

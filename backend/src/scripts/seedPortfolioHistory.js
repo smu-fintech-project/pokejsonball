@@ -103,7 +103,7 @@ function generateHistoricalData(currentValue, days = 100) {
 /**
  * Backfill portfolio history for all users
  */
-async function backfillPortfolioHistory() {
+export async function backfillPortfolioHistory() {
   console.log('🚀 Starting Portfolio History Backfill Script\n');
   console.log('=' .repeat(60));
   
@@ -221,18 +221,19 @@ if (!admin.apps.length) {
     console.log('✅ Firebase Admin initialized successfully');
   } catch (error) {
     console.error('❌ Firebase initialization error:', error.message);
-    process.exit(1);
+    if (process.env.RUN_CLI === '1') process.exit(1);
   }
 }
 
-// Run the script
-backfillPortfolioHistory()
-  .then(() => {
-    console.log('👋 Exiting...');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('💥 Unhandled error:', error);
-    process.exit(1);
-  });
+if (process.env.RUN_CLI === '1') {
+  backfillPortfolioHistory()
+    .then(() => {
+      console.log('👋 Exiting...');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('💥 Unhandled error:', error);
+      process.exit(1);
+    });
+}
 

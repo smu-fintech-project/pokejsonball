@@ -13,7 +13,7 @@ import { getFirestore } from '../services/firebase.js';
 import { getCert, getPSACardDetails } from '../services/psaService.js';
 import { upsertCard } from '../db.js';
 
-async function seedUsers() {
+export async function seedUsers() {
   const db = getFirestore();
 
   // Hardcoded listing prices per cert for demo. Keys MUST be strings.
@@ -104,18 +104,18 @@ async function seedUsers() {
       await batch.commit();
     }
 
-    for (const cert of userCerts) {
-      const price = PRICES_BY_CERT[String(cert)] ?? 0;
-      await listingsCol.doc(String(cert)).set({
-        cert_number: String(cert),
-        listing_price: price,
-        sellerEmail: u.email,
-        sellerId: ref.id,
-        status: 'display',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-    }
+  for (const cert of userCerts) {
+    const price = PRICES_BY_CERT[String(cert)] ?? 0;
+    await listingsCol.doc(String(cert)).set({
+      cert_number: String(cert),
+      listing_price: price,
+      sellerEmail: u.email,
+      sellerId: ref.id,
+      status: 'active',  // ← Changed from 'display' to 'active'
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+  }
     console.log(`  Seeded ${userCerts.length} listings for user ${u.email}`);
     
     await createInitialTransactions(db, ref.id, u.name);
@@ -172,7 +172,7 @@ async function createInitialTransactions(db, userId, userName) {
 }
 
 
-async function syncCerts(certNumbers) {
+export async function syncCerts(certNumbers) {
   console.log(`\n🔄 Syncing ${certNumbers.length} certs...\n`);
 
   for (let i = 0; i < certNumbers.length; i++) {
@@ -248,10 +248,11 @@ async function main() {
   await syncCerts([...certsToSync]);
 
   console.log('🎉 Seed and Sync Complete!');
-  process.exit(0);
 }
 
-main().catch(err => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+if (process.env.RUN_CLI === '1') {
+  main().then(() => process.exit(0)).catch(err => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+  });
+}
