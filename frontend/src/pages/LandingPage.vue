@@ -1,8 +1,7 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-    <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
-
+    >
+    <div class="max-w-[90rem] mx-auto px-4 py-8 space-y-8">
       <!-- 3D Pokeball Hero Section -->
       <section class="relative overflow-hidden bg-[radial-gradient(circle_at_center,_#e5e7eb_0%,_#dfe3e8_30%,_#ffffff_100%)] dark:bg-[radial-gradient(circle_at_center,_#0f172a_0%,_#1e293b_100%)] rounded-3xl p-8 md:p-12 shadow-2xl">
          
@@ -198,33 +197,34 @@
         <!-- Cards Grid -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div v-for="card in filteredCards" :key="card.id"
-            class="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden">
-            <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800">
+            class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden">
+            <!-- <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800"> -->
+              <div class="relative p-4">
               <button @click="toggleWatchlist(card.id)"
                 class="absolute top-2 right-2 z-10 p-2 rounded-full backdrop-blur-sm transition-all" :class="watchlist.includes(card.id)
                   ? 'bg-red-500 text-white'
                   : 'bg-white/80 text-gray-600 hover:bg-red-50'">
                 <Heart class="w-5 h-5" :class="watchlist.includes(card.id) ? 'fill-current' : ''" />
               </button>
-              <img :src="card.img" :alt="card.title" class="w-full h-56 object-contain" />
+              <img :src="card.img" :alt="card.title" class="w-full h-80 object-contain" />
             </div>
 
             <div class="p-4">
               <div class="flex items-start justify-between mb-2">
-                <div>
-                  <h3 class="font-bold text-lg">{{ card.title }}</h3>
-                  <p class="text-sm text-gray-500 dark:text-slate-400">{{ card.set }}</p>
+                <div class = "min-w-0">
+                  <h3 class="font-sans font-bold text-xl">{{ toTitleCase(card.title) }}</h3>
+                  <p class="font-mono text-m text-gray-500 dark:text-slate-400 truncate">{{ card.set }}</p>
                 </div>
                 <span
-                  class="px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold rounded-lg">
+                  class="flex-shrink-0 px-2 py-1 bg-stone-100 dark:bg-indigo-900 text-red-700 dark:text-indigo-300 text-s font-bold rounded-lg">
                   {{ card.rarity }}
                 </span>
               </div>
 
               <div class="flex items-center justify-between pt-3 border-t dark:border-slate-700">
                 <div>
-                  <p class="text-2xl font-black text-indigo-600">
-                    <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+                  <p class="text-xl font-black text-black">
+                    <img :src="jsbImg" alt="JSB" class="inline h-[32px] w-[32px] align-[-8px]" />
                     {{ card.price }}
                   </p>
                   <p class="text-sm font-bold">
@@ -434,6 +434,11 @@ const showOfferModal = ref(false);
 const offerAmount = ref(0);
 const offerMessage = ref('');
 const offerLoading = ref(false);
+// Helper function
+  function toTitleCase(str) {
+    if (!str) return '';
+    return str.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
+  }
 
 // Handle making an offer
 async function handleMakeOffer() {
