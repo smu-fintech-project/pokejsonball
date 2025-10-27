@@ -333,19 +333,26 @@
 
               <!-- Action Buttons -->
               <div class="flex gap-3 pt-4">
-                <button 
-                  @click="handleBuyCard" 
-                  :disabled="!selectedCard || !selectedCard.price"
-                  class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Buy Now - <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
-                </button>
-                
-                <button 
-                  @click="showOfferModal = true" 
-                  :disabled="!selectedCard"
-                  class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Make Offer
-                </button>
+                  <button
+                      @click="handleBuyCard"
+                      :disabled="!selectedCard || !selectedCard.price"
+                      class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                      Buy Now - <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
+                  </button>
+                  <button
+                      @click="showOfferModal = true"
+                      :disabled="!selectedCard"
+                      class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                      Make Offer
+                  </button>
+                  
+                  <button
+                      @click="handleMessageSeller"
+                      :disabled="!selectedCard || messagingLoading"
+                      class="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl font-bold hover:from-blue-700 hover:to-blue-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <span v-if="messagingLoading">Loading...</span>
+                      <span v-else>Message Seller</span>
+                  </button>
               </div>
             </div>
           </div>
