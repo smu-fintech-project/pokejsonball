@@ -7,9 +7,6 @@ import http from "http";
 import { initializeSocket } from "./socketRefactored.js"; // Using refactored version with JWT auth
 import offersRoutes from './routes/offers.js';
 import transactionsRoutes from './routes/transactions.js';
-import adminDebugRoutes from './routes/adminDebug.js';
-
-app.use('/admin/debug', adminDebugRoutes);
 
 // Load environment variables FIRST
 dotenv.config();
