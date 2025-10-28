@@ -28,6 +28,8 @@
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/profile') }">Profile</router-link>
           <router-link to="/community" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/community') }">Community</router-link>
+          <router-link to="/upload" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+            :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/upload') }">Upload</router-link>
             
           <router-link to="/about" class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
             :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/about') }">About</router-link>

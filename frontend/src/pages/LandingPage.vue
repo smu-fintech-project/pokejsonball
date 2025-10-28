@@ -325,7 +325,15 @@
                     </div>
                     <div>
                       <p class="font-semibold">{{ selectedCard.sellerName || selectedCard.sellerEmail || 'Unknown Seller' }}</p>
-                      <p class="text-sm text-gray-500">⭐ 4.9 ({{ selectedCard.sellerRating || '156' }} reviews)</p>
+                      <p v-if="selectedCard.reviewStats?.reviewCount"
+                         class="text-sm text-gray-500">
+                        ⭐ {{ Number(selectedCard.reviewStats.averageRating || 0).toFixed(1) }}
+                        ({{ selectedCard.reviewStats.reviewCount }}
+                        {{ selectedCard.reviewStats.reviewCount === 1 ? 'review' : 'reviews' }})
+                      </p>
+                      <p v-else class="text-sm text-gray-500">
+                        ⭐ No reviews yet
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -535,6 +543,7 @@ import jsbImg from "../../images/JSB_image.png";
 import { getCurrentUser, getAuthToken } from '@/utils/auth';
 
 const router = useRouter();
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const scrollToFeatured = () => {
   const section = document.getElementById("featured-cards");
@@ -610,8 +619,8 @@ const loadFeaturedCards = async () => {
           sellerName: c?.sellerName || c?.sellerEmail || "Unknown Seller",
           sellerEmail: c?.sellerEmail || null,
           sellerId: c?.sellerId || null,
-          sellerRating: "156",
-          averageSellPrice: c?.average_sell_price || null,
+          reviewStats: null,
+          averageSellPrice: c?.average_sell_price || null
         }))
         .filter((card) => card.img); // keep if you only want cards with images
 
@@ -896,11 +905,31 @@ async function fetchCardV1(certNumber) {
 }
 
 async function openCardModal(card) {
-  selectedCard.value = card;
+  selectedCard.value = { ...card, reviewStats: card.reviewStats || null };
   // Load DB card first for modal info
   const dbCard = await fetchCardV1(card.id);
   if (dbCard) {
     selectedCard.value = { ...selectedCard.value, db: dbCard };
+  }
+
+  const sellerId = selectedCard.value?.sellerId || selectedCard.value?.db?.sellerId;
+  if (!sellerId || card.reviewStats) return;
+
+  try {
+    const resp = await fetch(`${API_URL}/api/users/${encodeURIComponent(sellerId)}/reviews/stats`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const stats = await resp.json();
+
+    if (selectedCard.value?.sellerId === sellerId || selectedCard.value?.db?.sellerId === sellerId) {
+      selectedCard.value = { ...selectedCard.value, reviewStats: stats };
+    }
+
+    const cardIndex = sampleCards.value.findIndex(c => c.id === card.id);
+    if (cardIndex !== -1) {
+      sampleCards.value[cardIndex] = { ...sampleCards.value[cardIndex], reviewStats: stats };
+    }
+  } catch (e) {
+    console.warn('Failed to load seller review stats:', e?.message || e);
   }
 }
 
@@ -987,7 +1016,6 @@ async function handleBuyCard() {
 
 // Message seller functionality
 const messagingLoading = ref(false);
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
  * Handle "Message Seller" button click

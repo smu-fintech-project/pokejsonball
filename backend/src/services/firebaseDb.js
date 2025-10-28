@@ -186,9 +186,16 @@ export async function deleteCard(certNumber) {
 /**
  * Cache operations
  */
+
+function toCacheDocId(key) {
+  // Firestore document IDs cannot contain forward slashes
+  return String(key).replace(/\//g, '__');
+}
+
 export async function getCache(key, maxAgeSeconds = 300) {
   const db = getFirestore();
-  const doc = await db.collection(COLLECTIONS.CACHE).doc(key).get();
+  const docId = toCacheDocId(key);
+  const doc = await db.collection(COLLECTIONS.CACHE).doc(docId).get();
   
   if (!doc.exists) {
     console.log(`Cache miss: ${key}`);
@@ -210,8 +217,10 @@ export async function getCache(key, maxAgeSeconds = 300) {
 export async function setCache(key, payload) {
   const db = getFirestore();
   const json = JSON.stringify(payload);
-  
-  await db.collection(COLLECTIONS.CACHE).doc(key).set({
+
+  const docId = toCacheDocId(key);
+
+  await db.collection(COLLECTIONS.CACHE).doc(docId).set({
     payload: json,
     updated_at: new Date().toISOString(),
   });
@@ -235,4 +244,3 @@ export async function clearAllData() {
 }
 
 export { COLLECTIONS };
-

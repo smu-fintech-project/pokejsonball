@@ -32,6 +32,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import cardRoutes from "./routes/cardsFirebase.js";
 import cardsV2Routes from "./routes/cardsV2.js";
+import certRoutes from "./routes/certs.js";
 import walletRoute from "./routes/wallet.js";
 import chatRoutes from "./routes/chat.js";
 import portfolioRoutes from "./routes/portfolio.js";
@@ -61,9 +62,13 @@ app.use((req, res, next) => {
   next();
 });
 
-
-
-
+// Configure CORS to allow frontend origin
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Log environment configuration
 console.log('\n🔧 Environment Configuration:');
@@ -114,6 +119,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
+app.use("/api/certs", certRoutes);
 app.use("/api/wallet", walletRoute);
 app.use("/api/chat", chatRoutes); // Chat/messaging routes
 app.use("/api/portfolio", portfolioRoutes); // Portfolio history and analytics
