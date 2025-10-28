@@ -221,19 +221,17 @@ if (!admin.apps.length) {
     console.log('✅ Firebase Admin initialized successfully');
   } catch (error) {
     console.error('❌ Firebase initialization error:', error.message);
-    if (process.env.RUN_CLI === '1') process.exit(1);
+    process.exit(1);
   }
 }
 
-if (process.env.RUN_CLI === '1') {
-  backfillPortfolioHistory()
-    .then(() => {
-      console.log('👋 Exiting...');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('💥 Unhandled error:', error);
-      process.exit(1);
-    });
-}
-
+// Run the script
+backfillPortfolioHistory()
+  .then(() => {
+    console.log('👋 Exiting...');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('💥 Unhandled error:', error);
+    process.exit(1);
+  });

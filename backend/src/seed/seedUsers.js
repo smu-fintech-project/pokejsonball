@@ -248,11 +248,10 @@ async function main() {
   await syncCerts([...certsToSync]);
 
   console.log('🎉 Seed and Sync Complete!');
+  process.exit(0);
 }
 
-if (process.env.RUN_CLI === '1') {
-  main().then(() => process.exit(0)).catch(err => {
-    console.error('Fatal error:', err);
-    process.exit(1);
-  });
-}
+main().catch(err => {
+  console.error('Fatal error:', err);
+  process.exit(1);
+});
