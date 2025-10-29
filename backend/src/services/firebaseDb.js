@@ -3,12 +3,14 @@
  */
 
 import { getFirestore } from './firebase.js';
+import admin from 'firebase-admin'
 
 // Collections
 const COLLECTIONS = {
   CARDS: 'cards',
   USERS: 'users',
   CACHE: 'api_cache',
+  THOUGHTS: 'thoughts',
 };
 
 /**
@@ -167,6 +169,90 @@ export async function upsertCard(cardData) {
     return { id: docRef.id, ...cardData };
   }
 }
+
+// Create a new thought
+export async function createThought({ authorId, authorName, authorEmail, title, body, imageUrl }) {
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  const payload = {
+    authorId, authorName, authorEmail,
+    title, body, imageUrl: imageUrl || null,
+    createdAt: now, updatedAt: now,
+    upvotes: 0, downvotes: 0, commentsCount: 0,
+  };
+  const ref = await db.collection(COLLECTIONS.THOUGHTS).add(payload);
+  return { id: ref.id, ...payload };
+}
+
+// List thoughts (paged, newest first)
+export async function listThoughts({ limit = 20, cursor = null }) {
+  const db = getFirestore();
+  let query = db.collection(COLLECTIONS.THOUGHTS).orderBy('createdAt', 'desc').limit(limit);
+
+  if (cursor) {
+    const cursorDoc = await db.collection(COLLECTIONS.THOUGHTS).doc(cursor).get();
+    if (cursorDoc.exists) query = query.startAfter(cursorDoc);
+  }
+
+  const snap = await query.get();
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const nextCursor = snap.docs.length ? snap.docs[snap.docs.length - 1].id : null;
+  return { items, nextCursor };
+}
+
+// Get one thought
+export async function getThought(thoughtId) {
+  const db = getFirestore();
+  const doc = await db.collection(COLLECTIONS.THOUGHTS).doc(thoughtId).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...doc.data() };
+}
+
+// Add comment
+export async function addComment(thoughtId, { authorId, authorName, authorEmail, body }) {
+  const db = getFirestore();
+  const now = new Date().toISOString();
+
+  const commentRef = await db
+    .collection(COLLECTIONS.THOUGHTS)
+    .doc(thoughtId)
+    .collection('comments')
+    .add({
+      authorId, authorName, authorEmail,
+      body,
+      createdAt: now,
+      upvotes: 0,
+      downvotes: 0,
+    });
+
+  // increment counter
+  await db.collection(COLLECTIONS.THOUGHTS).doc(thoughtId)
+    .update({ commentsCount: admin.firestore.FieldValue.increment(1) }).catch(()=>{});
+
+  const newDoc = await commentRef.get();
+  return { id: newDoc.id, ...newDoc.data() };
+}
+
+// List comments (paged, oldest first for readability)
+export async function listComments(thoughtId, { limit = 20, cursor = null }) {
+  const db = getFirestore();
+  let query = db.collection(COLLECTIONS.THOUGHTS).doc(thoughtId)
+    .collection('comments').orderBy('createdAt', 'asc').limit(limit);
+
+  if (cursor) {
+    const cDoc = await db.collection(COLLECTIONS.THOUGHTS).doc(thoughtId)
+      .collection('comments').doc(cursor).get();
+    if (cDoc.exists) query = query.startAfter(cDoc);
+  }
+
+  const snap = await query.get();
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const nextCursor = snap.docs.length ? snap.docs[snap.docs.length - 1].id : null;
+  return { items, nextCursor };
+}
+
+
+
 
 /**
  * Delete card

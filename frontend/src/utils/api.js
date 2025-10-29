@@ -146,6 +146,50 @@ export function isAuthenticated() {
   return !!getAuthToken();
 }
 
+
+// Thoughts
+export async function fetchThoughts({ limit = 20, cursor = null } = {}) {
+  const client = createApiClient();
+  const res = await client.get('/api/thoughts', { params: { limit, cursor } });
+  return res.data; // { items, nextCursor }
+}
+
+export async function createThoughtApi({ title, body, imageUrl }) {
+  const client = createApiClient();
+  const res = await client.post('/api/thoughts', { title, body, imageUrl });
+  return res.data;
+}
+
+export async function fetchThought(id) {
+  const client = createApiClient();
+  const res = await client.get(`/api/thoughts/${id}`);
+  return res.data;
+}
+
+export async function fetchComments(thoughtId, { limit = 20, cursor = null } = {}) {
+  const client = createApiClient();
+  const res = await client.get(`/api/thoughts/${thoughtId}/comments`, { params: { limit, cursor } });
+  return res.data; // { items, nextCursor }
+}
+
+export async function addCommentApi(thoughtId, { body }) {
+  const client = createApiClient();
+  const res = await client.post(`/api/thoughts/${thoughtId}/comments`, { body });
+  return res.data;
+}
+
+export async function voteThought(id, value) {
+  const client = createApiClient();
+  const res = await client.post(`/api/thoughts/${id}/vote`, { value });
+  return res.data;
+}
+
+export async function voteComment(thoughtId, commentId, value) {
+  const client = createApiClient();
+  const res = await client.post(`/api/thoughts/${thoughtId}/comments/${commentId}/vote`, { value });
+  return res.data;
+}
+
 export default {
   getAllCards,
   getCardByCert,
@@ -153,5 +197,12 @@ export default {
   login,
   register,
   logout,
-  isAuthenticated
+  isAuthenticated,
+  fetchThoughts,
+  createThoughtApi,
+  fetchThought,
+  fetchComments,
+  addCommentApi,
+  voteThought,
+  voteComment
 };

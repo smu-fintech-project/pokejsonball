@@ -9,6 +9,7 @@ const About = () => import('../pages/About.vue');
 const UploadCard = () => import('../pages/UploadCard.vue');
 const CardDetail = () => import('../pages/CardDetail.vue');
 const Messages = () => import('../pages/Messages.vue');
+const ThoughtDetail = () => import('../pages/ThoughtDetail.vue');
 
 
 const routes = [
@@ -22,7 +23,8 @@ const routes = [
   { path: '/wallet', component: Wallet, meta: { title: 'My Wallet' } },
   { path: '/messages', component: Messages, meta: { title: 'Messages' } },
   { path: '/login', component: Login, meta: { title: 'Login' } },
-  { path: '/signup', component:SignUp, meta:{title: 'Sign Up'}}
+  { path: '/signup', component:SignUp, meta:{title: 'Sign Up'}},
+  { path: '/community/:id', component: ThoughtDetail, props: true, meta: { title: 'Thought' }},
 ];
 
 const router = createRouter({
