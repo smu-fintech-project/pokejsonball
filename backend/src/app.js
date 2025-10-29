@@ -42,14 +42,35 @@ const app = express();
 // Create HTTP server (required for Socket.IO)
 const httpServer = http.createServer(app);
 
-// Configure CORS to allow frontend origin
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+// Determine allowed frontend origins (supports comma-separated list)
+const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:3000';
+const allowedOrigins = rawOrigins
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn(`⚠️  CORS blocked origin: ${origin}`);
+    return callback(new Error(`Origin ${origin} not allowed by CORS policy`));
+  },
   credentials: true
-}));
+};
+
+// Configure CORS to allow configured frontend origins
+app.use(cors(corsOptions));
 
 // ✅ Parse JSON bodies BEFORE routes
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -62,18 +83,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configure CORS to allow frontend origin
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
-
 // Log environment configuration
 console.log('\n🔧 Environment Configuration:');
 console.log(`PORT: ${process.env.PORT || 3001}`);
 console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+if (process.env.FRONTEND_URLS) {
+  console.log(`FRONTEND_URLS: ${process.env.FRONTEND_URLS}`);
+}
+console.log(`CORS Allowed Origins: ${JSON.stringify(allowedOrigins)}`);
 console.log(`DATABASE: Firebase Firestore`);
 console.log(`FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID || '❌ Missing'}`);
 console.log(`JWT_SECRET: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing'}`);
@@ -133,7 +150,7 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 // ====== Initialize Socket.IO for real-time chat ======
-const io = initializeSocket(httpServer, process.env.FRONTEND_URL || 'http://localhost:3000');
+const io = initializeSocket(httpServer, allowedOrigins.length > 0 ? allowedOrigins : ['http://localhost:3000']);
 console.log('✅ Socket.IO initialized for real-time chat');
 // =====================================================
 

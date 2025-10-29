@@ -12,6 +12,6 @@ export function getProxiedImageUrl(imageUrl) {
   }
   
   // Proxy external images through our backend
-  const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+  const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
   return `${apiBase}/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
 }
