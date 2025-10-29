@@ -7,8 +7,9 @@ import StripeReturn from '../pages/StripeReturn.vue'
 const Portfolio = () => import('../pages/Profile.vue');
 const Community = () => import('../pages/Community.vue');
 const About = () => import('../pages/About.vue');
+const UploadCard = () => import('../pages/UploadCard.vue');
 const CardDetail = () => import('../pages/CardDetail.vue');
-const Certs = () => import('../pages/Certs.vue');
+const Messages = () => import('../pages/Messages.vue');
 
 
 const routes = [
@@ -17,10 +18,11 @@ const routes = [
   { path: '/portfolio', redirect: '/profile' },
   { path: '/community', component: Community, meta: { title: 'Community' } },
   { path: '/about', component: About, meta: { title: 'About' } },
-  { path: '/certs', component: Certs, meta: { title: 'PSA Cert Gallery' } },
+  { path: '/upload', component: UploadCard, meta: { title: 'Upload Card' } },
   { path: '/card/:id', component: CardDetail, meta: { title: 'Card' } },
   { path: '/wallet', component: Wallet, meta: { title: 'My Wallet' } },
   { path: '/stripe-return', component: StripeReturn, meta : {title : 'Stripe Returnn'}},
+  { path: '/messages', component: Messages, meta: { title: 'Messages' } },
   { path: '/login', component: Login, meta: { title: 'Login' } },
   { path: '/signup', component:SignUp, meta:{title: 'Sign Up'}}
 ];

@@ -29,72 +29,6 @@ const createApiClient = () => {
 };
 
 /**
- * Get all configured cert numbers
- * 
- * @returns {Promise<string[]>}
- */
-export async function getAllCertNumbers() {
-  const client = createApiClient();
-  
-  try {
-    const response = await client.get('/api/certs/all');
-    return response.data.cert_numbers || [];
-  } catch (error) {
-    console.error('getAllCertNumbers error:', error);
-    
-    if (error.response?.status === 401) {
-      throw new Error('Authentication required. Please log in.');
-    }
-    
-    if (error.response?.status === 403) {
-      throw new Error(error.response?.data?.message || 'Admin access required');
-    }
-    
-    throw new Error(error.response?.data?.message || 'Failed to fetch cert numbers');
-  }
-}
-
-/**
- * Get PSA certs by IDs
- * 
- * @param {string[]} ids - Array of PSA cert numbers
- * @returns {Promise<{ certs: Object[], errors?: Object[] }>}
- */
-export async function getCerts(ids) {
-  if (!Array.isArray(ids) || ids.length === 0) {
-    throw new Error('ids must be a non-empty array');
-  }
-
-  const client = createApiClient();
-  const idsString = ids.join(',');
-  
-  try {
-    const response = await client.get(`/api/certs?ids=${idsString}`);
-    return response.data;
-  } catch (error) {
-    console.error('getCerts error:', error);
-    
-    if (error.response?.status === 401) {
-      throw new Error('Authentication required. Please log in.');
-    }
-    
-    if (error.response?.status === 403) {
-      throw new Error(error.response?.data?.message || 'Admin access required');
-    }
-    
-    if (error.response?.status === 400) {
-      throw new Error(error.response.data?.message || 'Invalid request');
-    }
-    
-    if (error.response?.status === 429) {
-      throw new Error('Rate limit exceeded. Please try again later.');
-    }
-    
-    throw new Error(error.response?.data?.message || 'Failed to fetch certs');
-  }
-}
-
-/**
  * Get all cards
  * 
  * @param {Object} params - Query parameters (limit, offset, grade, set)
@@ -213,8 +147,6 @@ export function isAuthenticated() {
 }
 
 export default {
-  getAllCertNumbers,
-  getCerts,
   getAllCards,
   getCardByCert,
   getBatchCards,

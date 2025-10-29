@@ -1,179 +1,391 @@
-/**
- * PSA Cert Gallery API Routes
- * 
- * Endpoints:
- * - GET /api/certs?ids=comma,separated,certs - Batch fetch PSA certs
- * - GET /api/certs/all - Get all configured certs
- */
-
 import express from 'express';
-import { batchGetCerts } from '../services/psaService.js';
-import adminAuth from '../middleware/adminAuth.js';
-import CERT_NUMBERS from '../config/certs.js';
+import OpenAI from 'openai';
+import { authenticateToken } from '../middleware/auth.js';
+import { getCert, getPSACardDetails } from '../services/psaService.js';
+import { getCardByCert, upsertCard } from '../services/firebaseDb.js';
+import { getFirestore } from '../services/firebase.js';
 
 const router = express.Router();
 
-/**
- * GET /api/certs/all
- * Get all configured cert numbers
- */
-router.get('/all', adminAuth, async (req, res) => {
+let openaiClient = null;
+
+function getOpenAIClient() {
+  if (openaiClient) return openaiClient;
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw Object.assign(new Error('OPENAI_API_KEY is not configured'), {
+      status: 500,
+      code: 'OPENAI_KEY_MISSING'
+    });
+  }
+  openaiClient = new OpenAI({ apiKey });
+  return openaiClient;
+}
+
+// Require auth for all cert routes
+router.use(authenticateToken);
+
+function normalizeCertNumber(raw) {
+  const trimmed = String(raw || '').trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (!/^[0-9]+$/.test(trimmed)) {
+    return null;
+  }
+  return trimmed;
+}
+
+router.get('/:certNumber', async (req, res) => {
+  const certNumber = normalizeCertNumber(req.params.certNumber);
+
+  if (!certNumber) {
+    return res.status(400).json({
+      success: false,
+      error: 'INVALID_CERT',
+      message: 'Certification numbers must be numeric.',
+    });
+  }
+
   try {
-    res.json({
+    const cert = await getCert(certNumber);
+    const existing = await getCardByCert(certNumber);
+
+    const payload = existing
+      ? { ...cert, existing_card: existing }
+      : cert;
+
+    return res.json({
       success: true,
-      count: CERT_NUMBERS.length,
-      cert_numbers: CERT_NUMBERS
+      cert: payload,
     });
   } catch (error) {
-    console.error('❌ Get all certs error:', error);
-    res.status(500).json({
+    const status = Number.isInteger(error?.status) && error.status > 0 ? error.status : 500;
+    return res.status(status).json({
       success: false,
-      error: 'INTERNAL_ERROR',
-      message: 'Failed to fetch cert numbers'
+      error: error?.code || 'PSA_LOOKUP_FAILED',
+      message: error?.message || 'Failed to fetch PSA certification.',
     });
   }
 });
 
-/**
- * GET /api/certs?ids=comma,separated,certs
- * Batch fetch PSA certification data
- * 
- * Query params:
- * - ids: comma-separated list of PSA cert numbers (max 50)
- * 
- * Returns: Array of normalized cert objects with metadata, images, and last sale info
- */
-router.get('/', adminAuth, async (req, res) => {
+router.post('/extract', async (req, res) => {
+  const rawInput = String(req.body?.image || '').trim();
+
+  if (!rawInput) {
+    return res.status(400).json({
+      success: false,
+      error: 'IMAGE_REQUIRED',
+      message: 'Image payload is required.',
+    });
+  }
+
+  let dataUrl = rawInput;
+  let pureBase64 = rawInput;
+
+  if (rawInput.startsWith('data:')) {
+    const [, base64Part] = rawInput.split(',');
+    if (!base64Part) {
+      return res.status(400).json({
+        success: false,
+        error: 'INVALID_IMAGE',
+        message: 'Image payload is not valid base64 content.',
+      });
+    }
+    pureBase64 = base64Part.trim();
+  } else {
+    // Assume JPEG if no data URL prefix provided
+    dataUrl = `data:image/jpeg;base64,${rawInput}`;
+    pureBase64 = rawInput;
+  }
+
+  if (!pureBase64) {
+    return res.status(400).json({
+      success: false,
+      error: 'INVALID_IMAGE',
+      message: 'Image payload is not valid base64 content.',
+    });
+  }
+
+  if (pureBase64.length > 20 * 1024 * 1024) {
+    return res.status(413).json({
+      success: false,
+      error: 'IMAGE_TOO_LARGE',
+      message: 'Image payload exceeds the 20MB limit.',
+    });
+  }
+
   try {
-    const { ids } = req.query;
-    
-    // Validate input
-    if (!ids) {
-      return res.status(400).json({
-        success: false,
-        error: 'INVALID_REQUEST',
-        message: 'Missing required parameter: ids (comma-separated cert numbers)'
+    const client = getOpenAIClient();
+
+    const response = await client.responses.create({
+      model: 'gpt-4o-mini',
+      input: [
+        {
+          role: 'system',
+          content: [
+            {
+              type: 'input_text',
+              text: 'You are an assistant that reads PSA-graded trading card labels from photos. Extract only the PSA certification number shown on the label. Respond in strict JSON with fields "certNumber" (string of digits) and "confidence" (number between 0 and 1). Confidence should reflect how certain you are that the number is accurate.'
+            }
+          ]
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'Identify the PSA certification number on this label. If you cannot see it clearly, set confidence to 0 and leave certNumber empty.'
+            },
+            {
+              type: 'input_image',
+              image_url: dataUrl
+            }
+          ]
+        }
+      ],
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'psa_cert_result',
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              certNumber: { type: 'string', description: 'Digits read from the PSA certification label.' },
+              confidence: { type: 'number', minimum: 0, maximum: 1, description: 'Confidence score between 0 and 1.' }
+            },
+            required: ['certNumber', 'confidence']
+          },
+          strict: true
+        }
+      }
+    });
+
+    const firstOutput = Array.isArray(response?.output?.[0]?.content)
+      ? response.output[0].content
+      : [];
+
+    let jsonString = null;
+
+    const jsonPart = firstOutput.find((entry) => entry.type === 'output_json' && entry.json_string);
+    if (jsonPart) {
+      jsonString = jsonPart.json_string;
+    }
+
+    if (!jsonString) {
+      const textPart = firstOutput.find((entry) => entry.type === 'output_text' && entry.text);
+      if (textPart) {
+        jsonString = textPart.text;
+      }
+    }
+
+    if (!jsonString && typeof response?.output_text === 'string') {
+      jsonString = response.output_text;
+    }
+
+    if (!jsonString) {
+      console.warn('OpenAI vision response missing JSON payload:', JSON.stringify(response)?.substring(0, 4000));
+      throw Object.assign(new Error('Empty response from OpenAI Vision endpoint'), {
+        status: 502,
+        code: 'OPENAI_EMPTY_RESPONSE'
       });
     }
-    
-    // Parse and sanitize cert numbers
-    const certNumbers = ids
-      .split(',')
-      .map(cert => cert.trim())
-      .filter(cert => /^\d+$/.test(cert)); // Only allow numeric cert numbers
-    
-    if (certNumbers.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'INVALID_REQUEST',
-        message: 'No valid cert numbers provided. Cert numbers must be numeric.'
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonString);
+    } catch (parseError) {
+      throw Object.assign(new Error('OpenAI response was not valid JSON'), {
+        status: 502,
+        code: 'OPENAI_INVALID_JSON'
       });
     }
-    
-    // Enforce batch size limit
-    if (certNumbers.length > 50) {
-      return res.status(400).json({
+
+    const certNumber = String(parsed?.certNumber || '').replace(/[^0-9]/g, '');
+    const confidence = typeof parsed?.confidence === 'number' ? parsed.confidence : null;
+
+    if (!certNumber || certNumber.length < 5 || (confidence !== null && confidence < 0.55)) {
+      return res.status(422).json({
         success: false,
-        error: 'BATCH_TOO_LARGE',
-        message: 'Maximum 50 certs per request. Provided: ' + certNumbers.length
+        error: 'CERT_NOT_DETECTED',
+        message: 'Unable to confidently read the certification number. Please try another photo.',
+        confidence: confidence ?? null,
       });
     }
-    
-    console.log(`\n📋 Fetching ${certNumbers.length} certs:`, certNumbers.join(', '));
-    
-    // Fetch cert data with rate limiting and caching
-    const { results, errors } = await batchGetCerts(certNumbers);
-    
-    // Return response with partial failure support
-    const response = {
+
+    return res.json({
       success: true,
-      count: results.length,
-      certs: results
+      certNumber,
+      confidence,
+      model: response?.model ?? null,
+    });
+  } catch (error) {
+    const status = Number.isInteger(error?.status) && error.status > 0 ? error.status : 500;
+    return res.status(status).json({
+      success: false,
+      error: error?.code || 'CERT_EXTRACTION_FAILED',
+      message: error?.message || 'Failed to extract certification number from the image.',
+    });
+  }
+});
+
+router.post('/ingest', async (req, res) => {
+  const certNumber = normalizeCertNumber(req.body?.certNumber);
+
+  if (!certNumber) {
+    return res.status(400).json({
+      success: false,
+      error: 'INVALID_CERT',
+      message: 'Certification numbers must be numeric.',
+    });
+  }
+
+  const requestedOwnerEmail = String(req.body?.ownerEmail || '').trim();
+  const authEmail = req.user?.email || null;
+  const ownerEmail = requestedOwnerEmail || authEmail;
+
+  if (!ownerEmail) {
+    return res.status(400).json({
+      success: false,
+      error: 'OWNER_EMAIL_REQUIRED',
+      message: 'Owner email is required to ingest a card.',
+    });
+  }
+
+  if (authEmail && requestedOwnerEmail && requestedOwnerEmail !== authEmail) {
+    return res.status(403).json({
+      success: false,
+      error: 'OWNER_MISMATCH',
+      message: 'Authenticated user does not match requested owner email.',
+    });
+  }
+
+  try {
+    const cert = await getCert(certNumber);
+    let psaDetails = null;
+
+    try {
+      psaDetails = await getPSACardDetails(certNumber);
+    } catch (detailError) {
+      console.warn(`⚠️ PSA detail fetch failed for ${certNumber}:`, detailError?.message || detailError);
+    }
+
+    const cardData = {
+      cert_number: certNumber,
+      card_name: cert.item_title,
+      card_number: cert.card_number || psaDetails?.cardNumber || null,
+      set_name: cert.brand_title || cert.subject || null,
+      psa_grade: cert.grade ? parseInt(String(cert.grade).replace(/[^0-9]/g, ''), 10) || null : null,
+      release_year: cert.year ? parseInt(cert.year, 10) || null : null,
+      year: psaDetails?.year || cert.year || null,
+      grade_description: psaDetails?.gradeDescription || null,
+      variety: psaDetails?.variety || cert.variety_pedigree || null,
+      cert_date: psaDetails?.certification?.dateGraded || null,
+      category: cert.category || null,
+      psa_population: cert.psa_population?.toString() || null,
+      psa_pop_higher: cert.psa_pop_higher?.toString() || null,
+      label_type: cert.label_type || null,
+      reverse_barcode: cert.reverse_cert_barcode ? 1 : 0,
+      variety_pedigree: cert.variety_pedigree || null,
+      last_sale_price: cert.last_sale?.price || null,
+      last_sale_date: cert.last_sale?.date || null,
+      last_sale_market: cert.last_sale?.market || null,
+      last_sale_source: cert.last_sale?.source || null,
+      last_sale_listing_url: cert.last_sale?.listing_url || null,
+      image_url: cert.images?.left || null,
+      image_back_url: cert.images?.right || null,
+      brand_title: cert.brand_title || null,
+      subject: cert.subject || null,
     };
-    
-    if (errors && errors.length > 0) {
-      response.errors = errors;
-      response.message = `Fetched ${results.length} certs with ${errors.length} partial failures`;
-    }
-    
-    res.json(response);
-    
-  } catch (error) {
-    console.error('❌ Cert batch fetch error:', error);
-    
-    // Handle specific error types
-    if (error.code === 'RATE_LIMIT_EXCEEDED') {
-      return res.status(429).json({
-        success: false,
-        error: error.code,
-        message: error.message,
-        retryAfter: 60
-      });
-    }
-    
-    if (error.code === 'AUTH_FAILED') {
-      return res.status(401).json({
-        success: false,
-        error: error.code,
-        message: error.message
-      });
-    }
-    
-    // Generic error
-    res.status(500).json({
-      success: false,
-      error: 'INTERNAL_ERROR',
-      message: 'Failed to fetch cert data',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
 
-/**
- * GET /api/certs/:certNumber
- * Get single cert details
- */
-router.get('/:certNumber', adminAuth, async (req, res) => {
-  try {
-    const { certNumber } = req.params;
-    
-    // Validate cert number
-    if (!/^\d+$/.test(certNumber)) {
-      return res.status(400).json({
-        success: false,
-        error: 'INVALID_CERT_NUMBER',
-        message: 'Cert number must be numeric'
-      });
+    Object.keys(cardData).forEach((key) => {
+      if (cardData[key] === undefined) {
+        delete cardData[key];
+      }
+    });
+
+    await upsertCard(cardData);
+
+    const db = getFirestore();
+    const now = new Date().toISOString();
+    let listingInfo = null;
+
+    // Prioritize userId from JWT for lookup; fallback to email query
+    const userId = req.user?.userId || null;
+    let userRef = null;
+
+    if (userId) {
+      const docRef = db.collection('users').doc(userId);
+      const docSnap = await docRef.get();
+      if (docSnap.exists) {
+        userRef = docRef;
+      }
     }
-    
-    console.log(`\n🔍 Fetching single cert: ${certNumber}`);
-    
-    const { results, errors } = await batchGetCerts([certNumber]);
-    
-    if (results.length === 0 || results[0].error) {
+
+    if (!userRef) {
+      const userSnap = await db
+        .collection('users')
+        .where('email', '==', ownerEmail)
+        .limit(1)
+        .get();
+
+      if (!userSnap.empty) {
+        userRef = userSnap.docs[0].ref;
+      }
+    }
+
+    if (!userRef) {
       return res.status(404).json({
         success: false,
-        error: 'CERT_NOT_FOUND',
-        message: `PSA certificate ${certNumber} not found or unavailable`,
-        details: errors?.[0]
+        error: 'OWNER_NOT_FOUND',
+        message: 'Could not find a user record for the provided email.',
       });
     }
-    
-    res.json({
+
+    const listingsRef = userRef.collection('listings').doc(certNumber);
+    const existingListing = await listingsRef.get();
+
+    const listingPayload = {
+      cert_number: certNumber,
+      sellerEmail: ownerEmail,
+      sellerId: userRef.id,
+      status: 'listed',
+      updated_at: now,
+    };
+
+    if (!existingListing.exists) {
+      listingPayload.created_at = now;
+      if (typeof req.body?.listing_price === 'number') {
+        listingPayload.listing_price = req.body.listing_price;
+      } else {
+        listingPayload.listing_price = null;
+      }
+    }
+
+    await listingsRef.set(listingPayload, { merge: true });
+
+    listingInfo = {
+      sellerId: userRef.id,
+      sellerEmail: ownerEmail,
+      id: listingsRef.id,
+    };
+
+    return res.json({
       success: true,
-      cert: results[0]
+      message: 'Card ingested successfully.',
+      cert,
+      card: cardData,
+      listing: listingInfo,
     });
-    
   } catch (error) {
-    console.error(`❌ Cert fetch error for ${req.params.certNumber}:`, error);
-    
-    res.status(500).json({
+    const status = Number.isInteger(error?.status) && error.status > 0 ? error.status : 500;
+    return res.status(status).json({
       success: false,
-      error: 'INTERNAL_ERROR',
-      message: 'Failed to fetch cert data'
+      error: error?.code || 'INGEST_FAILED',
+      message: error?.message || 'Failed to ingest certification.',
     });
   }
 });
 
 export default router;
-

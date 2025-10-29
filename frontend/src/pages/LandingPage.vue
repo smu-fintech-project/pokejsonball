@@ -233,7 +233,7 @@
                   </p>
                 </div>
                 <button @click="openCardModal(card)"
-                  class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all">
+                  class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all">
                   View
                 </button>
               </div>
@@ -247,7 +247,7 @@
     <div v-if="selectedCard" @click="closeModal" 
       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
-        <div class="sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6 flex items-center justify-between z-10">
+        <div class="sticky top-0 bg-gradient-to-r from-red-600 via-red-500 to-red-600 p-6 flex items-center justify-between z-10">
           <h2 class="text-2xl font-black text-white">Card Details</h2>
           <button @click="closeModal" class="p-2 hover:bg-white/20 rounded-lg transition-all">
             <X class="w-6 h-6 text-white" />
@@ -325,7 +325,15 @@
                     </div>
                     <div>
                       <p class="font-semibold">{{ selectedCard.sellerName || selectedCard.sellerEmail || 'Unknown Seller' }}</p>
-                      <p class="text-sm text-gray-500">⭐ 4.9 ({{ selectedCard.sellerRating || '156' }} reviews)</p>
+                      <p v-if="selectedCard.reviewStats?.reviewCount"
+                         class="text-sm text-gray-500">
+                        ⭐ {{ Number(selectedCard.reviewStats.averageRating || 0).toFixed(1) }}
+                        ({{ selectedCard.reviewStats.reviewCount }}
+                        {{ selectedCard.reviewStats.reviewCount === 1 ? 'review' : 'reviews' }})
+                      </p>
+                      <p v-else class="text-sm text-gray-500">
+                        ⭐ No reviews yet
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -333,40 +341,226 @@
 
               <!-- Action Buttons -->
               <div class="flex gap-3 pt-4">
-                <button @click="handleBuyCard" 
-                  class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg transform hover:scale-105">
-                  Buy Now - <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
-                </button>
+                  <button
+                      @click="handleBuyCard"
+                      :disabled="!selectedCard || !selectedCard.price"
+                      class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                      Buy Now - <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
+                  </button>
+                  <button
+                      @click="showOfferModal = true"
+                      :disabled="!selectedCard"
+                      class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                      Make Offer
+                  </button>
+                  
+                  <button
+                      @click="handleMessageSeller"
+                      :disabled="!selectedCard || messagingLoading"
+                      class="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl font-bold hover:from-blue-700 hover:to-blue-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <span v-if="messagingLoading">Loading...</span>
+                      <span v-else>Message Seller</span>
+                  </button>
               </div>
             </div>
           </div>
+        </div>       
+      </div>
+    </div>
+    <!-- Make Offer Modal -->
+<div v-if="showOfferModal" @click="closeOfferModal" 
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl p-8">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-2xl font-bold">Make an Offer</h3>
+      <button @click="closeOfferModal" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
+        <X class="w-6 h-6" />
+      </button>
+    </div>
+
+    <div class="space-y-4">
+      <!-- Card Info -->
+      <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+        <p class="text-sm text-gray-500 dark:text-slate-400 mb-1">Offering on</p>
+        <p class="font-bold text-lg">{{ selectedCard?.title }}</p>
+        <p class="text-sm text-gray-600 dark:text-slate-300">
+          Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[17px] w-[17px] align-[-2px] mr-1" />{{ selectedCard?.price }}
+        </p>
+      </div>
+
+      <!-- Offer Amount -->
+        <div>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+            Your Offer Amount (JSB)
+          </label>
+          <div class="relative">
+            <img :src="jsbImg" alt="JSB" class="absolute left-3 top-1/2 -translate-y-1/2 h-[21px] w-[21px]" />
+            <input
+              v-model.number="offerAmount"
+              type="number"
+              :min="1"
+              :max="selectedCard?.price"
+              step="0.01"
+              placeholder="Enter your offer"
+              class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+          <p class="text-xs text-gray-500 mt-1">
+            Suggested: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ (selectedCard?.price * 0.9).toFixed(2) }}
+          </p>
         </div>
+
+        <!-- Optional Message -->
+        <div>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+            Message to Seller (Optional)
+          </label>
+          <textarea
+            v-model="offerMessage"
+            rows="3"
+            placeholder="Add a message to the seller..."
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+          ></textarea>
+        </div>
+        <!-- Correct Action Buttons in Offer Modal -->
+<div class="flex gap-3">
+  <button @click="closeOfferModal" 
+    class="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all">
+    Cancel
+  </button>
+  <button @click="handleMakeOffer" 
+    :disabled="!offerAmount || offerAmount <= 0 || offerLoading"
+    class="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+    <span v-if="offerLoading">Sending...</span>
+    <span v-else>Send Offer</span>
+  </button>
+</div>
       </div>
     </div>
   </div>
+</div>
+  
 </template>
 
 <script setup>
+// Offer modal state
+const selectedCard = ref(null);
+const showOfferModal = ref(false);
+const offerAmount = ref(0);
+const offerMessage = ref('');
+const offerLoading = ref(false);
 
-const sortBy = ref('name-asc');
-const selectedRarity = ref('all');
+// Handle making an offer
+async function handleMakeOffer() {
+  if (!isLoggedIn.value) {
+    alert('Please login to make an offer');
+    return;
+  }
 
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Heart, Search, Filter, TrendingUp, Star, X, User, CheckCircle } from "lucide-vue-next";
-import jsbImg from '../../images/JSB_image.png';
+  if (!offerAmount.value || offerAmount.value <= 0) {
+    alert('Please enter a valid offer amount');
+    return;
+  }
 
-const scrollToFeatured = () => {
-  const section = document.getElementById('featured-cards')
-  if (section) {
-    section.scrollIntoView({ behavior: 'smooth' })
+  offerLoading.value = true;
+
+  try {
+    const token = localStorage.getItem('token');
+    const buyerEmail = localStorage.getItem('userEmail');
+    const buyerName = localStorage.getItem('username');
+    const buyerId = localStorage.getItem('userId');  // ← Make sure this exists
+
+    console.log('🔍 Making offer with:', {
+      cert_number: selectedCard.value.id,
+      card_name: selectedCard.value.title,
+      seller_id: selectedCard.value.sellerId,
+      buyer_id: buyerId,
+      offer_amount: offerAmount.value
+    });
+
+    const response = await fetch('http://localhost:3001/api/offers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        cert_number: selectedCard.value.id,
+        card_name: selectedCard.value.title,
+        seller_id: selectedCard.value.sellerId,
+        offer_amount: offerAmount.value,
+        message: offerMessage.value,
+        listing_price: selectedCard.value.price
+      })
+    });
+
+    const data = await response.json();
+    console.log('📥 Offer response:', data);
+
+    if (response.ok) {
+      alert(`✅ Offer of JSB ${offerAmount.value} sent successfully! The seller will be notified.`);
+      showOfferModal.value = false;
+      offerAmount.value = 0;
+      offerMessage.value = '';
+    } else {
+      console.error('❌ Offer failed:', data);
+      if (data.error === 'INSUFFICIENT_FUNDS') {
+        alert(`❌ ${data.message}`);
+      } else {
+        alert(`❌ Failed to send offer: ${data.error || 'Unknown error'}`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error making offer:', error);
+    alert('❌ Failed to send offer. Please try again.');
+  } finally {
+    offerLoading.value = false;
   }
 }
+// Add this to close the offer modal
+function closeOfferModal() {
+  showOfferModal.value = false;
+  offerAmount.value = 0;
+  offerMessage.value = "";
+}
+
+const sortBy = ref("name-asc");
+const selectedRarity = ref("all");
+
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRouter } from 'vue-router';
+import {
+  Heart,
+  Search,
+  Filter,
+  TrendingUp,
+  Star,
+  X,
+  User,
+  CheckCircle,
+} from "lucide-vue-next";
+import jsbImg from "../../images/JSB_image.png";
+import { getCurrentUser, getAuthToken } from '@/utils/auth';
+
+const router = useRouter();
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+const scrollToFeatured = () => {
+  const section = document.getElementById("featured-cards");
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth" });
+  }
+};
 
 // Three.js refs
 const canvas = ref(null);
 const canvasContainer = ref(null);
 
-let scene, camera, renderer, pokeball, isDragging = false;
+let scene,
+  camera,
+  renderer,
+  pokeball,
+  isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 let rotationVelocity = { x: 0, y: 0 };
 
@@ -375,74 +569,75 @@ const sampleCards = ref([]);
 const loading = ref(true);
 const loadError = ref(null);
 const watchlist = ref([]);
-const searchTerm = ref('');
+const searchTerm = ref("");
 const priceRange = ref([0, 1000]);
-const selectedGrade = ref('all');
+const selectedGrade = ref("all");
 const showFilters = ref(false);
-const selectedCard = ref(null);
 
 const isLoggedIn = ref(false);
 
 //check login status
 const checkLoginStatus = () => {
-  const userEmail = localStorage.getItem('userEmail');
-  const token = localStorage.getItem('token');
-  const username = localStorage.getItem('username');
+  const userEmail = localStorage.getItem("userEmail");
+  const token = localStorage.getItem("token");
+  const username = localStorage.getItem("username");
   isLoggedIn.value = !!(userEmail || token);
 };
 
 // Update your onMounted to include the login check
 onMounted(() => {
-  checkLoginStatus(); // Add this line
+  checkLoginStatus();
   loadFeaturedCards();
   initThreeJS();
   animate();
-  window.addEventListener('resize', onWindowResize);
+  window.addEventListener("resize", onWindowResize);
 });
 
-// Fetch cards from backend database
 const loadFeaturedCards = async () => {
   loading.value = true;
   loadError.value = null;
-  
   try {
-    const myEmail = localStorage.getItem('userEmail');
-    
-    const resp = await fetch(`http://localhost:3001/api/cards?excludeEmail=${encodeURIComponent(myEmail)}`);
-    if (!resp.ok) {
-      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-    }
-    
+    const resp = await fetch("http://localhost:3001/api/cards");
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+
     const cards = await resp.json();
-    
-    if (cards.length > 0) {
-      console.log(`Loaded ${cards.length} cards from backend database`);
-      
-      // Map marketplace payload to UI fields using new listings-based API
-sampleCards.value = cards.map(c => ({
-  id: c.cert_number,
-  img: c.image_url,
-  title: c.card_name || c.psa?.cardName || 'Unknown Card',
-  price: (c.listing_price ?? 'Not For Sale'),
-  lastSold: c.average_sell_price 
-    ? `$${Number(c.average_sell_price).toFixed(2)}` 
-    : 'Unknown',
-  rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : 'PSA —',
-  set: c?.psa?.setName || c.set_name || 'Unknown Set',
-  sellerName: c?.sellerName || c?.sellerEmail || 'Unknown Seller',
-  sellerEmail: c?.sellerEmail || null,  // ADD THIS LINE
-  sellerId: c?.sellerId || null,
-  sellerRating: '156',
-  averageSellPrice: c?.average_sell_price || null  // Add market price from backend
-})).filter(card => card.img);
-      
-      console.log(`Displaying ${sampleCards.value.length} PSA-certified cards`);
+
+    if (Array.isArray(cards) && cards.length > 0) {
+      // Map marketplace payload to UI fields
+      sampleCards.value = cards
+        .map((c) => ({
+          id: c.cert_number,
+          img: c.image_url,
+          title: c.card_name || c.psa?.cardName || "Unknown Card",
+          // use a number so price-range filter works
+          price: Number(c.listing_price ?? 0),
+          lastSold: c.average_sell_price
+            ? `$${Number(c.average_sell_price).toFixed(2)}`
+            : "Unknown",
+          rarity: c?.psa?.grade ? `PSA ${c.psa.grade}` : "PSA —",
+          set: c?.psa?.setName || c.set_name || "Unknown Set",
+          sellerName: c?.sellerName || c?.sellerEmail || "Unknown Seller",
+          sellerEmail: c?.sellerEmail || null,
+          sellerId: c?.sellerId || null,
+          reviewStats: null,
+          averageSellPrice: c?.average_sell_price || null
+        }))
+        .filter((card) => card.img); // keep if you only want cards with images
+
+      // ✅ important: clear any previous error
+      loadError.value = null;
+
+      if (sampleCards.value.length === 0) {
+        // If everything got filtered out by the image filter, show a helpful message.
+        loadError.value = "Cards loaded but none have images to display.";
+      }
     } else {
-      loadError.value = 'No cards found in database. Please sync cards first.';
+      loadError.value = "No cards found in database. Please sync cards first.";
     }
   } catch (e) {
-    console.error('Failed to load cards from backend:', e.message);
-    loadError.value = 'Unable to load cards. Please check if the backend is running.';
+    console.error("Failed to load cards from backend:", e?.message || e);
+    loadError.value =
+      "Unable to load cards. Please check if the backend is running.";
   } finally {
     loading.value = false;
   }
@@ -451,18 +646,19 @@ sampleCards.value = cards.map(c => ({
 const showOwnCards = ref(false);
 // ADD THIS NEW FUNCTION for resetting all filters:
 const resetAllFilters = () => {
-  searchTerm.value = '';
+  searchTerm.value = "";
   priceRange.value = [0, 1000];
-  selectedGrade.value = 'all';
-  selectedRarity.value = 'all';
-  sortBy.value = 'name-asc';
+  selectedGrade.value = "all";
+  selectedRarity.value = "all";
+  sortBy.value = "name-asc";
   showFilters.value = false;
 };
 
 // Three.js initialization
 function initThreeJS() {
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  const script = document.createElement("script");
+  script.src =
+    "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
   script.onload = () => {
     setupScene();
   };
@@ -471,10 +667,10 @@ function initThreeJS() {
 
 function setupScene() {
   const THREE = window.THREE;
-  
+
   // Scene
   scene = new THREE.Scene();
-  
+
   // Camera
   const container = canvasContainer.value;
   camera = new THREE.PerspectiveCamera(
@@ -484,92 +680,111 @@ function setupScene() {
     1000
   );
   camera.position.z = 5;
-  
+
   // Renderer
   renderer = new THREE.WebGLRenderer({
     canvas: canvas.value,
     antialias: true,
-    alpha: true
+    alpha: true,
   });
   renderer.setClearColor(0x000000, 0);
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
-  
+
   // Lights
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
   scene.add(ambientLight);
-  
+
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
   directionalLight.position.set(5, 5, 5);
   scene.add(directionalLight);
-  
+
   const pointLight = new THREE.PointLight(0xffffff, 0.5);
   pointLight.position.set(-5, -5, 5);
   scene.add(pointLight);
-  
+
   // Create Pokeball
   pokeball = new THREE.Group();
-  
+
   // Top half (red)
-  const topGeometry = new THREE.SphereGeometry(1, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+  const topGeometry = new THREE.SphereGeometry(
+    1,
+    32,
+    32,
+    0,
+    Math.PI * 2,
+    0,
+    Math.PI / 2
+  );
   const topMaterial = new THREE.MeshPhongMaterial({
     color: 0xef4444,
-    shininess: 100
+    shininess: 100,
   });
   const topHalf = new THREE.Mesh(topGeometry, topMaterial);
   pokeball.add(topHalf);
-  
+
   // Bottom half (white)
-  const bottomGeometry = new THREE.SphereGeometry(1, 32, 32, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+  const bottomGeometry = new THREE.SphereGeometry(
+    1,
+    32,
+    32,
+    0,
+    Math.PI * 2,
+    Math.PI / 2,
+    Math.PI / 2
+  );
   const bottomMaterial = new THREE.MeshPhongMaterial({
     color: 0xffffff,
-    shininess: 100
+    shininess: 100,
   });
   const bottomHalf = new THREE.Mesh(bottomGeometry, bottomMaterial);
   pokeball.add(bottomHalf);
-  
+
   // Black band
   const bandGeometry = new THREE.TorusGeometry(1, 0.08, 16, 100);
   const bandMaterial = new THREE.MeshPhongMaterial({
     color: 0x1f2937,
-    shininess: 100
+    shininess: 100,
   });
   const band = new THREE.Mesh(bandGeometry, bandMaterial);
   band.rotation.x = Math.PI / 2;
   pokeball.add(band);
-  
+
   // Center button
   const buttonGeometry = new THREE.CircleGeometry(0.25, 32);
   const buttonMaterial = new THREE.MeshPhongMaterial({
     color: 0xffffff,
-    shininess: 100
+    shininess: 100,
   });
   const button = new THREE.Mesh(buttonGeometry, buttonMaterial);
   button.position.z = 1.01;
   pokeball.add(button);
-  
+
   // Button border
   const buttonBorderGeometry = new THREE.RingGeometry(0.25, 0.32, 32);
   const buttonBorderMaterial = new THREE.MeshPhongMaterial({
     color: 0x1f2937,
-    shininess: 100
+    shininess: 100,
   });
-  const buttonBorder = new THREE.Mesh(buttonBorderGeometry, buttonBorderMaterial);
+  const buttonBorder = new THREE.Mesh(
+    buttonBorderGeometry,
+    buttonBorderMaterial
+  );
   buttonBorder.position.z = 1.02;
   pokeball.add(buttonBorder);
-  
+
   scene.add(pokeball);
-  
+
   // Mouse events
-  canvas.value.addEventListener('mousedown', onMouseDown);
-  canvas.value.addEventListener('mousemove', onMouseMove);
-  canvas.value.addEventListener('mouseup', onMouseUp);
-  canvas.value.addEventListener('mouseleave', onMouseUp);
-  
+  canvas.value.addEventListener("mousedown", onMouseDown);
+  canvas.value.addEventListener("mousemove", onMouseMove);
+  canvas.value.addEventListener("mouseup", onMouseUp);
+  canvas.value.addEventListener("mouseleave", onMouseUp);
+
   // Touch events
-  canvas.value.addEventListener('touchstart', onTouchStart);
-  canvas.value.addEventListener('touchmove', onTouchMove);
-  canvas.value.addEventListener('touchend', onTouchEnd);
+  canvas.value.addEventListener("touchstart", onTouchStart);
+  canvas.value.addEventListener("touchmove", onTouchMove);
+  canvas.value.addEventListener("touchend", onTouchEnd);
 }
 
 function onMouseDown(e) {
@@ -579,16 +794,16 @@ function onMouseDown(e) {
 
 function onMouseMove(e) {
   if (!isDragging || !pokeball) return;
-  
+
   const deltaX = e.clientX - previousMousePosition.x;
   const deltaY = e.clientY - previousMousePosition.y;
-  
+
   rotationVelocity.x = deltaY * 0.01;
   rotationVelocity.y = deltaX * 0.01;
-  
+
   pokeball.rotation.x += rotationVelocity.x;
   pokeball.rotation.y += rotationVelocity.y;
-  
+
   previousMousePosition = { x: e.clientX, y: e.clientY };
 }
 
@@ -604,17 +819,17 @@ function onTouchStart(e) {
 
 function onTouchMove(e) {
   if (!isDragging || !pokeball) return;
-  
+
   const touch = e.touches[0];
   const deltaX = touch.clientX - previousMousePosition.x;
   const deltaY = touch.clientY - previousMousePosition.y;
-  
+
   rotationVelocity.x = deltaY * 0.01;
   rotationVelocity.y = deltaX * 0.01;
-  
+
   pokeball.rotation.x += rotationVelocity.x;
   pokeball.rotation.y += rotationVelocity.y;
-  
+
   previousMousePosition = { x: touch.clientX, y: touch.clientY };
 }
 
@@ -624,16 +839,16 @@ function onTouchEnd() {
 
 function animate() {
   requestAnimationFrame(animate);
-  
+
   if (pokeball && !isDragging) {
     // Auto-rotate slowly
     pokeball.rotation.y += 0.005;
-    
+
     // Apply damping to rotation velocity
     rotationVelocity.x *= 0.95;
     rotationVelocity.y *= 0.95;
   }
-  
+
   if (renderer && scene && camera) {
     renderer.render(scene, camera);
   }
@@ -641,7 +856,7 @@ function animate() {
 
 function onWindowResize() {
   if (!camera || !renderer || !canvasContainer.value) return;
-  
+
   const container = canvasContainer.value;
   camera.aspect = container.clientWidth / container.clientHeight;
   camera.updateProjectionMatrix();
@@ -653,12 +868,12 @@ onMounted(() => {
   loadFeaturedCards();
   initThreeJS();
   animate();
-  window.addEventListener('resize', onWindowResize);
+  window.addEventListener("resize", onWindowResize);
 });
 
 // Cleanup on unmount
 onUnmounted(() => {
-  window.removeEventListener('resize', onWindowResize);
+  window.removeEventListener("resize", onWindowResize);
   if (renderer) {
     renderer.dispose();
   }
@@ -666,7 +881,7 @@ onUnmounted(() => {
 
 function toggleWatchlist(id) {
   if (watchlist.value.includes(id)) {
-    watchlist.value = watchlist.value.filter(i => i !== id);
+    watchlist.value = watchlist.value.filter((i) => i !== id);
   } else {
     watchlist.value.push(id);
   }
@@ -677,22 +892,44 @@ function toggleWatchlist(id) {
 // Fetch v1 database card for modal
 async function fetchCardV1(certNumber) {
   try {
-    const resp = await fetch(`http://localhost:3001/api/cards/${encodeURIComponent(certNumber)}`);
+    const resp = await fetch(
+      `http://localhost:3001/api/cards/${encodeURIComponent(certNumber)}`
+    );
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const payload = await resp.json();
     return payload || null;
   } catch (e) {
-    console.warn('Failed to fetch DB card:', e.message);
+    console.warn("Failed to fetch DB card:", e.message);
     return null;
   }
 }
 
 async function openCardModal(card) {
-  selectedCard.value = card;
+  selectedCard.value = { ...card, reviewStats: card.reviewStats || null };
   // Load DB card first for modal info
   const dbCard = await fetchCardV1(card.id);
   if (dbCard) {
     selectedCard.value = { ...selectedCard.value, db: dbCard };
+  }
+
+  const sellerId = selectedCard.value?.sellerId || selectedCard.value?.db?.sellerId;
+  if (!sellerId || card.reviewStats) return;
+
+  try {
+    const resp = await fetch(`${API_URL}/api/users/${encodeURIComponent(sellerId)}/reviews/stats`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const stats = await resp.json();
+
+    if (selectedCard.value?.sellerId === sellerId || selectedCard.value?.db?.sellerId === sellerId) {
+      selectedCard.value = { ...selectedCard.value, reviewStats: stats };
+    }
+
+    const cardIndex = sampleCards.value.findIndex(c => c.id === card.id);
+    if (cardIndex !== -1) {
+      sampleCards.value[cardIndex] = { ...sampleCards.value[cardIndex], reviewStats: stats };
+    }
+  } catch (e) {
+    console.warn('Failed to load seller review stats:', e?.message || e);
   }
 }
 
@@ -701,10 +938,143 @@ function closeModal() {
 }
 
 // TODO: CONNECT TO YOUR BACKEND FOR PURCHASE FLOW
-function handleBuyCard() {
-  // Integrate with your backend payment/transaction system
-  alert(`Initiating purchase for ${selectedCard.value.title} at S$${selectedCard.value.price}`);
-  // Example: router.push({ name: 'checkout', params: { cardId: selectedCard.value.id } });
+async function handleBuyCard() {
+  console.log('🔘 Buy Now button clicked!');
+  console.log('🔍 Selected card:', selectedCard.value);
+  console.log('🔍 Is logged in:', isLoggedIn.value);
+
+  if (!isLoggedIn.value) {
+    alert('Please login to purchase cards');
+    closeModal();
+    return;
+  }
+
+  const cardTitle = selectedCard.value.title;
+  const cardPrice = selectedCard.value.price;
+  const certNumber = selectedCard.value.id;
+  const sellerId = selectedCard.value.sellerId;
+
+  console.log('💳 Purchase details:', {
+    cardTitle,
+    cardPrice,
+    certNumber,
+    sellerId
+  });
+
+  if (!confirm(`Purchase ${cardTitle} for JSB ${cardPrice}?\n\nThis will deduct JSB ${cardPrice} from your wallet.`)) {
+    console.log('❌ User cancelled purchase');
+    return;
+  }
+
+  console.log('✅ User confirmed purchase, sending request...');
+
+  try {
+    const token = localStorage.getItem('token');
+    
+    console.log('🔑 Token:', token ? 'exists' : 'missing');
+
+    const requestBody = {
+      cert_number: certNumber,
+      card_name: cardTitle,
+      seller_id: sellerId,
+      price: cardPrice
+    };
+
+    console.log('📤 Sending request:', requestBody);
+
+    const response = await fetch('http://localhost:3001/api/transactions/buy-now', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    console.log('📥 Response status:', response.status);
+
+    const data = await response.json();
+    console.log('📥 Response data:', data);
+
+    if (response.ok) {
+      alert(`✅ Purchase successful! ${cardTitle} has been added to your collection.`);
+      closeModal();
+      // Reload cards to update the listing
+      await loadFeaturedCards();
+    } else {
+      if (data.error === 'INSUFFICIENT_FUNDS') {
+        alert(`❌ ${data.message}\n\nPlease add funds to your wallet.`);
+      } else {
+        alert(`❌ Purchase failed: ${data.error || data.message || 'Unknown error'}`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Purchase error:', error);
+    alert('❌ Purchase failed. Please try again.');
+  }
+}
+
+// Message seller functionality
+const messagingLoading = ref(false);
+
+/**
+ * Handle "Message Seller" button click
+ * Creates or finds a conversation and redirects to Messages page
+ */
+async function handleMessageSeller() {
+  const currentUser = getCurrentUser();
+  
+  // Check if user is logged in
+  if (!currentUser.isAuthenticated) {
+    alert('Please log in to message the seller');
+    router.push('/login');
+    return;
+  }
+  
+  messagingLoading.value = true;
+  
+  try {
+    const token = getAuthToken();
+    
+    // Use sellerId from the selected card, or fallback to mock
+    const sellerId = selectedCard.value.sellerId || selectedCard.value.db?.sellerId || 'igyU5vIHYTADDrgHLt8X';
+    const cardId = selectedCard.value.id;
+    
+    // Call find-or-create API
+    const response = await fetch(`${API_URL}/api/chat/find-or-create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        sellerId: sellerId,
+        cardId: cardId
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      // Close modal
+      closeModal();
+      
+      // Redirect to Messages page with the conversation active
+      router.push({
+        path: '/messages',
+        query: { conversation: data.conversationId }
+      });
+    } else {
+      console.error('❌ Failed to create conversation:', data.error);
+      alert(data.error || 'Failed to start conversation');
+    }
+    
+  } catch (err) {
+    console.error('❌ Network error:', err);
+    alert('Network error. Please try again.');
+  } finally {
+    messagingLoading.value = false;
+  }
 }
 
 // Computed property to format market price
@@ -713,47 +1083,63 @@ const formattedMarketPrice = computed(() => {
     return null;
   }
   const price = selectedCard.value.averageSellPrice;
-  if (typeof price === 'number' && price > 0) {
+  if (typeof price === "number" && price > 0) {
     return price.toFixed(2); // No dollar sign
   }
   return null;
 });
 
 const filteredCards = computed(() => {
-  let cards = sampleCards.value.filter(card => {
-    const matchesSearch = card.title.toLowerCase().includes(searchTerm.value.toLowerCase());
-    const matchesPrice = parseFloat(card.price) >= priceRange.value[0] && parseFloat(card.price) <= priceRange.value[1];
-    const matchesGrade = selectedGrade.value === 'all' || card.rarity.includes(selectedGrade.value);
-    const matchesRarity = selectedRarity.value === 'all' || card.rarity.includes(selectedRarity.value);
-    
+  let cards = sampleCards.value.filter((card) => {
+    const matchesSearch = card.title
+      .toLowerCase()
+      .includes(searchTerm.value.toLowerCase());
+    const matchesPrice =
+      parseFloat(card.price) >= priceRange.value[0] &&
+      parseFloat(card.price) <= priceRange.value[1];
+    const matchesGrade =
+      selectedGrade.value === "all" ||
+      card.rarity.includes(selectedGrade.value);
+    const matchesRarity =
+      selectedRarity.value === "all" ||
+      card.rarity.includes(selectedRarity.value);
+
     // Filter by ownership - when showOwnCards is TRUE, HIDE cards where seller matches user
-    const userEmail = localStorage.getItem('userEmail');
-    const matchesOwnership = !showOwnCards.value || (card.sellerEmail !== userEmail && card.sellerName !== userEmail);
-    
-    return matchesSearch && matchesPrice && matchesGrade && matchesRarity && matchesOwnership;
+    const userEmail = localStorage.getItem("userEmail");
+    const matchesOwnership =
+      !showOwnCards.value ||
+      (card.sellerEmail !== userEmail && card.sellerName !== userEmail);
+
+    return (
+      matchesSearch &&
+      matchesPrice &&
+      matchesGrade &&
+      matchesRarity &&
+      matchesOwnership
+    );
   });
 
   // Apply sorting
-  switch(sortBy.value) {
-    case 'name-desc':
+  switch (sortBy.value) {
+    case "name-desc":
       cards.sort((a, b) => b.title.localeCompare(a.title));
       break;
-    case 'price-low':
+    case "price-low":
       cards.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
       break;
-    case 'price-high':
+    case "price-high":
       cards.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
       break;
-    case 'newest':
+    case "newest":
       cards.reverse();
       break;
-    case 'oldest':
+    case "oldest":
       break;
-    case 'name-asc':
+    case "name-asc":
     default:
       cards.sort((a, b) => a.title.localeCompare(b.title));
   }
-  
+
   // Sort watchlisted cards to the top
   cards.sort((a, b) => {
     const aWatchlisted = watchlist.value.includes(a.id);
@@ -765,8 +1151,6 @@ const filteredCards = computed(() => {
 
   return cards;
 });
-
-
 </script>
 
 <style scoped>

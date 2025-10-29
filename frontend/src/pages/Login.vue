@@ -66,12 +66,16 @@ async function onSubmit() {
 
     const data = await response.json();
 
+    console.log('🔍 Login response:', data);
+
     if (response.ok) {
       // Store token (like storing auth cookie in ASP.NET)
       localStorage.setItem('token', data.token);
-      localStorage.setItem('userEmail', data.email)
+      localStorage.setItem('userEmail', data.email);
       localStorage.setItem('username', data.username);
-      window.dispatchEvent(new Event('storage')) // look for user login
+      localStorage.setItem('userId', data.userId);  // Store userId for Socket.IO chat
+      window.dispatchEvent(new Event('storage')); // look for user login
+      console.log('✅ Stored userId:', localStorage.getItem('userId'));
       
       // Navigate to portfolio
       router.push('/profile');

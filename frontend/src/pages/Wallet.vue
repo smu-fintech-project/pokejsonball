@@ -103,7 +103,6 @@
           Update Account
         </button>
       </div>
-    </div>
 
     <!-- Transaction History -->
     <div class="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6">
@@ -254,6 +253,8 @@
               <p class="font-semibold text-gray-900 dark:text-gray-100">{{ tx.description }}</p>
               <p class="text-sm text-gray-500 dark:text-gray-400">{{ formatDate(tx.timestamp) }}</p>
             </div>
+            <p class="text-gray-900 dark:text-white text-xl font-bold mb-2">No transactions yet</p>
+            <p class="text-gray-500 dark:text-slate-400">Your transaction history will appear here once you start trading</p>
           </div>
           <div class="text-right">
             <p 
@@ -266,6 +267,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 
@@ -292,6 +294,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AddFundsModal from '../components/AddFundsModal.vue'
 import CashOutModal from '../components/CashOutModal.vue'
+import jsbImg from '../../images/JSB_image.png'
 
 const router = useRouter();
 const wallet = ref({ balance: 0, currency: 'JSB' })

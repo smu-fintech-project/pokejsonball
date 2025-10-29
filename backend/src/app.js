@@ -3,6 +3,10 @@ import cors from "cors";
 import dotenv from "dotenv";
 import axios from "axios";
 import admin from "firebase-admin";
+import http from "http";
+import { initializeSocket } from "./socketRefactored.js"; // Using refactored version with JWT auth
+import offersRoutes from './routes/offers.js';
+import transactionsRoutes from './routes/transactions.js';
 
 // Load environment variables FIRST
 dotenv.config();
@@ -31,13 +35,18 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import cardRoutes from "./routes/cardsFirebase.js";
 import cardsV2Routes from "./routes/cardsV2.js";
-import certsRoutes from "./routes/certs.js";
-import walletRoute from "./routes/wallet.js"
+import certRoutes from "./routes/certs.js";
+import walletRoute from "./routes/wallet.js";
+import chatRoutes from "./routes/chat.js";
+import portfolioRoutes from "./routes/portfolio.js";
 
 const app = express();
 
+// Create HTTP server (required for Socket.IO)
+const httpServer = http.createServer(app);
 
 app.use("/api/stripe/webhook", stripeWebhookRouter);
+
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -55,7 +64,8 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Log environment configuration
 console.log('\n🔧 Environment Configuration:');
@@ -107,12 +117,21 @@ app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
 app.use("/api/certs", certsRoutes); // PSA Cert Gallery API
 app.use("/api/wallet", walletRoute);
+app.use("/api/chat", chatRoutes); // Chat/messaging routes
+app.use("/api/portfolio", portfolioRoutes); // Portfolio history and analytics
+app.use('/api/offers', offersRoutes);
+app.use('/api/transactions', transactionsRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running ✅" });
 });
 
 const PORT = process.env.PORT || 3001;
+
+// ====== Initialize Socket.IO for real-time chat ======
+const io = initializeSocket(httpServer, process.env.FRONTEND_URL || 'http://localhost:3000');
+console.log('✅ Socket.IO initialized for real-time chat');
+// =====================================================
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -130,7 +149,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+// Use httpServer.listen() instead of app.listen() for Socket.IO compatibility
+httpServer.listen(PORT, () => {
   console.log('\n' + '='.repeat(50));
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 Database: Firebase Firestore`);
@@ -138,6 +158,6 @@ app.listen(PORT, () => {
   console.log(`🔐 Auth: http://localhost:${PORT}/api/auth`);
   console.log(`📦 API V1: http://localhost:${PORT}/api/cards`);
   console.log(`📦 API V2: http://localhost:${PORT}/api/v2/cards`);
-  console.log(`🏆 Certs: http://localhost:${PORT}/api/certs`);
+  console.log(`💬 Socket.IO: Real-time chat enabled`);
   console.log('='.repeat(50) + '\n');
 });

@@ -10,6 +10,7 @@
     "test": "node test-api.js",
     "test:watch": "nodemon test-api.js",
     "seed:users": "node src/seed/seedUsers.js",
+    "seed:history": "node src/scripts/seedPortfolioHistory.js",
     "update:prices": "node src/scripts/updateCardPrices.js"
   },
   "dependencies": {
@@ -22,6 +23,8 @@
     "firebase-admin": "^13.5.0",
     "jsonwebtoken": "^9.0.2",
     "stripe": "^19.1.0"
+    "openai": "^4.57.0",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

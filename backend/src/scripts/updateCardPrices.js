@@ -7,6 +7,7 @@
 
 import axios from 'axios';
 import dotenv from 'dotenv';
+import admin from 'firebase-admin';
 import { getAllCards, upsertCard } from '../services/firebaseDb.js';
 
 // Load environment variables
@@ -195,6 +196,116 @@ async function updateCardPrice(card) {
 }
 
 /**
+ * Calculate user's current portfolio value based on their listings
+ */
+async function calculateCurrentPortfolioValue(db, userId) {
+  try {
+    // Get all active listings for this user
+    const listingsSnapshot = await db
+      .collection('users')
+      .doc(userId)
+      .collection('listings')
+      .where('status', '==', 'active')
+      .get();
+
+    if (listingsSnapshot.empty) {
+      return 0;
+    }
+
+    let totalValue = 0;
+
+    // For each listing, get the card's average_sell_price
+    for (const listingDoc of listingsSnapshot.docs) {
+      const listing = listingDoc.data();
+      const certNumber = listing.cert_number;
+
+      if (!certNumber) continue;
+
+      // Find the card in the cards collection
+      const cardsSnapshot = await db
+        .collection('cards')
+        .where('cert_number', '==', certNumber)
+        .limit(1)
+        .get();
+
+      if (!cardsSnapshot.empty) {
+        const card = cardsSnapshot.docs[0].data();
+        const price = card.average_sell_price || 0;
+        totalValue += price;
+      }
+    }
+
+    return totalValue;
+  } catch (error) {
+    console.error(`Error calculating portfolio value for user ${userId}:`, error.message);
+    return 0;
+  }
+}
+
+/**
+ * Create portfolio snapshots for all users (called after updating card prices)
+ */
+async function createPortfolioSnapshots() {
+  console.log('\n📸 Creating Portfolio Snapshots...');
+  console.log('=' .repeat(60));
+  
+  try {
+    // Get Firestore instance
+    const db = admin.firestore();
+    
+    // Fetch all users
+    const usersSnapshot = await db.collection('users').get();
+    
+    console.log(`\n👥 Processing ${usersSnapshot.docs.length} users...`);
+    
+    if (usersSnapshot.empty) {
+      console.log('No users to process.');
+      return;
+    }
+    
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    let snapshotsCreated = 0;
+    let skipped = 0;
+    
+    // Process each user
+    for (const userDoc of usersSnapshot.docs) {
+      const userId = userDoc.id;
+      const userData = userDoc.data();
+      
+      // Calculate current portfolio value
+      const totalValue = await calculateCurrentPortfolioValue(db, userId);
+      
+      if (totalValue === 0) {
+        skipped++;
+        continue;
+      }
+      
+      // Create/update today's snapshot
+      await db
+        .collection('users')
+        .doc(userId)
+        .collection('portfolio_history')
+        .doc(today)
+        .set({
+          time: today,
+          value: parseFloat(totalValue.toFixed(2))
+        });
+      
+      console.log(`  ✅ ${userData.email || userId}: $${totalValue.toFixed(2)}`);
+      snapshotsCreated++;
+    }
+    
+    console.log('\n' + '=' .repeat(60));
+    console.log(`📊 Snapshots created: ${snapshotsCreated}`);
+    console.log(`⏭️  Skipped (no value): ${skipped}`);
+    console.log('=' .repeat(60));
+    
+  } catch (error) {
+    console.error('\n❌ Error creating portfolio snapshots:', error);
+  }
+}
+
+/**
  * Main function - Update all cards
  */
 async function updateAllCardPrices() {
@@ -266,6 +377,11 @@ async function updateAllCardPrices() {
     console.log(`⚠️  No set mapping:     ${stats.noSetMapping}`);
     console.log(`❌ Failed:             ${stats.failed}`);
     console.log('=' .repeat(60));
+    console.log('\n✨ Card prices updated!\n');
+    
+    // Create portfolio snapshots after updating prices
+    await createPortfolioSnapshots();
+    
     console.log('\n✨ Script completed!\n');
     
   } catch (error) {
