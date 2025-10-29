@@ -27,10 +27,7 @@ try {
 }
 // =========================================================
 
-// Import blockchain/Stripe webhook route BEFORE express.json()
-import stripeWebhookRouter from "./routes/stripeWebhook.js";
-
-// Import other routes
+// NOW import routes (after Firebase is initialized)
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import cardRoutes from "./routes/cardsFirebase.js";
@@ -45,8 +42,14 @@ const app = express();
 // Create HTTP server (required for Socket.IO)
 const httpServer = http.createServer(app);
 
-app.use("/api/stripe/webhook", stripeWebhookRouter);
+// Configure CORS to allow frontend origin
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
 
+// ✅ Parse JSON bodies BEFORE routes
+app.use(express.json());
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -76,26 +79,27 @@ console.log(`FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID || '❌ Miss
 console.log(`JWT_SECRET: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing'}`);
 console.log(`PSA_API_KEY: ${process.env.PSA_API_KEY ? '✅ Configured' : '❌ Missing'}`);
 console.log(`POKEMON_TCG_API_KEY: ${process.env.POKEMON_TCG_API_KEY ? '✅ Configured' : '❌ Missing'}`);
-console.log(`Stripe Secret Key: ${process.env.STRIPE_SECRET_KEY ? '✅ Configured' : '❌ Missing'}`);
-console.log(`Stripe Webhook Key: ${process.env.STRIPE_WEBHOOK_SECRET ? '✅ Configured' : '❌ Missing'}`);
-
 
 // Image proxy to bypass CORS on external images
 app.get("/api/proxy-image", async (req, res) => {
   const { url } = req.query;
   console.log(`\n📸 Image Proxy Request: ${url}`);
+  
   if (!url) {
     console.error('❌ Image proxy error: Missing URL parameter');
     return res.status(400).json({ error: "Missing url parameter" });
   }
+  
   try {
     console.log(`⬇️ Fetching image from: ${url}`);
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       timeout: 10000
     });
+    
     const contentType = response.headers['content-type'] || 'image/png';
     console.log(`✅ Image fetched successfully (${contentType})`);
+    
     res.set('Content-Type', contentType);
     res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     res.send(response.data);
@@ -110,7 +114,7 @@ app.get("/api/proxy-image", async (req, res) => {
   }
 });
 
-// Other routes 
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cards", cardRoutes);
@@ -141,7 +145,7 @@ app.use((err, req, res, next) => {
     url: req.url,
     method: req.method
   });
-
+  
   res.status(500).json({
     success: false,
     error: 'INTERNAL_SERVER_ERROR',
