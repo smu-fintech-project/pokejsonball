@@ -253,8 +253,7 @@
               <p class="font-semibold text-gray-900 dark:text-gray-100">{{ tx.description }}</p>
               <p class="text-sm text-gray-500 dark:text-gray-400">{{ formatDate(tx.timestamp) }}</p>
             </div>
-            <p class="text-gray-900 dark:text-white text-xl font-bold mb-2">No transactions yet</p>
-            <p class="text-gray-500 dark:text-slate-400">Your transaction history will appear here once you start trading</p>
+  
           </div>
           <div class="text-right">
             <p 
@@ -271,7 +270,7 @@
     </div>
   </div>
 
-
+  </div>
 
   <!-- Modals -->
   <AddFundsModal 
