@@ -44,9 +44,15 @@ const httpServer = http.createServer(app);
 
 // Determine allowed frontend origins (supports comma-separated list)
 const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:3000';
+const normalizeOrigin = (origin) => {
+  if (!origin) return '';
+  const trimmed = origin.trim();
+  if (!trimmed) return '';
+  return trimmed.replace(/\/+$/, '');
+};
 const allowedOrigins = rawOrigins
   .split(',')
-  .map(origin => origin.trim())
+  .map(normalizeOrigin)
   .filter(Boolean);
 
 const corsOptions = {
@@ -86,9 +92,9 @@ app.use((req, res, next) => {
 // Log environment configuration
 console.log('\n🔧 Environment Configuration:');
 console.log(`PORT: ${process.env.PORT || 3001}`);
-console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+console.log(`FRONTEND_URL: ${normalizeOrigin(process.env.FRONTEND_URL) || 'http://localhost:3000'}`);
 if (process.env.FRONTEND_URLS) {
-  console.log(`FRONTEND_URLS: ${process.env.FRONTEND_URLS}`);
+  console.log(`FRONTEND_URLS raw: ${process.env.FRONTEND_URLS}`);
 }
 console.log(`CORS Allowed Origins: ${JSON.stringify(allowedOrigins)}`);
 console.log(`DATABASE: Firebase Firestore`);
