@@ -1,6 +1,7 @@
 import { ref, onUnmounted } from 'vue';
 import { io } from 'socket.io-client';
 import { getAuthToken } from '@/utils/auth';
+import { API_URL } from '@/utils/env';
 
 /**
  * Composable for persistent, authenticated Socket.IO chat
@@ -16,7 +17,7 @@ export function useChat() {
   const typingUsers = ref([]);
   const error = ref(null);
   
-  const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const SERVER_URL = API_URL;
 
   /**
    * Connect to Socket.IO with JWT authentication
@@ -209,4 +210,3 @@ export function useChat() {
     disconnect
   };
 }
-

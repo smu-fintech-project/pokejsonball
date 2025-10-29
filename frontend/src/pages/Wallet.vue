@@ -155,6 +155,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE } from '@/utils/env'
 import jsbImg from '../../images/JSB_image.png'
 
 const router = useRouter()
@@ -177,7 +178,7 @@ async function loadWallet() {
       return
     }
     
-    const resp = await fetch('http://localhost:3001/api/wallet', {
+    const resp = await fetch(`${API_BASE}/api/wallet`, {
       headers: { 
         'Authorization': `Bearer ${token}` 
       }

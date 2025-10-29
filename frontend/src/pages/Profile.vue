@@ -822,6 +822,7 @@ import {
 } from 'lucide-vue-next'
 import jsbImg from '../../images/JSB_image.png'
 import PortfolioChart from '../components/PortfolioChart.vue'
+import { API_BASE } from '@/utils/env'
 
 // --- Auth / state ---
 const isAuthed = ref(false)
@@ -911,7 +912,7 @@ async function loadTransactionHistory() {
 
   loadingTransactions.value = true;
   try {
-    const resp = await fetch('http://localhost:3001/api/wallet', {
+    const resp = await fetch(`${API_BASE}/api/wallet`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
@@ -1043,7 +1044,7 @@ async function loadProfile() {
 
   // optional: call /api/users/profile to verify token (and maybe get name later)
   try {
-    const resp = await fetch('http://localhost:3001/api/users/profile', {
+    const resp = await fetch(`${API_BASE}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (resp.ok) {
@@ -1076,7 +1077,7 @@ async function loadOwnedCards() {
     const email = userProfile.value.email;
     
     // First, get the user's owned cards from their profile
-    const userResp = await fetch('http://localhost:3001/api/users/profile', {
+    const userResp = await fetch(`${API_BASE}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     
@@ -1102,7 +1103,7 @@ async function loadOwnedCards() {
         console.log(`🔍 Fetching details for cert: ${certNumber}`);
         
         // Get card details from cards endpoint
-        const cardResp = await fetch(`http://localhost:3001/api/cards/${encodeURIComponent(certNumber)}`);
+        const cardResp = await fetch(`${API_BASE}/api/cards/${encodeURIComponent(certNumber)}`);
         if (!cardResp.ok) {
           console.warn(`⚠️ Failed to fetch card ${certNumber}: HTTP ${cardResp.status}`);
           return null;
@@ -1116,7 +1117,7 @@ async function loadOwnedCards() {
         let listingStatus = 'display';
         
         try {
-          const listingsResp = await fetch(`http://localhost:3001/api/cards/ownedCards?email=${encodeURIComponent(email)}`);
+          const listingsResp = await fetch(`${API_BASE}/api/cards/ownedCards?email=${encodeURIComponent(email)}`);
           if (listingsResp.ok) {
             const listings = await listingsResp.json();
             const listing = listings.find(l => String(l.cert_number) === String(certNumber));
@@ -1169,7 +1170,7 @@ async function loadReviews() {
     const token = localStorage.getItem('token')
     if (!token) throw new Error('Missing auth token')
 
-    const resp = await fetch('http://localhost:3001/api/users/reviews', {
+    const resp = await fetch(`${API_BASE}/api/users/reviews`, {
       headers: { Authorization: `Bearer ${token}` }
     })
 
@@ -1196,7 +1197,7 @@ async function loadPortfolioHistory() {
       return
     }
 
-    const resp = await fetch('http://localhost:3001/api/portfolio/history', {
+    const resp = await fetch(`${API_BASE}/api/portfolio/history`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -1318,7 +1319,7 @@ async function confirmSell() {
   const sellerId = localStorage.getItem('userId') || userProfile.value.id || ''; // set this somewhere in your login flow
 
   try {
-    const resp = await fetch(`http://localhost:3001/api/cards/${encodeURIComponent(cert)}/list`, {
+    const resp = await fetch(`${API_BASE}/api/cards/${encodeURIComponent(cert)}/list`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sellerEmail, sellerId, price, description, delivery }),
@@ -1351,7 +1352,7 @@ async function undoListing(card) {
   const sellerId = localStorage.getItem('userId') || userProfile.value.id || '';
 
   try {
-    const resp = await fetch(`http://localhost:3001/api/cards/${encodeURIComponent(cert)}/undo`, {
+    const resp = await fetch(`${API_BASE}/api/cards/${encodeURIComponent(cert)}/undo`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sellerEmail, sellerId }),
@@ -1391,7 +1392,7 @@ async function loadReceivedOffers() {
 
   loadingOffers.value = true;
   try {
-    const resp = await fetch('http://localhost:3001/api/offers/received', {
+    const resp = await fetch(`${API_BASE}/api/offers/received`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
@@ -1426,7 +1427,7 @@ async function loadSentOffers() {
   }
 
   try {
-    const resp = await fetch('http://localhost:3001/api/offers/sent', {
+    const resp = await fetch(`${API_BASE}/api/offers/sent`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
@@ -1455,7 +1456,7 @@ async function acceptOffer(offerId) {
 
   const token = localStorage.getItem('token');
   try {
-    const resp = await fetch(`http://localhost:3001/api/offers/${offerId}/accept`, {
+    const resp = await fetch(`${API_BASE}/api/offers/${offerId}/accept`, {
       method: 'PUT',
       headers: { 
         'Authorization': `Bearer ${token}`,
@@ -1488,7 +1489,7 @@ async function rejectOffer(offerId) {
 
   const token = localStorage.getItem('token');
   try {
-    const resp = await fetch(`http://localhost:3001/api/offers/${offerId}/reject`, {
+    const resp = await fetch(`${API_BASE}/api/offers/${offerId}/reject`, {
       method: 'PUT',
       headers: { 
         'Authorization': `Bearer ${token}`,

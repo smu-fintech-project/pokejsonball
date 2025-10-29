@@ -374,6 +374,7 @@
 <script setup>
 import { ref, reactive, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE } from '@/utils/env'
 import {
   UploadCloud,
   FileText,
@@ -409,8 +410,6 @@ const manualMessageType = ref('success')
 
 const requiredFields = ['cert_number']
 const isManualValid = computed(() => requiredFields.every((field) => manualForm[field] !== '' && manualForm[field] !== null))
-
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001'
 
 const certLookup = reactive({
   loading: false,

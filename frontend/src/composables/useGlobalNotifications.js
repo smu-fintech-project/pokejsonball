@@ -1,6 +1,7 @@
 import { ref, onUnmounted } from 'vue';
 import { io } from 'socket.io-client';
 import { getAuthToken, getCurrentUser } from '@/utils/auth';
+import { API_URL } from '@/utils/env';
 
 /**
  * Global notification system for real-time updates
@@ -13,7 +14,7 @@ export function useGlobalNotifications() {
   const unreadCount = ref(0);
   const latestNotification = ref(null);
   
-  const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const SERVER_URL = API_URL;
 
   /**
    * Connect to socket for global notifications
@@ -152,4 +153,3 @@ export function useGlobalNotifications() {
     markAsRead
   };
 }
-

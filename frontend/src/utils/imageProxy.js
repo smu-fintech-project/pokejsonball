@@ -3,6 +3,8 @@
  * @param {string} imageUrl - The original image URL
  * @returns {string} - Proxied URL or original if local
  */
+import { API_BASE } from './env';
+
 export function getProxiedImageUrl(imageUrl) {
   if (!imageUrl) return '';
   
@@ -12,6 +14,6 @@ export function getProxiedImageUrl(imageUrl) {
   }
   
   // Proxy external images through our backend
-  const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+  const apiBase = API_BASE;
   return `${apiBase}/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
 }

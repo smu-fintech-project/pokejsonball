@@ -71,6 +71,8 @@ JWT_SECRET=your-super-secret-jwt-key
 **Frontend `.env`** (in `frontend/` directory):
 ```env
 VITE_API_BASE=http://localhost:3001
+# Optional: override socket base; defaults to VITE_API_BASE
+# VITE_API_URL=http://localhost:3001
 ```
 
 When deploying, swap these values for your production Railway and Vercel domains.
