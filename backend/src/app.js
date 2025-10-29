@@ -119,7 +119,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
-app.use("/api/certs", certRoutes);
+app.use("/api/certs", certRoutes); // PSA Cert Gallery API
 app.use("/api/wallet", walletRoute);
 app.use("/api/chat", chatRoutes); // Chat/messaging routes
 app.use("/api/portfolio", portfolioRoutes); // Portfolio history and analytics
