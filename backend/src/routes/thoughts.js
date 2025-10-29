@@ -91,11 +91,18 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
   }
 });
 
+// Accept 0 to "unvote"
+function normalizeVote(v) {
+  const n = Number(v);
+  if (n === 1 || n === -1 || n === 0) return n;
+  return null;
+}
+
 // POST /api/thoughts/:id/vote
 router.post('/:id/vote', requireAuth, async (req, res) => {
   try {
-    const { value } = req.body || {};
-    if (![1, -1].includes(value)) return res.status(400).json({ error: 'INVALID_VALUE' });
+    const value = normalizeVote(req.body?.value);
+    if (value === null) return res.status(400).json({ error: 'INVALID_VALUE' });
 
     const db = admin.firestore();
     const thoughtRef = db.collection(COLLECTIONS.THOUGHTS).doc(req.params.id);
@@ -105,6 +112,8 @@ router.post('/:id/vote', requireAuth, async (req, res) => {
 
     const voteRef = thoughtRef.collection('votes').doc(String(uid));
 
+    let after = { upvotes: 0, downvotes: 0, userVote: value };
+
     await db.runTransaction(async (tx) => {
       const [tSnap, vSnap] = await Promise.all([tx.get(thoughtRef), tx.get(voteRef)]);
       if (!tSnap.exists) throw new Error('NOT_FOUND');
@@ -112,20 +121,32 @@ router.post('/:id/vote', requireAuth, async (req, res) => {
       let up = tSnap.data().upvotes || 0;
       let down = tSnap.data().downvotes || 0;
 
-      const prev = vSnap.exists ? vSnap.data().value : 0;
-      if (prev === value) return; // no change
+      const prev = vSnap.exists ? (vSnap.data().value || 0) : 0;
+      if (prev === value) {
+        after = { upvotes: up, downvotes: down, userVote: prev };
+        return; // nothing to change
+      }
 
+      // remove previous contribution
       if (prev === 1) up--;
       if (prev === -1) down--;
 
-      if (value === 1) up++;
-      if (value === -1) down++;
+      if (value === 0) {
+        // unvote
+        tx.delete(voteRef);
+      } else {
+        // add new contribution
+        if (value === 1) up++;
+        if (value === -1) down++;
+        tx.set(voteRef, { value }, { merge: true });
+      }
 
       tx.update(thoughtRef, { upvotes: up, downvotes: down, updatedAt: new Date().toISOString() });
-      tx.set(voteRef, { value }, { merge: true });
+      after = { upvotes: up, downvotes: down, userVote: value };
     });
 
-    res.json({ success: true });
+    // Return new counts so UI can reconcile
+    res.json({ success: true, ...after });
   } catch (e) {
     const code = e.message === 'NOT_FOUND' ? 404 : 500;
     res.status(code).json({ error: e.message || 'FAILED_VOTE' });
@@ -135,8 +156,8 @@ router.post('/:id/vote', requireAuth, async (req, res) => {
 // POST /api/thoughts/:id/comments/:commentId/vote
 router.post('/:id/comments/:commentId/vote', requireAuth, async (req, res) => {
   try {
-    const { value } = req.body || {};
-    if (![1, -1].includes(value)) return res.status(400).json({ error: 'INVALID_VALUE' });
+    const value = normalizeVote(req.body?.value);
+    if (value === null) return res.status(400).json({ error: 'INVALID_VALUE' });
 
     const db = admin.firestore();
     const cRef = db.collection(COLLECTIONS.THOUGHTS).doc(req.params.id)
@@ -147,6 +168,8 @@ router.post('/:id/comments/:commentId/vote', requireAuth, async (req, res) => {
 
     const voteRef = cRef.collection('votes').doc(String(uid));
 
+    let after = { upvotes: 0, downvotes: 0, userVote: value };
+
     await db.runTransaction(async (tx) => {
       const [cSnap, vSnap] = await Promise.all([tx.get(cRef), tx.get(voteRef)]);
       if (!cSnap.exists) throw new Error('NOT_FOUND');
@@ -154,20 +177,28 @@ router.post('/:id/comments/:commentId/vote', requireAuth, async (req, res) => {
       let up = cSnap.data().upvotes || 0;
       let down = cSnap.data().downvotes || 0;
 
-      const prev = vSnap.exists ? vSnap.data().value : 0;
-      if (prev === value) return;
+      const prev = vSnap.exists ? (vSnap.data().value || 0) : 0;
+      if (prev === value) {
+        after = { upvotes: up, downvotes: down, userVote: prev };
+        return;
+      }
 
       if (prev === 1) up--;
       if (prev === -1) down--;
 
-      if (value === 1) up++;
-      if (value === -1) down++;
+      if (value === 0) {
+        tx.delete(voteRef);
+      } else {
+        if (value === 1) up++;
+        if (value === -1) down++;
+        tx.set(voteRef, { value }, { merge: true });
+      }
 
       tx.update(cRef, { upvotes: up, downvotes: down, updatedAt: new Date().toISOString() });
-      tx.set(voteRef, { value }, { merge: true });
+      after = { upvotes: up, downvotes: down, userVote: value };
     });
 
-    res.json({ success: true });
+    res.json({ success: true, ...after });
   } catch (e) {
     const code = e.message === 'NOT_FOUND' ? 404 : 500;
     res.status(code).json({ error: e.message || 'FAILED_VOTE' });

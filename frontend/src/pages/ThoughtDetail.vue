@@ -8,8 +8,38 @@
           {{ thought.authorName || thought.authorEmail || 'Anonymous' }} · {{ formatDate(thought.createdAt) }}
         </div>
         <div class="flex items-center gap-2">
-          <button @click="vote(1)" class="px-3 py-1 rounded-lg bg-gray-100 dark:bg-slate-700">👍 {{ thought.upvotes || 0 }}</button>
-          <button @click="vote(-1)" class="px-3 py-1 rounded-lg bg-gray-100 dark:bg-slate-700">👎 {{ thought.downvotes || 0 }}</button>
+            <!-- Upvote -->
+            <button
+                :disabled="voteBusy"
+                @click="onVoteThought(thought, 1)"
+                class="px-3 py-1 rounded-lg border"
+                :class="{
+                'bg-red-600 text-white border-red-600': (thought.userVote || 0) === 1,
+                'text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600': (thought.userVote || 0) !== 1
+                }"
+                title="Upvote"
+            >
+                ▲
+            </button>
+
+            <!-- score (up - down) -->
+            <span class="min-w-[2ch] text-center font-semibold">
+                {{ (thought.upvotes || 0) - (thought.downvotes || 0) }}
+            </span>
+
+            <!-- Downvote -->
+            <button
+                :disabled="voteBusy"
+                @click="onVoteThought(thought, -1)"
+                class="px-3 py-1 rounded-lg border"
+                :class="{
+                'bg-slate-700 text-white border-slate-700': (thought.userVote || 0) === -1,
+                'text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600': (thought.userVote || 0) !== -1
+                }"
+                title="Downvote"
+            >
+                ▼
+            </button>
         </div>
       </div>
 
@@ -38,10 +68,38 @@
         </div>
         <p class="mt-2 text-gray-800 dark:text-slate-200 whitespace-pre-wrap">{{ c.body }}</p>
         <div class="mt-3 flex items-center gap-2">
-          <button @click="voteComment(c, 1)" class="px-3 py-1 rounded-lg bg-gray-100 dark:bg-slate-700">👍 {{ c.upvotes || 0 }}</button>
-          <button @click="voteComment(c, -1)" class="px-3 py-1 rounded-lg bg-gray-100 dark:bg-slate-700">👎 {{ c.downvotes || 0 }}</button>
-          <button @click="shareComment(c)" class="text-gray-500 hover:text-gray-700 ml-auto">↗︎ Share</button>
-        </div>
+        <!-- Upvote -->
+        <button
+            :disabled="c.voteBusy"
+            @click="onVoteComment(c, 1)"
+            class="px-2 py-1 rounded border"
+            :class="{
+            'bg-red-600 text-white border-red-600': (c.userVote || 0) === 1,
+            'text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600': (c.userVote || 0) !== 1
+            }"
+            title="Upvote"
+        >▲</button>
+
+        <!-- score -->
+        <span class="min-w-[2ch] text-center font-semibold">
+            {{ (c.upvotes || 0) - (c.downvotes || 0) }}
+        </span>
+
+        <!-- Downvote -->
+        <button
+                :disabled="c.voteBusy"
+                @click="onVoteComment(c, -1)"
+                class="px-2 py-1 rounded border"
+                :class="{
+                'bg-slate-700 text-white border-slate-700': (c.userVote || 0) === -1,
+                'text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600': (c.userVote || 0) !== -1
+                }"
+                title="Downvote"
+            >▼</button>
+
+            <button @click="shareComment(c)" class="text-gray-500 hover:text-gray-700 ml-auto">↗︎ Share</button>
+            </div>
+
       </div>
     </div>
 
@@ -73,11 +131,22 @@ function formatDate(iso) {
 }
 
 async function loadThought() {
-  thought.value = await fetchThought(thoughtId);
+  const t = await fetchThought(thoughtId);
+  // Ensure defaults for UI
+  t.userVote = t.userVote ?? 0;
+  t.upvotes = t.upvotes ?? 0;
+  t.downvotes = t.downvotes ?? 0;
+  thought.value = t;
 }
 
 async function loadComments(cursor = null) {
   const { items, nextCursor: nxt } = await fetchComments(thoughtId, { limit: 20, cursor });
+  for (const c of items) {
+    c.userVote = c.userVote ?? 0;
+    c.upvotes = c.upvotes ?? 0;
+    c.downvotes = c.downvotes ?? 0;
+    c.voteBusy = false;
+  }
   if (!cursor) comments.value = items; else comments.value.push(...items);
   nextCursor.value = nxt;
 }
@@ -94,23 +163,61 @@ async function submitComment() {
   thought.value.commentsCount = (thought.value.commentsCount || 0) + 1;
 }
 
-async function vote(value) {
-  await voteThought(thoughtId, value);
-  if (value === 1) {
-    thought.value.upvotes = (thought.value.upvotes || 0) + 1;
-  } else {
-    thought.value.downvotes = (thought.value.downvotes || 0) + 1;
+async function onVoteThought(th, clickValue) {
+  if (voteBusy.value) return;
+  voteBusy.value = true;
+
+  const current = th.userVote || 0;
+  // toggle: click again => unvote (0)
+  const next = current === clickValue ? 0 : clickValue;
+
+  // optimistic UI
+  const prev = { up: th.upvotes || 0, down: th.downvotes || 0, userVote: current };
+  applyOptimistic(th, next);
+
+  try {
+    // backend should accept { value: -1|0|1 } and ideally return { upvotes, downvotes, userVote }
+    const resp = await voteThought(thoughtId, next);
+    if (resp?.upvotes != null) th.upvotes = resp.upvotes;
+    if (resp?.downvotes != null) th.downvotes = resp.downvotes;
+    if (resp?.userVote != null) th.userVote = resp.userVote;
+  } catch (e) {
+    // rollback on error
+    th.upvotes = prev.up;
+    th.downvotes = prev.down;
+    th.userVote = prev.userVote;
+    console.error('vote failed', e);
+  } finally {
+    voteBusy.value = false;
   }
 }
 
-async function voteComment(c, value) {
-  await voteCommentApi(thoughtId, c.id, value);
-  if (value === 1) {
-    c.upvotes = (c.upvotes || 0) + 1;
-  } else {
-    c.downvotes = (c.downvotes || 0) + 1;
+
+async function onVoteComment(c, clickValue) {
+  if (c.voteBusy) return;
+  c.voteBusy = true;
+
+  const current = c.userVote || 0;
+  const next = current === clickValue ? 0 : clickValue;
+
+  const prev = { up: c.upvotes || 0, down: c.downvotes || 0, userVote: current };
+  applyOptimisticComment(c, next);
+
+  try {
+    const resp = await voteCommentApi(thoughtId, c.id, next);
+    if (resp?.upvotes != null) c.upvotes = resp.upvotes;
+    if (resp?.downvotes != null) c.downvotes = resp.downvotes;
+    if (resp?.userVote != null) c.userVote = resp.userVote;
+  } catch (e) {
+    c.upvotes = prev.up;
+    c.downvotes = prev.down;
+    c.userVote = prev.userVote;
+    console.error('comment vote failed', e);
+  } finally {
+    c.voteBusy = false;
   }
 }
+
 
 function shareComment(c) {
   const url = `${window.location.origin}/community/${thoughtId}#${c.id}`;
@@ -121,4 +228,30 @@ onMounted(async () => {
   await loadThought();
   await loadComments();
 });
+
+
+const voteBusy = ref(false);
+
+function applyOptimistic(th, nextValue) {
+  // remove previous contribution
+  if ((th.userVote || 0) === 1) th.upvotes = Math.max(0, (th.upvotes || 0) - 1);
+  if ((th.userVote || 0) === -1) th.downvotes = Math.max(0, (th.downvotes || 0) - 1);
+
+  // apply new contribution
+  if (nextValue === 1) th.upvotes = (th.upvotes || 0) + 1;
+  if (nextValue === -1) th.downvotes = (th.downvotes || 0) + 1;
+
+  th.userVote = nextValue;
+}
+
+function applyOptimisticComment(c, nextValue) {
+  if ((c.userVote || 0) === 1) c.upvotes = Math.max(0, (c.upvotes || 0) - 1);
+  if ((c.userVote || 0) === -1) c.downvotes = Math.max(0, (c.downvotes || 0) - 1);
+
+  if (nextValue === 1) c.upvotes = (c.upvotes || 0) + 1;
+  if (nextValue === -1) c.downvotes = (c.downvotes || 0) + 1;
+
+  c.userVote = nextValue;
+}
+
 </script>

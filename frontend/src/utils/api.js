@@ -178,16 +178,16 @@ export async function addCommentApi(thoughtId, { body }) {
   return res.data;
 }
 
-export async function voteThought(id, value) {
+export async function voteThought(thoughtId, value) {
   const client = createApiClient();
-  const res = await client.post(`/api/thoughts/${id}/vote`, { value });
-  return res.data;
+  const { data } = await client.post(`/api/thoughts/${thoughtId}/vote`, { value });
+  return data; // { success, upvotes, downvotes, userVote }
 }
 
 export async function voteComment(thoughtId, commentId, value) {
   const client = createApiClient();
-  const res = await client.post(`/api/thoughts/${thoughtId}/comments/${commentId}/vote`, { value });
-  return res.data;
+  const { data } = await client.post(`/api/thoughts/${thoughtId}/comments/${commentId}/vote`, { value });
+  return data; // { success, upvotes, downvotes, userVote }
 }
 
 export default {
