@@ -164,7 +164,7 @@
                 <div class="mb-3">
                   <h3 class="font-bold text-lg break-words">{{ card.title }}</h3>
                   <p class="text-sm text-gray-500 dark:text-slate-400">{{ card.set }}</p>
-                  <span class="inline-block mt-2 px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold rounded-lg">
+                  <span class="inline-block mt-2 px-2 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 text-s font-bold rounded-lg">
                     {{ card.grade }}
                   </span>
                   
@@ -809,9 +809,57 @@
         </div>
       </div>
     </div>
+        <!-- Transaction Result Modal -->
+        <div v-if="showTransactionModal" @click="closeTransactionModal" 
+          class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+          <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            
+            <!-- Success Header -->
+            <div v-if="transactionResult.success" 
+                class="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
+              <p class="text-green-100">{{ transactionResult.title }}</p>
+            </div>
 
+            <!-- Error Header -->
+            <div v-else 
+                class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <h2 class="text-3xl font-black text-white mb-2">Action Failed</h2>
+              <p class="text-red-100">{{ transactionResult.title }}</p>
+            </div>
+
+            <!-- Content -->
+            <div class="p-8">
+              <div class="space-y-6">
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-900/30 rounded-2xl p-6 border-2" :class="transactionResult.success ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'">
+                  <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {{ transactionResult.message }}
+                  </p>
+                </div>
+
+                <div class="flex gap-3">
+                  <button @click="closeTransactionModal" 
+                          class="flex-1 px-6 py-3 rounded-xl font-bold transition-all shadow-lg" :class="transactionResult.success ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800'">
+                    {{ transactionResult.success ? 'Great!' : 'Close' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
   </div>
+  
 </template>
 
 <script setup>
@@ -895,6 +943,24 @@ const timeframeOptions = [
   { label: '1Y', value: '1Y' },
   { label: 'All', value: 'All' }
 ]
+
+// Transaction modal state
+const showTransactionModal = ref(false);
+const transactionResult = ref({
+  success: false,
+  title: '',
+  message: ''
+});
+
+function closeTransactionModal() {
+  showTransactionModal.value = false;
+  // Reload data after successful actions
+  if (transactionResult.value.success) {
+    loadReceivedOffers();
+    loadSentOffers();
+    loadOwnedCards();
+  }
+}
 
 // Transaction history state
 const transactionHistory = ref([]);
@@ -1449,10 +1515,6 @@ async function loadSentOffers() {
 
 // Accept an offer
 async function acceptOffer(offerId) {
-  if (!confirm('Accept this offer? The card will be transferred and payment will be processed.')) {
-    return;
-  }
-
   const token = localStorage.getItem('token');
   try {
     const resp = await fetch(`http://localhost:3001/api/offers/${offerId}/accept`, {
@@ -1466,26 +1528,30 @@ async function acceptOffer(offerId) {
     const data = await resp.json();
 
     if (resp.ok) {
-      alert('✅ Offer accepted! Transaction completed successfully.');
-      // Reload data
-      await loadReceivedOffers();
-      await loadSentOffers();
-      await loadOwnedCards();
+      transactionResult.value = {
+        success: true,
+        title: 'Offer Accepted!',
+        message: 'The transaction has been completed successfully. The card has been transferred and payment processed.'
+      };
     } else {
-      alert(`❌ Failed to accept offer: ${data.error || data.message || 'Unknown error'}`);
+      transactionResult.value = {
+        success: false,
+        title: 'Failed to Accept',
+        message: data.error || data.message || 'Unknown error occurred'
+      };
     }
+    showTransactionModal.value = true;
   } catch (error) {
-    console.error('Failed to accept offer:', error);
-    alert('❌ Failed to accept offer. Please try again.');
+    transactionResult.value = {
+      success: false,
+      title: 'Network Error',
+      message: 'Unable to process the offer. Please check your connection.'
+    };
+    showTransactionModal.value = true;
   }
 }
 
-// Reject an offer
 async function rejectOffer(offerId) {
-  if (!confirm('Reject this offer?')) {
-    return;
-  }
-
   const token = localStorage.getItem('token');
   try {
     const resp = await fetch(`http://localhost:3001/api/offers/${offerId}/reject`, {
@@ -1497,14 +1563,26 @@ async function rejectOffer(offerId) {
     });
 
     if (resp.ok) {
-      alert('Offer rejected');
-      await loadReceivedOffers();
+      transactionResult.value = {
+        success: true,
+        title: 'Offer Rejected',
+        message: 'The offer has been rejected and the buyer has been notified.'
+      };
     } else {
-      alert('Failed to reject offer');
+      transactionResult.value = {
+        success: false,
+        title: 'Failed to Reject',
+        message: 'Unable to reject the offer. Please try again.'
+      };
     }
+    showTransactionModal.value = true;
   } catch (error) {
-    console.error('Failed to reject offer:', error);
-    alert('Failed to reject offer');
+    transactionResult.value = {
+      success: false,
+      title: 'Network Error',
+      message: 'Unable to process the rejection. Please check your connection.'
+    };
+    showTransactionModal.value = true;
   }
 }
 

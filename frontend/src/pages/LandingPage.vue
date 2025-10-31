@@ -272,9 +272,10 @@
                     <h3 class="text-3xl font-black mb-1">{{ selectedCard.title }}</h3>
                     <p class="text-lg text-gray-500 dark:text-slate-400">{{ selectedCard.set }}</p>
                   </div>
-                  <span class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-sm font-bold rounded-lg">
-                    {{ selectedCard.rarity }}
-                  </span>
+                  <span
+                  class="flex-shrink-0 px-2 py-1 bg-stone-100 dark:bg-indigo-900 text-red-700 dark:text-indigo-300 text-s font-bold rounded-lg">
+                  {{ selectedCard.rarity }}
+                </span>
                 </div>
               </div>
 
@@ -345,19 +346,19 @@
                       @click="handleBuyCard"
                       :disabled="!selectedCard || !selectedCard.price"
                       class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                      Buy Now - <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
+                      Buy Now <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
                   </button>
                   <button
                       @click="showOfferModal = true"
                       :disabled="!selectedCard"
-                      class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                      class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
                       Make Offer
                   </button>
                   
                   <button
                       @click="handleMessageSeller"
                       :disabled="!selectedCard || messagingLoading"
-                      class="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl font-bold hover:from-blue-700 hover:to-blue-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                      class="flex-1 px-6 py-4 bg-gradient-to-r from-yellow-600 to-yellow-800 text-white rounded-xl font-bold hover:from-yellow-700 hover:to-yellow-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
                       <span v-if="messagingLoading">Loading...</span>
                       <span v-else>Message Seller</span>
                   </button>
@@ -435,6 +436,121 @@
     <span v-else>Send Offer</span>
   </button>
 </div>
+  
+
+      </div>
+    </div>
+  </div>
+  <!-- Transaction Result Modal -->
+  <div v-if="showTransactionModal" @click="closeTransactionModal" 
+    class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+    <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+      
+      <!-- Success Header -->
+      <div v-if="transactionResult.success" 
+          class="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
+        <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
+        <p class="text-green-100">{{ transactionResult.title }}</p>
+      </div>
+
+      <!-- Error Header -->
+      <div v-else 
+          class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
+        <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <h2 class="text-3xl font-black text-white mb-2">Transaction Failed</h2>
+        <p class="text-red-100">{{ transactionResult.title }}</p>
+      </div>
+
+      <!-- Content -->
+      <div class="p-8">
+        <!-- Success Content -->
+        <div v-if="transactionResult.success" class="space-y-6">
+          <!-- Transaction Details -->
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border-2 border-green-200 dark:border-green-800">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Card</span>
+                <span class="font-bold text-gray-900 dark:text-white">{{ transactionResult.cardName }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Amount Paid</span>
+                <div class="flex items-center gap-1">
+                  <img :src="jsbImg" alt="JSB" class="h-[18px] w-[18px]" />
+                  <span class="font-black text-xl text-green-600">{{ transactionResult.amount }}</span>
+                </div>
+              </div>
+              <div v-if="transactionResult.newBalance !== undefined" class="flex justify-between items-center pt-3 border-t border-green-200 dark:border-green-800">
+                <span class="text-sm text-gray-600 dark:text-gray-400">New Balance</span>
+                <div class="flex items-center gap-1">
+                  <img :src="jsbImg" alt="JSB" class="h-[18px] w-[18px]" />
+                  <span class="font-bold text-gray-900 dark:text-white">{{ transactionResult.newBalance?.toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Success Message -->
+          <p class="text-center text-gray-600 dark:text-gray-300">
+            {{ transactionResult.message }}
+          </p>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-3">
+            <button @click="closeTransactionModal" 
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg">
+              Awesome!
+            </button>
+            <button @click="goToProfile" 
+                    class="flex-1 px-6 py-3 bg-white dark:bg-slate-700 border-2 border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 rounded-xl font-bold hover:bg-green-50 dark:hover:bg-slate-600 transition-all">
+              View Collection
+            </button>
+          </div>
+        </div>
+
+        <!-- Error Content -->
+        <div v-else class="space-y-6">
+          <!-- Error Details -->
+          <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/30 rounded-2xl p-6 border-2 border-red-200 dark:border-red-800">
+            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+              {{ transactionResult.message }}
+            </p>
+            
+            <!-- Insufficient Funds Help -->
+            <div v-if="transactionResult.errorType === 'INSUFFICIENT_FUNDS'" class="mt-4 pt-4 border-t border-red-200 dark:border-red-800">
+              <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">💡 Need more JSB?</p>
+              <router-link to="/wallet" 
+                          @click="closeTransactionModal"
+                          class="inline-flex items-center gap-2 text-sm text-red-600 dark:text-red-400 font-semibold hover:underline">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Funds to Wallet
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-3">
+            <button @click="closeTransactionModal" 
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-800 transition-all shadow-lg">
+              Close
+            </button>
+            <button v-if="transactionResult.errorType === 'INSUFFICIENT_FUNDS'" 
+                    @click="retryTransaction" 
+                    class="flex-1 px-6 py-3 bg-white dark:bg-slate-700 border-2 border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-50 dark:hover:bg-slate-600 transition-all">
+              Try Again
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -455,15 +571,69 @@ const offerLoading = ref(false);
     return str.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
   }
 
+const showTransactionModal = ref(false);
+const transactionResult = ref({
+  success: false,
+  title: '',
+  message: '',
+  cardName: '',
+  amount: 0,
+  newBalance: undefined,
+  errorType: null
+});
+
+function closeTransactionModal() {
+  showTransactionModal.value = false;
+  if (transactionResult.value.success) {
+    closeModal();
+  }
+}
+
+function goToProfile() {
+  closeTransactionModal();
+  router.push('/profile');
+}
+
+function retryTransaction() {
+  closeTransactionModal();
+}
+
 // Handle making an offer
 async function handleMakeOffer() {
   if (!isLoggedIn.value) {
-    alert('Please login to make an offer');
+    transactionResult.value = {
+      success: false,
+      title: 'Authentication Required',
+      message: 'Please login to make an offer',
+      errorType: 'AUTH_REQUIRED'
+    };
+    showTransactionModal.value = true;
+    showOfferModal.value = false;
     return;
   }
+  // Prevent offering on your own card
+    const currentUserId = localStorage.getItem('userId');
+      if (currentUserId === selectedCard.value.sellerId) {
+        transactionResult.value = {
+          success: false,
+          title: 'Cannot Make Offer',
+          message: 'You cannot make an offer on your own card',
+          errorType: 'INVALID_ACTION'
+        };
+        showTransactionModal.value = true;
+        showOfferModal.value = false;
+        return;
+      }
+
 
   if (!offerAmount.value || offerAmount.value <= 0) {
-    alert('Please enter a valid offer amount');
+    transactionResult.value = {
+      success: false,
+      title: 'Invalid Offer',
+      message: 'Please enter a valid offer amount greater than 0',
+      errorType: 'INVALID_AMOUNT'
+    };
+    showTransactionModal.value = true;
     return;
   }
 
@@ -471,17 +641,7 @@ async function handleMakeOffer() {
 
   try {
     const token = localStorage.getItem('token');
-    const buyerEmail = localStorage.getItem('userEmail');
-    const buyerName = localStorage.getItem('username');
-    const buyerId = localStorage.getItem('userId');  // ← Make sure this exists
-
-    console.log('🔍 Making offer with:', {
-      cert_number: selectedCard.value.id,
-      card_name: selectedCard.value.title,
-      seller_id: selectedCard.value.sellerId,
-      buyer_id: buyerId,
-      offer_amount: offerAmount.value
-    });
+    const buyerId = localStorage.getItem('userId');
 
     const response = await fetch('http://localhost:3001/api/offers', {
       method: 'POST',
@@ -500,24 +660,40 @@ async function handleMakeOffer() {
     });
 
     const data = await response.json();
-    console.log('📥 Offer response:', data);
 
     if (response.ok) {
-      alert(`✅ Offer of JSB ${offerAmount.value} sent successfully! The seller will be notified.`);
+      transactionResult.value = {
+        success: true,
+        title: 'Offer Sent Successfully!',
+        message: `Your offer of JSB ${offerAmount.value} for ${selectedCard.value.title} has been sent to the seller. You'll be notified when they respond.`,
+        cardName: selectedCard.value.title,
+        amount: offerAmount.value
+      };
+      showTransactionModal.value = true;
       showOfferModal.value = false;
       offerAmount.value = 0;
       offerMessage.value = '';
     } else {
-      console.error('❌ Offer failed:', data);
-      if (data.error === 'INSUFFICIENT_FUNDS') {
-        alert(`❌ ${data.message}`);
-      } else {
-        alert(`❌ Failed to send offer: ${data.error || 'Unknown error'}`);
-      }
+      transactionResult.value = {
+        success: false,
+        title: 'Offer Failed',
+        message: data.message || data.error || 'Failed to send offer',
+        errorType: data.error,
+        cardName: selectedCard.value.title,
+        amount: offerAmount.value
+      };
+      showTransactionModal.value = true;
+      showOfferModal.value = false;
     }
   } catch (error) {
-    console.error('❌ Error making offer:', error);
-    alert('❌ Failed to send offer. Please try again.');
+    transactionResult.value = {
+      success: false,
+      title: 'Network Error',
+      message: 'Unable to send offer. Check connection.',
+      errorType: 'NETWORK_ERROR'
+    };
+    showTransactionModal.value = true;
+    showOfferModal.value = false;
   } finally {
     offerLoading.value = false;
   }
@@ -944,13 +1120,14 @@ function closeModal() {
 
 // TODO: CONNECT TO YOUR BACKEND FOR PURCHASE FLOW
 async function handleBuyCard() {
-  console.log('🔘 Buy Now button clicked!');
-  console.log('🔍 Selected card:', selectedCard.value);
-  console.log('🔍 Is logged in:', isLoggedIn.value);
-
   if (!isLoggedIn.value) {
-    alert('Please login to purchase cards');
-    closeModal();
+    transactionResult.value = {
+      success: false,
+      title: 'Authentication Required',
+      message: 'Please login to purchase cards',
+      errorType: 'AUTH_REQUIRED'
+    };
+    showTransactionModal.value = true;
     return;
   }
 
@@ -959,63 +1136,55 @@ async function handleBuyCard() {
   const certNumber = selectedCard.value.id;
   const sellerId = selectedCard.value.sellerId;
 
-  console.log('💳 Purchase details:', {
-    cardTitle,
-    cardPrice,
-    certNumber,
-    sellerId
-  });
-
-  if (!confirm(`Purchase ${cardTitle} for JSB ${cardPrice}?\n\nThis will deduct JSB ${cardPrice} from your wallet.`)) {
-    console.log('❌ User cancelled purchase');
-    return;
-  }
-
-  console.log('✅ User confirmed purchase, sending request...');
-
   try {
     const token = localStorage.getItem('token');
     
-    console.log('🔑 Token:', token ? 'exists' : 'missing');
-
-    const requestBody = {
-      cert_number: certNumber,
-      card_name: cardTitle,
-      seller_id: sellerId,
-      price: cardPrice
-    };
-
-    console.log('📤 Sending request:', requestBody);
-
     const response = await fetch('http://localhost:3001/api/transactions/buy-now', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({
+        cert_number: certNumber,
+        card_name: cardTitle,
+        seller_id: sellerId,
+        price: cardPrice
+      })
     });
 
-    console.log('📥 Response status:', response.status);
-
     const data = await response.json();
-    console.log('📥 Response data:', data);
 
     if (response.ok) {
-      alert(`✅ Purchase successful! ${cardTitle} has been added to your collection.`);
-      closeModal();
-      // Reload cards to update the listing
+      transactionResult.value = {
+        success: true,
+        title: 'Purchase Complete!',
+        message: `${cardTitle} has been added to your collection. Check your profile to view it!`,
+        cardName: cardTitle,
+        amount: cardPrice,
+        newBalance: data.newBalance
+      };
+      showTransactionModal.value = true;
       await loadFeaturedCards();
     } else {
-      if (data.error === 'INSUFFICIENT_FUNDS') {
-        alert(`❌ ${data.message}\n\nPlease add funds to your wallet.`);
-      } else {
-        alert(`❌ Purchase failed: ${data.error || data.message || 'Unknown error'}`);
-      }
+      transactionResult.value = {
+        success: false,
+        title: 'Purchase Failed',
+        message: data.message || data.error || 'An unexpected error occurred',
+        errorType: data.error,
+        cardName: cardTitle,
+        amount: cardPrice
+      };
+      showTransactionModal.value = true;
     }
   } catch (error) {
-    console.error('❌ Purchase error:', error);
-    alert('❌ Purchase failed. Please try again.');
+    transactionResult.value = {
+      success: false,
+      title: 'Network Error',
+      message: 'Unable to complete transaction. Check connection.',
+      errorType: 'NETWORK_ERROR'
+    };
+    showTransactionModal.value = true;
   }
 }
 
