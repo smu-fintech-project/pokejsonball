@@ -170,18 +170,18 @@
                   
                   <!-- Status pill -->
                   <span v-if="card.status === 'listed'" class="ml-2 incline-block mt-2 px-2 py-1 
-                  bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-[10px] font-bold rounded">
+                  bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-s font-bold rounded">
                     LISTED
                   </span>
                   
                   <span v-else-if="card.status === 'reserved'"
-                  class="ml-2 inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-[10px] font-bold rounded">
+                  class="inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-[10px] font-bold rounded">
                   RESERVED
                   </span>
                 </div>
 
                 <div class="pt-3 border-t dark:border-slate-600 mb-3">
-                  <p class="text-2xl font-black text-indigo-600">
+                  <p class="text-2xl font-black text-black-600">
                     <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
                     {{ Number(card.price).toFixed(2) }}
                   </p>

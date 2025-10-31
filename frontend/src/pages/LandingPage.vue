@@ -195,7 +195,7 @@
         </div>
 
         <!-- Cards Grid -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div v-else class="cards-grid grid grid-cols-1 md:grid-cols-3 gap-6">
           <div v-for="card in filteredCards" :key="card.id"
             class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden">
             <!-- <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800"> -->
@@ -341,27 +341,36 @@
               </div>
 
               <!-- Action Buttons -->
-              <div class="flex gap-3 pt-4">
+
+              <div class="pt-4 space-y-3">
+                <!-- Row 1: Buy + Offer -->
+                <div class="flex gap-3">
                   <button
-                      @click="handleBuyCard"
-                      :disabled="!selectedCard || !selectedCard.price"
-                      class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                      Buy Now <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />{{ selectedCard.price }}
+                    @click="handleBuyCard"
+                    :disabled="!selectedCard || !selectedCard.price"
+                    class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Buy Now 
+                    <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-4.5px] mr-1" />
+                    {{ selectedCard.price }}
                   </button>
+
                   <button
-                      @click="showOfferModal = true"
-                      :disabled="!selectedCard"
-                      class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                      Make Offer
+                    @click="showOfferModal = true"
+                    :disabled="!selectedCard"
+                    class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Make Offer
                   </button>
-                  
+                </div>
+                <!-- Row 2: Message -->
+                <div>
                   <button
-                      @click="handleMessageSeller"
-                      :disabled="!selectedCard || messagingLoading"
-                      class="flex-1 px-6 py-4 bg-gradient-to-r from-yellow-600 to-yellow-800 text-white rounded-xl font-bold hover:from-yellow-700 hover:to-yellow-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                      <span v-if="messagingLoading">Loading...</span>
-                      <span v-else>Message Seller</span>
+                    @click="handleMessageSeller"
+                    :disabled="!selectedCard || messagingLoading"
+                    class="w-full px-6 py-4 bg-gradient-to-r from-yellow-500 to-yellow-500 text-white rounded-xl font-bold hover:from-yellow-500 hover:to-yellow-500 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span v-if="messagingLoading">Loading...</span>
+                    <span v-else>Message Seller</span>
                   </button>
+                </div>
               </div>
             </div>
           </div>
@@ -403,7 +412,7 @@
               :max="selectedCard?.price"
               step="0.01"
               placeholder="Enter your offer"
-              class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             />
           </div>
           <p class="text-xs text-gray-500 mt-1">
@@ -420,7 +429,7 @@
             v-model="offerMessage"
             rows="3"
             placeholder="Add a message to the seller..."
-            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none"
           ></textarea>
         </div>
         <!-- Correct Action Buttons in Offer Modal -->
@@ -448,7 +457,7 @@
       
       <!-- Success Header -->
       <div v-if="transactionResult.success" 
-          class="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
+          class="bg-gradient-to-r from-red-500 to-red-800 p-8 text-center">
         <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
           <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -506,11 +515,11 @@
           <!-- Action Buttons -->
           <div class="flex gap-3">
             <button @click="closeTransactionModal" 
-                    class="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg">
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg">
               Awesome!
             </button>
             <button @click="goToProfile" 
-                    class="flex-1 px-6 py-3 bg-white dark:bg-slate-700 border-2 border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 rounded-xl font-bold hover:bg-green-50 dark:hover:bg-slate-600 transition-all">
+                    class="flex-1 px-6 py-3 bg-white dark:bg-slate-700 border-2 border-yellow-600 dark:border-yellow-500 text-yellow-600 dark:text-yellow-400 rounded-xl font-bold hover:bg-yellow-50 dark:hover:bg-slate-600 transition-all">
               View Collection
             </button>
           </div>
@@ -1347,4 +1356,32 @@ const filteredCards = computed(() => {
 .dark .market-price-suggestion span {
   color: #4ade80; /* green-400 - light green in dark mode too */
 }
+
+/* Market Price Suggestion Styling */
+.market-price-suggestion {
+  font-size: 0.9rem;
+  color: #6b7280; /* gray-600 */
+  line-height: 1.5;
+}
+
+.dark .market-price-suggestion {
+  color: #9ca3af; /* gray-400 in dark mode */
+}
+
+.market-price-suggestion span {
+  font-weight: 600;
+  color: #4ade80; /* green-400 - light green */
+}
+
+.dark .market-price-suggestion span {
+  color: #4ade80; /* green-400 - light green in dark mode too */
+}
+
+/* Custom card grid breakpoint for 576px - 767px */
+@media (min-width: 576px) and (max-width: 767px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 </style>

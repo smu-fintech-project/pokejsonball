@@ -3,18 +3,18 @@
     class="bg-white/70 dark:bg-pj-surface/80 backdrop-blur sticky top-0 z-30 border-b border-gray-200 dark:border-slate-700">
     <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
       <!-- Logo Section -->
-      <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-3 flex-1 md:flex-initial">
         <router-link to="/" class="block">
           <div
-            class="w-12 h-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 
+            class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 
             rounded-2xl flex items-center justify-center shadow-xl transform rotate-2 
             hover:rotate-0 hover:scale-110 transition-all duration-500 ease-in-out hover:shadow-2xl overflow-hidden">
             <img :src="logo" alt="PokeJsonBall Logo"
-              class="w-10 h-10 object-cover rounded-xl select-none pointer-events-none" />
+              class="w-8 h-8 sm:w-10 sm:h-10 object-cover rounded-xl select-none pointer-events-none" />
           </div>
         </router-link>
         <div>
-          <router-link to="/" class="text-lg font-semibold">PokeJsonBall</router-link>
+          <router-link to="/" class="text-base sm:text-lg font-semibold whitespace-nowrap">PokeJsonBall</router-link>
           <div class="hidden sm:block text-xs text-gray-400 dark:text-slate-400">Pokémon card trading platform</div>
         </div>
       </div>
@@ -71,6 +71,12 @@
 
       <!-- Mobile/Tablet Actions (below md) -->
       <div class="md:hidden flex items-center gap-2">
+        <!-- Username Display (Tablet Only: 576px - 767px) -->
+        <div v-if="isAuthed" class="tablet-username-display items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span>
+          <span class="text-gray-700 dark:text-gray-200 text-sm truncate max-w-[120px]">{{username}}</span>
+        </div>
+
         <!-- Theme Toggle -->
         <button @click="$emit('toggle-dark')"
           class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
