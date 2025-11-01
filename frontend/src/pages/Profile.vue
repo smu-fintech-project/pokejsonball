@@ -61,20 +61,20 @@
             </div>
 
             <!-- Portfolio Value -->
-            <div class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4">
-              <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
-                <DollarSign class="w-6 h-6" />
-                <div class="text-base font-black text-white">Portfolio Value</div>
-              </div>
-              <div class="flex items-center justify-center">
-                <div class="text-3xl font-black text-yellow-300">
-                  <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
-                  {{ portfolioValue.toFixed(2) }}
-                </div>
-              </div>
+        <div class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4">
+          <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
+            <DollarSign class="w-6 h-6" />
+            <div class="text-base font-black text-white">Wallet Value</div>
+          </div>
+          <div class="flex items-center justify-center">
+            <div class="text-3xl font-black text-yellow-300">
+              <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+              {{ walletValue.toFixed(2) }}
             </div>
           </div>
+        </div>    
         </div>
+      </div>
       </div>
 
       <!-- Tabs -->
@@ -825,7 +825,7 @@ import PortfolioChart from '../components/PortfolioChart.vue'
 
 // --- Auth / state ---
 const isAuthed = ref(false)
-const userProfile = ref({ name: '', email: '', joinDate: '' })
+const userProfile = ref({ name: '', email: '', joinDate: '', walletBalance: 0 }) // <-- Add walletBalance
 const ownedCards = ref([])         // fetched from backend
 const loading = ref(false)
 const activeTab = ref('collection')
@@ -962,8 +962,9 @@ const totalCards = computed(() =>
   ownedCards.value.reduce((t, c) => t + (c.quantity ?? 1), 0)  //what is this???
 )
 
-const portfolioValue = computed(() =>
-  ownedCards.value.reduce((t, c) => t + (Number(c.price || 0) * (c.quantity ?? 1)), 0)
+// This now points to the walletBalance from the user's profile
+const walletValue = computed(() =>
+  Number(userProfile.value.walletBalance) || 0
 )
 
 // Portfolio computed properties
@@ -1052,10 +1053,14 @@ async function loadProfile() {
       userProfile.value.email = data.email || email
       if (data.id) {
         userProfile.value.id = data.id
-        localStorage.setItem('userId', data.id)   // <-- store it
-       }
-     if (data.name) userProfile.value.name = data.name
-     if (data.joinDate) userProfile.value.joinDate = data.joinDate
+        localStorage.setItem('userId', data.id) // <-- store it
+      }
+      if (data.name) userProfile.value.name = data.name
+      if (data.joinDate) userProfile.value.joinDate = data.joinDate
+      
+      // --- THIS IS THE NEW LINE ---
+      if (data.walletBalance) userProfile.value.walletBalance = data.walletBalance
+
     } else if (resp.status === 401) {
       // token invalid
       isAuthed.value = false
