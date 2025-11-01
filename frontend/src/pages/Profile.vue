@@ -331,7 +331,7 @@
               <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
                 <div class="flex items-center gap-2 text-purple-600 dark:text-purple-400 text-sm mb-1">
                   <DollarSign class="w-4 h-4" />
-                  <span class="font-semibold">Current Value</span>
+                  <span class="font-semibold">Card Portfolio Value</span>
                 </div>
                 <div class="text-2xl font-black text-purple-900 dark:text-purple-100">
                   <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
