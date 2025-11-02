@@ -10,9 +10,8 @@
       <!-- Main Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         
-        <!-- Balance Card - Red/White Theme -->
+        <!-- Balance Card -->
         <div class="lg:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 via-rose-500 to-red-600 p-8 shadow-2xl">
-          <!-- Animated Background Pattern -->
           <div class="absolute inset-0 opacity-10">
             <div class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
             <div class="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl transform -translate-x-48 translate-y-48"></div>
@@ -231,6 +230,8 @@
                   <option value="all">All Transactions</option>
                   <option value="deposit">Deposits Only</option>
                   <option value="withdrawal">Withdrawals Only</option>
+                  <option value="purchase">Purchased Cards Only</option>
+                  <option value="sale">Sold Cards Only</option>
                 </select>
                 <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none"
                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,13 +294,13 @@
               <div 
                 :class="[
                   'w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:scale-110',
-                  getTransactionType(tx) === 'income' 
+                  getTransactionDisplayType(tx) === 'income' 
                     ? 'bg-gradient-to-br from-green-500 to-emerald-500' 
                     : 'bg-gradient-to-br from-red-500 to-rose-500'
                 ]"
               >
                 <svg 
-                  v-if="getTransactionType(tx) === 'income'"
+                  v-if="getTransactionDisplayType(tx) === 'income'"
                   class="w-6 h-6 text-white" 
                   fill="none" 
                   stroke="currentColor" 
@@ -325,9 +326,9 @@
             <div class="text-right">
               <p 
                 class="font-bold text-xl"
-                :class="getTransactionType(tx) === 'income' ? 'text-green-600' : 'text-red-600'"
+                :class="getTransactionDisplayType(tx) === 'income' ? 'text-green-600' : 'text-red-600'"
               >
-                {{ getTransactionType(tx) === 'income' ? '+' : '-' }}{{ tx.amount }} JSB
+                {{ getTransactionDisplayType(tx) === 'income' ? '+' : '-' }}{{ tx.amount }} JSB
               </p>
               <p class="text-sm text-gray-500">Balance: {{ tx.balanceAfter }} JSB</p>
             </div>
@@ -384,16 +385,16 @@ const txFilters = ref({
 
 const isAccountVerified = computed(() => accountStatus.value.isVerified)
 
-// Calculate totals
+// Calculate totals for deposits and withdrawals
 const totalDeposits = computed(() => {
   return transactions.value
-    .filter(tx => getTransactionType(tx) === 'income')
+    .filter(tx => tx.type === 'deposit' || tx.type === 'sale')
     .reduce((sum, tx) => sum + tx.amount, 0)
 })
 
 const totalWithdrawals = computed(() => {
   return transactions.value
-    .filter(tx => getTransactionType(tx) === 'expense')
+    .filter(tx => tx.type === 'withdrawal' || tx.type === 'purchase')
     .reduce((sum, tx) => sum + tx.amount, 0)
 })
 
@@ -402,12 +403,7 @@ const filteredTransactions = computed(() => {
   
   // Filter by type
   if (txFilters.value.type !== 'all') {
-    txs = txs.filter(tx => {
-      const txType = getTransactionType(tx)
-      if (txFilters.value.type === 'deposit') return txType === 'income'
-      if (txFilters.value.type === 'withdrawal') return txType === 'expense'
-      return true
-    })
+    txs = txs.filter(tx => tx.type === txFilters.value.type)
   }
   
   // Filter by date range
@@ -437,51 +433,14 @@ const filteredTransactions = computed(() => {
   return txs
 })
 
-// FIXED: Correct transaction type logic
-function getTransactionType(tx) {
-  // If transaction has explicit type field
-  if (tx.type === 'withdrawal') {
-    return 'expense'
-  }
-  if (tx.type === 'deposit') {
+// Determine if transaction is income or expense for display
+function getTransactionDisplayType(tx) {
+  if (tx.type === 'deposit' || tx.type === 'sale') {
     return 'income'
   }
-  
-  // Analyze description for transaction type
-  const desc = tx.description?.toLowerCase() || ''
-  
-  // INCOME transactions (money coming IN - green/positive)
-  const incomeKeywords = [
-    'sold ',           // "Sold FLAREON EX to Alice"
-    'card sale',
-    'marketplace sale',
-    'received payment',
-    'added funds',
-    'deposit',
-    'refund'
-  ]
-  
-  // EXPENSE transactions (money going OUT - red/negative)
-  const expenseKeywords = [
-    'purchased ',      // "Purchased JOLTEON from Bob"
-    'bought ',
-    'cash out',
-    'withdrawal',
-    'withdrew',
-    'purchase from'
-  ]
-  
-  // Check for expense keywords FIRST (purchases should be negative)
-  if (expenseKeywords.some(keyword => desc.includes(keyword))) {
+  if (tx.type === 'withdrawal' || tx.type === 'purchase') {
     return 'expense'
   }
-  
-  // Then check for income keywords (sales should be positive)
-  if (incomeKeywords.some(keyword => desc.includes(keyword))) {
-    return 'income'
-  }
-  
-  // Default fallback
   return 'income'
 }
 
@@ -508,10 +467,6 @@ async function loadWallet() {
     if (data.success) {
       wallet.value = data.wallet
       transactions.value = data.transactions || []
-
-      if (transactions.value.length > 0) {
-        console.log('First transaction:', transactions.value[0])
-      }
     }
   } catch (err) {
     console.error('Failed to load wallet:', err)
@@ -558,16 +513,11 @@ async function loadTransactions() {
 }
 
 function formatDate(timestamp) {
-  if (!timestamp) {
-    return 'Unknown date'
-  }
+  if (!timestamp) return 'Unknown date'
   
   try {
     const date = new Date(timestamp)
-    
-    if (isNaN(date.getTime())) {
-      return 'Invalid date'
-    }
+    if (isNaN(date.getTime())) return 'Invalid date'
     
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
@@ -577,7 +527,7 @@ function formatDate(timestamp) {
       minute: '2-digit'
     }).format(date)
   } catch (err) {
-    console.error('Date formatting error:', err, timestamp)
+    console.error('Date formatting error:', err)
     return 'Invalid date'
   }
 }
@@ -639,5 +589,4 @@ async function handleCashOutSuccess() {
   await loadWallet()
   await loadTransactions()
 }
-
 </script>
