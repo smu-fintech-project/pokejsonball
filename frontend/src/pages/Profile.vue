@@ -98,14 +98,6 @@
             Offers
           </button>
 
-          <button @click="activeTab = 'transactions'" :class="[
-            'flex-1 px-6 py-4 font-semibold transition-all',
-            activeTab === 'transactions'
-              ? 'bg-red-600 text-white'
-              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-          ]">
-            Trade History
-          </button>
 
           <button @click="activeTab = 'portfolio'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
@@ -228,62 +220,6 @@
           </div>
         </div>
 
-<!-- Transactions Tab -->
-<div v-if="activeTab === 'transactions'" class="p-6">
-  <h2 class="text-2xl font-bold mb-6">Transaction History</h2>
-  
-  <div v-if="loadingTransactions" class="text-center py-12">
-    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-    <p class="mt-2 text-gray-500">Loading transactions...</p>
-  </div>
-  
-  <div v-else-if="transactionHistory.length === 0" class="text-center py-12">
-    <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
-      <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    </div>
-    <p class="text-gray-500 dark:text-slate-400 text-lg font-semibold">No transactions yet</p>
-    <p class="text-sm text-gray-400 dark:text-slate-500 mt-2">Your transaction history will appear here</p>
-  </div>
-  
-  <div v-else class="space-y-3">
-    <div v-for="tx in transactionHistory" :key="tx.id"
-      class="flex items-center justify-between p-5 rounded-xl border-2 border-gray-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all">
-      <div class="flex items-center gap-4">
-        <!-- Transaction Icon -->
-        <div :class="[
-          'w-12 h-12 rounded-full flex items-center justify-center',
-          tx.type === 'deposit' || tx.type === 'sale' ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'
-        ]">
-          <svg v-if="tx.type === 'deposit' || tx.type === 'sale'" class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          <svg v-else class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-          </svg>
-        </div>
-        
-        <div>
-          <p class="font-bold text-gray-900 dark:text-white">{{ tx.description }}</p>
-          <p class="text-sm text-gray-500 dark:text-slate-400">{{ formatTransactionDate(tx.timestamp) }}</p>
-          <p v-if="tx.cert_number" class="text-xs text-gray-400 mt-1">Cert: {{ tx.cert_number }}</p>
-        </div>
-      </div>
-      
-      <div class="text-right">
-        <p class="text-xl font-black" :class="tx.type === 'deposit' || tx.type === 'sale' ? 'text-green-600' : 'text-red-600'">
-          {{ tx.type === 'deposit' || tx.type === 'sale' ? '+' : '-' }}
-          <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mx-1" />
-          {{ Number(tx.amount).toFixed(2) }}
-        </p>
-        <p class="text-sm text-gray-500 dark:text-slate-400">
-          Balance: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(tx.balanceAfter).toFixed(2) }}
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
 
         <!-- Portfolio Tab -->
         <div v-if="activeTab === 'portfolio'" class="p-6">
