@@ -38,82 +38,79 @@ export async function createConversation(buyerId, sellerId, cardId) {
 }
 
 /**
- * Find existing conversation between two users for a specific card
- * @param {string} buyerId - The buyer's user ID
- * @param {string} sellerId - The seller's user ID
- * @param {string} cardId - The card listing ID
- * @returns {Promise<Object|null>} The conversation or null if not found
- */
+* Find existing conversation between two users for a specific card
+* @param {string} buyerId - The buyer's user ID
+* @param {string} sellerId - The seller's user ID
+* @param {string} cardId - The card listing ID
+* @returns {Promise<Object|null>} The conversation or null if not found
+*/
 export async function findConversation(buyerId, sellerId, cardId) {
   const db = admin.firestore();
-  
-  // First, try to find with buyerId and sellerId in the given order
-  let snapshot = await db.collection('conversations')
-    .where('buyerId', '==', buyerId)
-    .where('sellerId', '==', sellerId)
-    .where('cardId', '==', cardId)
-    .limit(1)
-    .get();
-  
-  if (!snapshot.empty) {
-    const doc = snapshot.docs[0];
-    return {
-      id: doc.id,
-      ...doc.data()
-    };
-  }
-  
-  // If not found, try reversed (in case roles were swapped)
-  snapshot = await db.collection('conversations')
-    .where('buyerId', '==', sellerId)
-    .where('sellerId', '==', buyerId)
-    .where('cardId', '==', cardId)
-    .limit(1)
-    .get();
-  
-  if (!snapshot.empty) {
-    const doc = snapshot.docs[0];
-    return {
-      id: doc.id,
-      ...doc.data()
-    };
-  }
-  
-  // Still not found? Try using participants array (in case structure changed)
-  const allConversations = await db.collection('conversations')
-    .where('cardId', '==', cardId)
-    .get();
-  
-  for (const doc of allConversations.docs) {
-    const data = doc.data();
-    const participants = data.participants || [];
-    
-    // Check if both users are participants
-    if (participants.includes(buyerId) && participants.includes(sellerId)) {
-      return {
-        id: doc.id,
-        ...data
-      };
+
+  // Sort participants to ensure consistent query order
+  // This matches the logic in createConversation
+  const participants = [buyerId, sellerId].sort();
+
+  try {
+    // Primary Query: Use the sorted participants array and cardId.
+    // This is the most reliable way to find the unique chat.
+    const snapshot = await db.collection('conversations')
+      .where('participants', '==', participants)
+      .where('cardId', '==', cardId)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return null; // No conversation found
     }
+
+    const doc = snapshot.docs[0];
+    return {
+      id: doc.id,
+      ...doc.data()
+    };
+
+  } catch (error) {
+    console.error("❌ Error in findConversation (check Firestore indexes):", error.message);
+    
+    // Fallback: If the composite query fails (e.g., missing index),
+    // fall back to the less efficient manual search from your original code.
+    console.log("...Falling back to manual search for conversation.");
+    
+    const fallbackSnapshot = await db.collection('conversations')
+      .where('cardId', '==', cardId)
+      .get();
+
+    for (const doc of fallbackSnapshot.docs) {
+      const data = doc.data();
+      const docParticipants = data.participants || [];
+      
+      // Check if both users are participants
+      if (docParticipants.includes(buyerId) && docParticipants.includes(sellerId)) {
+        return {
+          id: doc.id,
+          ...data
+        };
+      }
+    }
+    
+    return null; // Not found in fallback either
   }
-  
-  return null;
 }
 
 /**
- * Get conversation by ID
- * @param {string} conversationId - The conversation ID
- * @returns {Promise<Object|null>} The conversation or null if not found
- */
+* Get conversation by ID
+* @param {string} conversationId - The conversation ID
+* @returns {Promise<Object|null>} The conversation or null if not found
+*/
 export async function getConversationById(conversationId) {
   const db = admin.firestore();
-  
   const doc = await db.collection('conversations').doc(conversationId).get();
-  
+
   if (!doc.exists) {
     return null;
   }
-  
+
   return {
     id: doc.id,
     ...doc.data()
@@ -192,18 +189,32 @@ export async function updateLastMessage(conversationId, messageText, timestamp) 
 }
 
 /**
- * Check if user is participant in conversation
- * @param {string} conversationId - The conversation ID
- * @param {string} userId - The user ID to check
- * @returns {Promise<boolean>} True if user is participant
- */
+* Check if user is participant in conversation
+* @param {string} conversationId - The conversation ID
+* @param {string} userId - The user ID to check
+* @returns {Promise<boolean>} True if user is participant
+*/
 export async function isParticipant(conversationId, userId) {
-  const conversation = await getConversationById(conversationId);
+  try {
+    // Re-implement the logic from getConversationById to avoid internal call
+    const db = admin.firestore();
+    const doc = await db.collection('conversations').doc(conversationId).get();
+
+    if (!doc.exists) {
+      return false;
+    }
+    
+    const conversation = doc.data();
+    if (!conversation.participants) {
+      console.error(`⚠️ Conversation ${conversationId} is missing participants array.`);
+      return false;
+    }
+    
+    return conversation.participants.includes(userId);
   
-  if (!conversation) {
+  } catch (error) {
+    console.error(`❌ Error in isParticipant for conv ${conversationId}:`, error.message);
     return false;
   }
-  
-  return conversation.participants.includes(userId);
 }
 

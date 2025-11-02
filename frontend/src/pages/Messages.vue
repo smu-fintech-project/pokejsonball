@@ -35,39 +35,54 @@
                   activeConversationId === conv.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
                 ]"
               >
-                <div class="flex items-start gap-3">
-                  <!-- User Avatar -->
-                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                    {{ conv.otherUser?.name?.charAt(0).toUpperCase() || '?' }}
-                  </div>
-                  
-                  <div class="flex-1 min-w-0">
-                    <!-- Other User Name -->
-                    <div class="flex items-center justify-between mb-1">
-                      <h3 class="font-semibold text-gray-800 truncate">
-                        {{ conv.otherUser?.name || 'Unknown User' }}
-                      </h3>
-                      <span v-if="conv.unreadCount > 0" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
-                        {{ conv.unreadCount }}
-                      </span>
-                    </div>
-                    
-                    <!-- Card Name -->
-                    <p class="text-xs text-gray-500 truncate mb-1">
-                      📦 {{ conv.card?.name || 'Card listing' }}
-                    </p>
-                    
-                    <!-- Last Message -->
-                    <p class="text-sm text-gray-600 truncate">
-                      {{ conv.lastMessage || 'No messages yet' }}
-                    </p>
-                    
-                    <!-- Timestamp -->
-                    <p v-if="conv.lastMessageAt" class="text-xs text-gray-400 mt-1">
-                      {{ formatTimestamp(conv.lastMessageAt) }}
-                    </p>
-                  </div>
+              <div class="flex items-center justify-between gap-3">
+
+              <div class="flex items-start gap-3 flex-1 min-w-0">
+                
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                  {{ conv.otherUser?.name?.charAt(0).toUpperCase() || '?' }}
                 </div>
+
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-1">
+                    <h3 class="font-semibold text-gray-800 truncate">
+                      {{ conv.otherUser?.name || 'Unknown User' }}
+                    </h3>
+                    <span v-if="conv.unreadCount > 0" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+                      {{ conv.unreadCount }}
+                    </span>
+                  </div>
+
+                  <p class="text-xs text-gray-500 truncate mb-1">
+                    {{ conv.card?.name || 'Card listing' }}
+                  </p>
+
+                  <p class="text-sm text-gray-600 truncate">
+                    {{ conv.lastMessage || 'No messages yet' }}
+                  </p>
+
+                  <p v-if="conv.lastMessageAt" class="text-xs text-gray-400 mt-1">
+                    {{ formatTimestamp(conv.lastMessageAt) }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="w-12 h-16 flex-shrink-0">
+                <img
+                  v-if="conv.card?.imageUrl"
+                  :src="conv.card.imageUrl"
+                  :alt="conv.card.name || 'Card'"
+                  class="w-full h-full object-contain rounded-sm"
+                />
+                <div
+                  v-else
+                  class="w-full h-full rounded-sm bg-gray-100 border border-gray-200 flex items-center justify-center"
+                >
+                  <span class="text-xs text-gray-400">Card</span>
+                </div>
+              </div>
+
+              </div>
               </div>
             </div>
           </div>
