@@ -4,8 +4,7 @@
       This is the main wrapper. 
       It needs `relative` and `overflow-hidden`.
     -->
-    <div class="relative min-h-screen overflow-hidden bg-gradient-to-b from-white to-gray-50 text-gray-900 dark:from-pj-ink dark:to-pj-surface dark:text-slate-100">
-      
+      <div class="relative min-h-screen bg-gradient-to-b from-stone-100 to-stone-200 text-gray-900 dark:from-pj-ink dark:to-pj-surface dark:text-slate-100">      
       <!-- 
         This is the background pattern container.
         It sits at z-0, on top of the gradient.
