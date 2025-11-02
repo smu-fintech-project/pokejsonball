@@ -213,44 +213,64 @@ const connectSocket = () => {
 };
 
 /**
- * Handle real-time conversation update
- * This is the key function that keeps the left pane in sync!
- */
+* Handle real-time conversation update
+* This is the key function that keeps the left pane in sync!
+*/
+/**
+* Handle real-time conversation update
+* This is the key function that keeps the left pane in sync!
+*/
 const handleRealtimeUpdate = (updatedConversation) => {
-  
+  // console.log('SOCKET: Received [conversation_updated]', updatedConversation);
+
   // Find if this conversation already exists in the list
   const existingIndex = conversations.value.findIndex(
     conv => conv.id === updatedConversation.id
   );
-  
+
+  let conversationToUpdate;
+
   if (existingIndex !== -1) {
-    // EXISTS: Replace in place, then move to top
+    // === START OF FIX ===
+    // IT EXISTS: Merge new data with existing rich data
     
-    // Remove old version
+    // Get the existing data (with card, otherUser, and good dates)
+    const existingConv = conversations.value[existingIndex];
+    
+    // Create a new object to maintain reactivity
+    // We start with the existing conversation (with all its good data)
+    // and *manually* overwrite just the fields we care about
+    // from the socket's incomplete payload.
+    conversationToUpdate = {
+      ...existingConv, // Keep all old data (card, otherUser, createdAt)
+      
+      // Selectively update with new data from the socket
+      lastMessage: updatedConversation.lastMessage,
+      lastMessageAt: updatedConversation.lastMessageAt,
+      // Use socket's unreadCount, but fall back to existing if socket doesn't send one
+      unreadCount: updatedConversation.unreadCount ?? existingConv.unreadCount,
+    };
+    
+    // Remove old version from the list
     conversations.value.splice(existingIndex, 1);
+    // === END OF FIX ===
+    
   } else {
+    // IT'S A NEW CONVERSATION
+    // We add it to the top. It might be missing card/user data
+    // until the next full refresh, but it will appear.
+    conversationToUpdate = updatedConversation;
   }
-  
-  // Add/re-add to top
-  conversations.value.unshift(updatedConversation);
-  
-  // Remove duplicates by ID (safety check)
-  const seen = new Set();
-  conversations.value = conversations.value.filter(conv => {
-    if (seen.has(conv.id)) {
-      return false;
-    }
-    seen.add(conv.id);
-    return true;
-  });
-  
-  // Sort by lastMessageAt (most recent first)
+
+  // Add the updated/new conversation to the top
+  conversations.value.unshift(conversationToUpdate);
+
+  // Re-sort by lastMessageAt (most recent first)
   conversations.value.sort((a, b) => {
-    const timeA = a.lastMessageAt?.toDate ? a.lastMessageAt.toDate() : new Date(a.lastMessageAt || 0);
-    const timeB = b.lastMessageAt?.toDate ? b.lastMessageAt.toDate() : new Date(b.lastMessageAt || 0);
+    const timeA = new Date(a.lastMessageAt || 0);
+    const timeB = new Date(b.lastMessageAt || 0);
     return timeB - timeA;
   });
-  
 };
 
 /**

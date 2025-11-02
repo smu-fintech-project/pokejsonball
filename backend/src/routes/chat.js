@@ -129,8 +129,10 @@ router.get('/my-conversations', authenticateToken, async (req, res) => {
               const cardData = cardDoc.data();
               card = {
                 id: cardDoc.id,
-                name: cardData.name,
-                imageUrl: cardData.imageUrl,
+                // === FIX IS HERE ===
+                name: cardData.card_name, // Use card_name from Firestore
+                imageUrl: cardData.image_url, // Use image_url from Firestore
+                
                 price: cardData.price
               };
             }
@@ -146,21 +148,36 @@ router.get('/my-conversations', authenticateToken, async (req, res) => {
         } catch (err) {
           console.error(`⚠️ Error getting unread count:`, err.message);
         }
+
+      // ...
+      const safeDate = (timestamp) => {
+        if (timestamp?.toDate) {
+          return timestamp.toDate().toISOString();
+        }
+        // Add fallback for serialized timestamps
+        if (timestamp?._seconds) {
+          return new Date(timestamp._seconds * 1000).toISOString();
+        }
+        return timestamp; // Keep it if it's already a string or null
+      };
+      enrichedConversations.push({
+        id: conv.id,
+        participants: conv.participants,
+        buyerId: conv.buyerId,
+        sellerId: conv.sellerId,
+        cardId: conv.cardId,
+        lastMessage: conv.lastMessage || null,
+
+        // === FIX IS HERE ===
+        lastMessageAt: safeDate(conv.lastMessageAt) || null,
+        createdAt: safeDate(conv.createdAt),
+        updatedAt: safeDate(conv.updatedAt),
         
-        enrichedConversations.push({
-          id: conv.id,
-          participants: conv.participants,
-          buyerId: conv.buyerId,
-          sellerId: conv.sellerId,
-          cardId: conv.cardId,
-          lastMessage: conv.lastMessage || null,
-          lastMessageAt: conv.lastMessageAt || null,
-          createdAt: conv.createdAt,
-          updatedAt: conv.updatedAt,
-          otherUser,
-          card,
-          unreadCount
-        });
+        otherUser,
+        card,
+        unreadCount
+      });
+      // ...
       } catch (convError) {
         console.error(`⚠️ Error enriching conversation ${conv.id}:`, convError.message);
         // Skip this conversation if there's an error
