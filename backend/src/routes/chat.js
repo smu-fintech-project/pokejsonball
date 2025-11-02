@@ -124,18 +124,22 @@ router.get('/my-conversations', authenticateToken, async (req, res) => {
         let card = null;
         try {
           if (conv.cardId) {
-            const cardDoc = await db.collection('cards').doc(conv.cardId).get();
-            if (cardDoc.exists) {
+            // === START OF FIX ===
+            // We must query by 'cert_number', as conv.cardId is not the Document ID
+            const cardsCollection = db.collection('cards');
+            const cardQuery = await cardsCollection.where('cert_number', '==', conv.cardId).limit(1).get();
+
+            if (!cardQuery.empty) {
+              const cardDoc = cardQuery.docs[0]; // Get the first (and only) document
               const cardData = cardDoc.data();
               card = {
                 id: cardDoc.id,
-                // === FIX IS HERE ===
-                name: cardData.card_name, // Use card_name from Firestore
-                imageUrl: cardData.image_url, // Use image_url from Firestore
-                
+                name: cardData.card_name,
+                imageUrl: cardData.image_url,
                 price: cardData.price
               };
             }
+            // === END OF FIX ===
           }
         } catch (err) {
           console.error(`⚠️ Error fetching card ${conv.cardId}:`, err.message);
