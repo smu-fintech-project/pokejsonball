@@ -694,12 +694,7 @@
           </div>
 
 
-          <div>
-            <label class="block text-sm font-semibold mb-2">Description <span class="text-gray-400">(optional)</span></label>
-            <textarea v-model="sellForm.description" rows="3"
-                      class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
-                      placeholder="Any extra details for buyers (condition, notes, etc.)"></textarea>
-          </div>
+          
 
           <div>
             <label class="block text-sm font-semibold mb-2">Delivery</label>

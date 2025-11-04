@@ -63,6 +63,10 @@ router.get('/', async (req, res) => {
           sellerEmail: l.sellerEmail || u.email || null,
           listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
           status: l.status || 'display',
+          description: l.description || '', 
+           delivery: l.delivery || 'meetup',
+          
+          
 
           // full card fields (so we can build more features later)
           card_name: card.card_name ?? null,
@@ -89,6 +93,8 @@ router.get('/', async (req, res) => {
           variety: card.variety ?? null,
           variety_pedigree: card.variety_pedigree ?? null,
           year: card.year ?? null,
+          
+
 
           // optional convenience sub-object (unchanged UI can still read .psa?.grade)
           psa: {
