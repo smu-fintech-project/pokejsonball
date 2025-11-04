@@ -1,38 +1,39 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+  <div class="max-w-7xl mx-auto px-4 py-8">
 
     <!-- Not authenticated: CTA -->
-    <div v-if="!isAuthed" class="max-w-md mx-auto py-24 px-6">
-      <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-10 text-center">
+    <div v-if="!isAuthed" class="max-w-md mx-auto py-24">
+      <div class="bg-white/50 dark:bg-slate-800/50 rounded-3xl shadow-xl p-10 text-center backdrop-blur-sm">
         <User class="w-14 h-14 mx-auto mb-4 text-red-600" />
-        <h2 class="text-2xl font-black mb-2">Welcome, Trainer!</h2>
+        <h2 class="text-2xl font-black mb-2 text-gray-900 dark:text-white">Welcome, Trainer!</h2>
         <p class="text-slate-600 dark:text-slate-300 mb-6">
           Sign in to view your profile and card portfolio.
         </p>
         <div class="flex gap-3 justify-center">
           <router-link
-          to="/login"
-          class="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700">
-          Login
-        </router-link>
-        <router-link
-          to="/login"
-          class="px-6 py-3 bg-white dark:bg-slate-700 border-2 border-red-600 text-red-600 dark:text-red-300 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-slate-600">
-          Sign Up
-        </router-link>
+            to="/login"
+            class="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all"
+          >
+            Login
+          </router-link>
+          <router-link
+            to="/login"
+            class="px-6 py-3 bg-white dark:bg-slate-700 border-2 border-red-600 text-red-600 dark:text-red-300 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-slate-600 transition-all"
+          >
+            Sign Up
+          </router-link>
         </div>
       </div>
     </div>
 
     <!-- Authenticated content -->
-    <div v-else class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div v-else class="space-y-6">
 
       <!-- Profile Header -->
-      <div class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 rounded-3xl p-8 shadow-2xl">
+      <div class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 dark:from-red-900 dark:via-red-800 dark:to-red-900 rounded-3xl p-8 shadow-2xl">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div class="flex items-center gap-6">
-            <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+            <div class="w-24 h-24 bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center">
               <User class="w-12 h-12 text-white" />
             </div>
             <div class="text-white">
@@ -50,7 +51,7 @@
 
           <div class="flex gap-4">
             <!-- Total Cards -->
-            <div class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4">
+            <div class="bg-white/10 dark:bg-white/5 backdrop-blur-sm border-2 border-white/30 dark:border-white/20 rounded-2xl px-6 py-4">
               <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
                 <Package class="w-6 h-6" />
                 <div class="text-base font-black text-white">Total Cards</div>
@@ -61,71 +62,65 @@
             </div>
 
             <!-- Portfolio Value - Clickable -->
-        <router-link 
-          to="/wallet"
-          class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4 hover:bg-white/20 hover:border-white/50 transition-all cursor-pointer transform hover:scale-105">
-          <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
-            <DollarSign class="w-6 h-6" />
-            <div class="text-base font-black text-white">Wallet Value</div>
+            <router-link 
+              to="/wallet"
+              class="bg-white/10 dark:bg-white/5 backdrop-blur-sm border-2 border-white/30 dark:border-white/20 rounded-2xl px-6 py-4 hover:bg-white/20 dark:hover:bg-white/10 hover:border-white/50 transition-all cursor-pointer transform hover:scale-105">
+              <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
+                <DollarSign class="w-6 h-6" />
+                <div class="text-base font-black text-white">Wallet Value</div>
+              </div>
+              <div class="flex items-center justify-center">
+                <div class="text-3xl font-black text-yellow-300">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+                  {{ walletValue.toFixed(2) }}
+                </div>
+              </div>
+            </router-link>    
           </div>
-          <div class="flex items-center justify-center">
-            <div class="text-3xl font-black text-yellow-300">
-              <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
-              {{ walletValue.toFixed(2) }}
-            </div>
-          </div>
-        </router-link>    
         </div>
-      </div>
       </div>
 
       <!-- Tabs -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
-        <div class="flex border-b dark:border-slate-700">
+      <div class="bg-white/50 dark:bg-slate-800/50 rounded-2xl shadow-lg overflow-hidden backdrop-blur-sm border border-gray-200 dark:border-slate-700">
+        <div class="flex border-b border-gray-200 dark:border-slate-700">
           <button @click="activeTab = 'collection'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
             activeTab === 'collection'
               ? 'bg-red-600 text-white'
-              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
           ]">
             My Card Collection
           </button>
-          <!-- New Offers tab button -->
           <button @click="activeTab = 'offers'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
             activeTab === 'offers'
               ? 'bg-red-600 text-white'
-              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
           ]">
             Offers
           </button>
-
-
           <button @click="activeTab = 'portfolio'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
             activeTab === 'portfolio'
               ? 'bg-red-600 text-white'
-              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
           ]">
             Portfolio
           </button>
-
           <button @click="activeTab = 'reviews'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
             activeTab === 'reviews'
               ? 'bg-red-600 text-white'
-              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
           ]">
             Reviews
           </button>
-
         </div>
         
         <!-- Collection Tab -->
         <div v-if="activeTab === 'collection'" class="p-6">
-
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold">Your Cards</h2>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Your Cards</h2>
             <router-link
               to="/upload"
               class="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all shadow-lg"
@@ -142,11 +137,9 @@
 
           <!-- Cards -->
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
             <div v-for="card in ownedCards.filter(c => c.status !== 'sold')" :key="card.id"
-            class="group relative bg-white dark:bg-slate-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden
-            flex flex-col min-h-[420px]">
-              <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-600 dark:to-slate-700">
+              class="group relative bg-white/50 dark:bg-slate-700/50 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden flex flex-col min-h-[420px] backdrop-blur-sm border border-gray-200 dark:border-slate-600">
+              <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-600/50 dark:to-slate-700/50">
                 <img :src="card.img" :alt="card.title" class="w-full h-48 object-contain" />
                 <div v-if="card.quantity > 1"
                   class="absolute top-2 left-2 px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
@@ -156,34 +149,34 @@
 
               <div class="p-4 flex-1 flex flex-col">
                 <div class="mb-3">
-                  <h3 class="font-bold text-lg break-words">{{ card.title }}</h3>
+                  <h3 class="font-bold text-lg break-words text-gray-900 dark:text-white">{{ card.title }}</h3>
                   <p class="text-sm text-gray-500 dark:text-slate-400">{{ card.set }}</p>
-                  <span class="inline-block mt-2 px-2 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 text-s font-bold rounded-lg">
+                  <span class="inline-block mt-2 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm font-bold rounded-lg">
                     {{ card.grade }}
                   </span>
                   
                   <!-- Status pill -->
-                  <span v-if="card.status === 'listed'" class="ml-2 incline-block mt-2 px-2 py-1 
-                  bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-s font-bold rounded">
+                  <span v-if="card.status === 'listed'" class="ml-2 inline-block mt-2 px-2 py-1 
+                  bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-200 text-sm font-bold rounded">
                     LISTED
                   </span>
                   
                   <span v-else-if="card.status === 'reserved'"
-                  class="inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-[10px] font-bold rounded">
+                  class="inline-block mt-2 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-200 text-[10px] font-bold rounded">
                   RESERVED
                   </span>
                 </div>
 
-                <div class="pt-3 border-t dark:border-slate-600 mb-3">
-                  <p class="text-2xl font-black text-black-600">
+                <div class="pt-3 border-t border-gray-200 dark:border-slate-600 mb-3">
+                  <p class="text-2xl font-black text-gray-900 dark:text-white">
                     <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
                     {{ Number(card.price).toFixed(2) }}
                   </p>
-                  <p class="text-xs text-gray-500">Cert: {{ card.cert }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Cert: {{ card.cert }}</p>
                 </div>
                 
                 <div class="flex flex-wrap gap-2 mt-auto sm:flex-nowrap">
-                <!-- Edit Button -->
+                  <!-- Edit Button -->
                   <button @click="openEditModal(card)"
                     class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-500 transition-all">
                     <Edit2 class="w-3 h-3" />
@@ -205,7 +198,7 @@
 
                   <!-- Delete Button -->
                   <button @click="handleDeleteCard(card.id)"
-                    class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-800 transition-all">
+                    class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-800/50 transition-all">
                     <Trash2 class="w-3 h-3" />
                     Delete
                   </button>
@@ -222,11 +215,10 @@
           </div>
         </div>
 
-
         <!-- Portfolio Tab -->
         <div v-if="activeTab === 'portfolio'" class="p-6">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold">Portfolio Growth</h2>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Portfolio Growth</h2>
             
             <!-- Timeframe selector -->
             <div class="flex gap-2 bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
@@ -314,7 +306,7 @@
             </div>
 
             <!-- Chart Container -->
-            <div class="bg-white dark:bg-slate-700 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-slate-600">
+            <div class="bg-white/50 dark:bg-slate-700/50 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-slate-600 backdrop-blur-sm">
               <div class="h-96">
                 <PortfolioChart :chartData="filteredChartData" />
               </div>
@@ -325,7 +317,7 @@
         <!-- Reviews Tab -->
         <div v-if="activeTab === 'reviews'" class="p-6 space-y-6">
           <div class="flex flex-col lg:flex-row gap-6">
-            <div class="lg:w-1/3 bg-gradient-to-br from-red-600 via-red-500 to-red-400 rounded-2xl p-6 text-white shadow-xl">
+            <div class="lg:w-1/3 bg-gradient-to-br from-red-600 via-red-500 to-red-400 dark:from-red-900 dark:via-red-800 dark:to-red-900 rounded-2xl p-6 text-white shadow-xl">
               <div class="flex items-center gap-2 text-white/80 text-sm">
                 <Star class="w-5 h-5 text-yellow-300" />
                 <span>Average Rating</span>
@@ -349,7 +341,7 @@
               </div>
             </div>
 
-            <div class="flex-1 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-slate-700">
+            <div class="flex-1 bg-white/50 dark:bg-slate-800/50 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-slate-700 backdrop-blur-sm">
               <h3 class="text-lg font-semibold flex items-center gap-2 mb-4 text-gray-800 dark:text-slate-100">
                 <MessageCircle class="w-5 h-5 text-red-500" />
                 Rating Breakdown
@@ -441,364 +433,213 @@
           </div>
         </div>
 
-<!-- ✨ COMPLETE FIXED: Offers Tab -->
-<div v-if="activeTab === 'offers'" class="p-6">
-  <div class="space-y-6">
-    <!-- Received Offers (Offers on your cards) -->
-    <div>
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        📥 Received Offers
-        <span v-if="receivedOffers.length > 0" class="text-lg font-normal text-gray-500">
-          ({{ receivedOffers.length }})
-        </span>
-      </h2>
+        <!-- Offers Tab -->
+        <div v-if="activeTab === 'offers'" class="p-6">
+          <div class="space-y-6">
+            <!-- Received Offers -->
+            <div>
+              <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                📥 Received Offers
+                <span v-if="receivedOffers.length > 0" class="text-lg font-normal text-gray-500 dark:text-gray-400">
+                  ({{ receivedOffers.length }})
+                </span>
+              </h2>
 
-      <div v-if="loadingOffers" class="text-center py-8">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        <p class="mt-2 text-gray-500">Loading offers...</p>
-      </div>
-
-      <div v-else-if="receivedOffers.length === 0" class="text-center py-8 text-gray-500">
-        <p>No pending offers on your cards</p>
-      </div>
-
-      <div v-else class="space-y-4">
-        <div v-for="offer in receivedOffers" :key="offer.id"
-          class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2 border-gray-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                  <User class="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p class="font-bold">{{ offer.buyer_name || 'Unknown Buyer' }}</p>
-                  <p class="text-xs text-gray-500">{{ formatOfferDate(offer.created_at) }}</p>
-                </div>
+              <div v-if="loadingOffers" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <p class="mt-2">Loading offers...</p>
               </div>
 
-              <div class="ml-13">
-                <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">
-                  Offered for: <span class="font-semibold">{{ offer.card_name || 'Unknown Card' }}</span>
-                </p>
-                <p class="text-sm text-gray-500">
-                  Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
-                </p>
-                
-                <div class="mt-3 flex items-center gap-2">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">Offer Amount:</span>
-                  <span class="text-2xl font-black text-green-600">
-                    <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />
-                    {{ Number(offer.offer_amount || 0).toFixed(2) }}
-                  </span>
-                  <span v-if="offer.offer_amount < offer.listing_price" 
-                    class="text-sm text-orange-600 font-semibold">
-                    ({{ ((offer.offer_amount / offer.listing_price) * 100).toFixed(0) }}% of listing)
-                  </span>
-                </div>
+              <div v-else-if="receivedOffers.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <p>No pending offers on your cards</p>
+              </div>
 
-                <p v-if="offer.message" class="mt-3 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                  "{{ offer.message }}"
-                </p>
+              <div v-else class="space-y-4">
+                <div v-for="offer in receivedOffers" :key="offer.id"
+                  class="bg-white/50 dark:bg-slate-700/50 rounded-xl p-5 border-2 border-gray-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all backdrop-blur-sm">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+                          <User class="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p class="font-bold text-gray-900 dark:text-white">{{ offer.buyer_name || 'Unknown Buyer' }}</p>
+                          <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatOfferDate(offer.created_at) }}</p>
+                        </div>
+                      </div>
+
+                      <div class="ml-13">
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                          Offered for: <span class="font-semibold">{{ offer.card_name || 'Unknown Card' }}</span>
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                          Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
+                        </p>
+                        
+                        <div class="mt-3 flex items-center gap-2">
+                          <span class="text-sm text-gray-600 dark:text-gray-400">Offer Amount:</span>
+                          <span class="text-2xl font-black text-green-600 dark:text-green-400">
+                            <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />
+                            {{ Number(offer.offer_amount || 0).toFixed(2) }}
+                          </span>
+                          <span v-if="offer.offer_amount < offer.listing_price" 
+                            class="text-sm text-orange-600 dark:text-orange-400 font-semibold">
+                            ({{ ((offer.offer_amount / offer.listing_price) * 100).toFixed(0) }}% of listing)
+                          </span>
+                        </div>
+
+                        <p v-if="offer.message" class="mt-3 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                          "{{ offer.message }}"
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col gap-2">
+                      <button @click="acceptOffer(offer.id)"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all whitespace-nowrap">
+                        ✓ Accept
+                      </button>
+                      <button @click="rejectOffer(offer.id)"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all whitespace-nowrap">
+                        ✕ Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex flex-col gap-2">
-              <button @click="acceptOffer(offer.id)"
-                class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all whitespace-nowrap">
-                ✓ Accept
-              </button>
-              <button @click="rejectOffer(offer.id)"
-                class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all whitespace-nowrap">
-                ✕ Reject
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            <!-- Divider -->
+            <div class="border-t-2 border-gray-200 dark:border-slate-700"></div>
 
-    <!-- Divider -->
-    <div class="border-t-2 border-gray-200 dark:border-slate-700"></div>
+            <!-- Sent Offers -->
+            <div>
+              <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                📤 Sent Offers
+                <span v-if="sentOffers.length > 0" class="text-lg font-normal text-gray-500 dark:text-gray-400">
+                  ({{ sentOffers.length }})
+                </span>
+              </h2>
 
-    <!-- Sent Offers (Offers you made) -->
-    <div>
-      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        📤 Sent Offers
-        <span v-if="sentOffers.length > 0" class="text-lg font-normal text-gray-500">
-          ({{ sentOffers.length }})
-        </span>
-      </h2>
+              <div v-if="sentOffers.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <p>You haven't made any offers yet</p>
+              </div>
 
-      <div v-if="sentOffers.length === 0" class="text-center py-8 text-gray-500">
-        <p>You haven't made any offers yet</p>
-      </div>
-
-      <div v-else class="space-y-4">
-        <div v-for="offer in sentOffers" :key="offer.id"
-          class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2"
-          :class="{
-            'border-yellow-300 dark:border-yellow-700': offer.status === 'pending',
-            'border-green-300 dark:border-green-700': offer.status === 'accepted',
-            'border-red-300 dark:border-red-700': offer.status === 'rejected',
-            'border-gray-200 dark:border-slate-600': !offer.status
-          }">
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <p class="font-bold">{{ offer.card_name || 'Unknown Card' }}</p>
-                <span class="px-2 py-1 rounded text-xs font-bold"
+              <div v-else class="space-y-4">
+                <div v-for="offer in sentOffers" :key="offer.id"
+                  class="bg-white/50 dark:bg-slate-700/50 rounded-xl p-5 border-2 backdrop-blur-sm"
                   :class="{
-                    'bg-yellow-100 text-yellow-700': offer.status === 'pending',
-                    'bg-green-100 text-green-700': offer.status === 'accepted',
-                    'bg-red-100 text-red-700': offer.status === 'rejected'
+                    'border-yellow-300 dark:border-yellow-700': offer.status === 'pending',
+                    'border-green-300 dark:border-green-700': offer.status === 'accepted',
+                    'border-red-300 dark:border-red-700': offer.status === 'rejected',
+                    'border-gray-200 dark:border-slate-600': !offer.status
                   }">
-                  {{ (offer.status || 'pending').toUpperCase() }}
-                </span>
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-2">
+                        <p class="font-bold text-gray-900 dark:text-white">{{ offer.card_name || 'Unknown Card' }}</p>
+                        <span class="px-2 py-1 rounded text-xs font-bold"
+                          :class="{
+                            'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300': offer.status === 'pending',
+                            'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300': offer.status === 'accepted',
+                            'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300': offer.status === 'rejected'
+                          }">
+                          {{ (offer.status || 'pending').toUpperCase() }}
+                        </span>
+                      </div>
+
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">{{ formatOfferDate(offer.created_at) }}</p>
+
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Your Offer:</span>
+                        <span class="text-xl font-black text-indigo-600 dark:text-indigo-400">
+                          <img :src="jsbImg" alt="JSB" class="inline h-[18px] w-[18px] align-[-2px] mr-1" />
+                          {{ Number(offer.offer_amount || 0).toFixed(2) }}
+                        </span>
+                      </div>
+
+                      <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
+                      </p>
+
+                      <p v-if="offer.message" class="mt-2 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                        "{{ offer.message }}"
+                      </p>
+
+                      <p v-if="offer.status === 'accepted' && offer.accepted_at" class="mt-3 text-sm text-green-600 dark:text-green-400 font-semibold">
+                        ✅ Accepted on {{ formatOfferDate(offer.accepted_at) }}
+                      </p>
+                      <p v-else-if="offer.status === 'rejected' && offer.rejected_at" class="mt-3 text-sm text-red-600 dark:text-red-400 font-semibold">
+                        ❌ Rejected on {{ formatOfferDate(offer.rejected_at) }}
+                      </p>
+                      <p v-else-if="offer.status === 'pending'" class="mt-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold">
+                        ⏳ Waiting for seller's response
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <p class="text-xs text-gray-500 mb-3">{{ formatOfferDate(offer.created_at) }}</p>
-
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Your Offer:</span>
-                <span class="text-xl font-black text-indigo-600">
-                  <img :src="jsbImg" alt="JSB" class="inline h-[18px] w-[18px] align-[-2px] mr-1" />
-                  {{ Number(offer.offer_amount || 0).toFixed(2) }}
-                </span>
-              </div>
-
-              <p class="text-sm text-gray-500">
-                Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
-              </p>
-
-              <p v-if="offer.message" class="mt-2 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                "{{ offer.message }}"
-              </p>
-
-              <p v-if="offer.status === 'accepted' && offer.accepted_at" class="mt-3 text-sm text-green-600 font-semibold">
-                ✅ Accepted on {{ formatOfferDate(offer.accepted_at) }}
-              </p>
-              <p v-else-if="offer.status === 'rejected' && offer.rejected_at" class="mt-3 text-sm text-red-600 font-semibold">
-                ❌ Rejected on {{ formatOfferDate(offer.rejected_at) }}
-              </p>
-              <p v-else-if="offer.status === 'pending'" class="mt-3 text-sm text-yellow-600 font-semibold">
-                ⏳ Waiting for seller's response
-              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
-</div>
+
+    <!-- Modals (unchanged script but updated styles) -->
+    <!-- Transaction Result Modal -->
+    <div v-if="showTransactionModal" @click="closeTransactionModal" 
+      class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+      <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
         
-      <!-- Add Card Modal -->
-      <!-- (unchanged UI; still mocked locally) -->
-      <div v-if="showAddModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold">Add New Card</h3>
-            <button @click="showAddModal = false" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
-              <X class="w-6 h-6" />
-            </button>
+        <!-- Success Header -->
+        <div v-if="transactionResult.success" 
+            class="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
+          <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
           </div>
-
-          <div class="space-y-4">
-            <!-- form fields unchanged -->
-            <!-- … -->
-            <button @click="handleAddCard"
-              class="w-full px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
-              Add to Portfolio
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Edit Card Modal (unchanged UI) -->
-      <div v-if="showEditModal && editingCard"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl">
-          <!-- form fields unchanged -->
-          <!-- … -->
-          <button @click="handleEditCard"
-            class="w-full px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ✅ Sell Modal -->
-    <div v-if="showSellModal"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div class="bg-white dark:bg-slate-800 rounded-3xl p-4 sm:p-6 md:p-8 max-w-2xl w-full shadow-2xl my-8">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-2xl font-bold">
-            {{ sellStep === 'confirm' ? 'Confirm Listing' : 'Sell Card' }}
-          </h3>
-          <button @click="closeSellModal" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
-            <X class="w-6 h-6" />
-          </button>
+          <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
+          <p class="text-green-100">{{ transactionResult.title }}</p>
         </div>
 
-        <!-- Selected card summary (read-only) -->
-        <div v-if="sellCard"
-            class="mb-6 grid grid-cols-1 sm:grid-cols-[140px,1fr] gap-4 items-start">
-          <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800 rounded-xl p-3">
-            <img :src="sellCard.img" :alt="sellCard.title" class="w-full h-36 object-contain" />
+        <!-- Error Header -->
+        <div v-else 
+            class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
+          <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </div>
-          <div>
-            <p class="text-sm text-gray-500 dark:text-slate-400 mb-1">You are selling</p>
-            <h4 class="text-lg font-bold">{{ sellCard.title }}</h4>
-            <p class="text-sm text-gray-500 dark:text-slate-400">
-              Set: {{ sellCard.set }} &nbsp;•&nbsp; {{ sellCard.grade }}
-            </p>
-            <p class="text-xs text-gray-400 mt-1">Cert: {{ sellCard.cert }}</p>
-          </div>
+          <h2 class="text-3xl font-black text-white mb-2">Action Failed</h2>
+          <p class="text-red-100">{{ transactionResult.title }}</p>
         </div>
 
-        <!-- Step 1: Form -->
-        <div v-if="sellStep === 'form'" class="space-y-4">
-          <div>
-            <label class="block text-sm font-semibold mb-2">Selling Price</label>
-
-            <!-- wrapper to position icon/unit inside the input -->
-            <div class="relative">
-              <!-- left icon inside the input -->
-              <img
-                :src="jsbImg"
-                alt="JSB"
-                class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5"
-              />
-
-              <!-- the input with extra left/right padding -->
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                v-model="sellForm.price"
-                class="w-full pl-11 pr-14 px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
-                placeholder="0.00"
-              />
-
-              <!-- right unit inside the input -->
-              <span
-                class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-slate-400"
-              >JSB</span>
+        <!-- Content -->
+        <div class="p-8">
+          <div class="space-y-6">
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-900/30 rounded-2xl p-6 border-2" :class="transactionResult.success ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'">
+              <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {{ transactionResult.message }}
+              </p>
             </div>
 
-            <p class="text-xs text-gray-500 mt-1">Enter the price buyers will see.</p>
-          </div>
-
-
-          <div>
-            <label class="block text-sm font-semibold mb-2">Description <span class="text-gray-400">(optional)</span></label>
-            <textarea v-model="sellForm.description" rows="3"
-                      class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
-                      placeholder="Any extra details for buyers (condition, notes, etc.)"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold mb-2">Delivery</label>
-            <select v-model="sellForm.delivery"
-                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900">
-              <option value="meetup">Meet up</option>
-              <option value="mail">Mail</option>
-            </select>
-          </div>
-
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <button @click="closeSellModal"
-                    class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
-              Cancel
-            </button>
-            <button @click="submitSellForm"
-                    class="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-60"
-                    :disabled="!sellForm.price || Number(sellForm.price) <= 0">
-              Sell it
-            </button>
-          </div>
-        </div>
-
-        <!-- Step 2: Confirm -->
-        <div v-else class="space-y-4">
-          <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-            <p class="text-sm text-gray-500 dark:text-slate-300 mb-2">Listing summary</p>
-            <ul class="space-y-1 text-sm">
-              <li><span class="font-semibold">Price:</span> {{ Number(sellForm.price).toFixed(2) }}</li>
-              <li><span class="font-semibold">Delivery:</span> {{ sellForm.delivery === 'meetup' ? 'Meet up' : 'Mail' }}</li>
-              <li v-if="sellForm.description"><span class="font-semibold">Description:</span> {{ sellForm.description }}</li>
-            </ul>
-          </div>
-
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <button @click="backToSellForm"
-                    class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
-              Back
-            </button>
-            <button @click="confirmSell"
-                    class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
-              Confirm & Publish
-            </button>
+            <div class="flex gap-3">
+              <button @click="closeTransactionModal" 
+                      class="flex-1 px-6 py-3 rounded-xl font-bold transition-all shadow-lg" :class="transactionResult.success ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800'">
+                {{ transactionResult.success ? 'Great!' : 'Close' }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-        <!-- Transaction Result Modal -->
-        <div v-if="showTransactionModal" @click="closeTransactionModal" 
-          class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
-          <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
-            
-            <!-- Success Header -->
-            <div v-if="transactionResult.success" 
-                class="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
-              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
-              <p class="text-green-100">{{ transactionResult.title }}</p>
-            </div>
-
-            <!-- Error Header -->
-            <div v-else 
-                class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
-              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-              <h2 class="text-3xl font-black text-white mb-2">Action Failed</h2>
-              <p class="text-red-100">{{ transactionResult.title }}</p>
-            </div>
-
-            <!-- Content -->
-            <div class="p-8">
-              <div class="space-y-6">
-                <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-900/30 rounded-2xl p-6 border-2" :class="transactionResult.success ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'">
-                  <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {{ transactionResult.message }}
-                  </p>
-                </div>
-
-                <div class="flex gap-3">
-                  <button @click="closeTransactionModal" 
-                          class="flex-1 px-6 py-3 rounded-xl font-bold transition-all shadow-lg" :class="transactionResult.success ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800'">
-                    {{ transactionResult.success ? 'Great!' : 'Close' }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
   </div>
-  
 </template>
+
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
