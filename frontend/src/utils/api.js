@@ -149,15 +149,17 @@ export function isAuthenticated() {
 
 
 // Thoughts
-export async function fetchThoughts({ limit = 20, cursor = null } = {}) {
+export async function fetchThoughts({ limit = 20, cursor = null, communityId } = {}) {
   const client = createApiClient();
-  const res = await client.get('/api/thoughts', { params: { limit, cursor } });
+  const res = await client.get('/api/thoughts', { params: { limit, cursor, communityId } });
   return res.data; // { items, nextCursor }
 }
 
-export async function createThoughtApi({ title, body, imageUrl }) {
+export async function createThoughtApi({ title, body, imageUrl, communityId } = {}) {
   const client = createApiClient();
-  const res = await client.post('/api/thoughts', { title, body, imageUrl });
+  const payload = { title, body, imageUrl };
+  if (typeof communityId !== 'undefined') payload.communityId = communityId;
+  const res = await client.post('/api/thoughts', payload);
   return res.data;
 }
 
@@ -189,6 +191,26 @@ export async function voteComment(thoughtId, commentId, value) {
   const client = createApiClient();
   const { data } = await client.post(`/api/thoughts/${thoughtId}/comments/${commentId}/vote`, { value });
   return data; // { success, upvotes, downvotes, userVote }
+}
+
+
+// Communities
+export async function fetchCommunities() {
+  const client = createApiClient();
+  const res = await client.get('/api/communities');
+  return res.data; // { items: [...] }
+}
+
+export async function createCommunityApi({ name, description, imageUrl }) {
+  const client = createApiClient();
+  const res = await client.post('/api/communities', { name, description, imageUrl });
+  return res.data; // created community
+}
+
+export async function toggleCommunityFavourite(id, favourited) {
+  const client = createApiClient();
+  const res = await client.post(`/api/communities/${id}/favourite`, { favourited });
+  return res.data; // { success: true }
 }
 
 export default {

@@ -15,7 +15,8 @@ router.get('/', async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit || '20', 10), 50);
     const cursor = req.query.cursor || null;
-    const result = await listThoughts({ limit, cursor });
+    const communityId = req.query.communityId || null;
+    const result = await listThoughts({ limit, cursor, communityId });
     res.json(result);
   } catch (e) {
     console.error('list thoughts error:', e.message);
@@ -26,7 +27,7 @@ router.get('/', async (req, res) => {
 // POST /api/thoughts  (protected)
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { title, body, imageUrl } = req.body || {};
+    const { title, body, imageUrl, communityId } = req.body || {};
     if (!title || !body) return res.status(400).json({ error: 'TITLE_BODY_REQUIRED' });
 
     const user = req.user; // set by requireAuth
@@ -34,14 +35,14 @@ router.post('/', requireAuth, async (req, res) => {
     const authorEmail = user.email;
     const authorName = user.name || authorEmail;
     const payload = await createThought({
-      authorId, authorName, authorEmail,title, body, imageUrl
+      authorId, authorName, authorEmail, title, body, imageUrl, communityId
     });
 
     res.status(201).json(payload);
   } catch (e) {
     console.error('create thought error:', e.message);
     res.status(500).json({ error: 'FAILED_CREATE' });
-  }
+  }      
 });
 
 // GET /api/thoughts/:id
@@ -205,4 +206,65 @@ router.post('/:id/comments/:commentId/vote', requireAuth, async (req, res) => {
   }
 });
 
+// --- Communities minimal endpoints ---
+
+// GET /api/communities
+router.get('/../communities', async (req, res, next) => next()); // no-op to keep Express ordering happy
+
+// We attach to app as /api/communities using a child router to avoid path conflicts:
+
+const communitiesRouter = express.Router();
+export { communitiesRouter }; // optional export if you mount elsewhere
+
+import {
+  listCommunities,
+  createCommunity,
+  setUserFavouriteCommunity,
+} from '../services/firebaseDb.js';
+
+// GET /api/communities
+communitiesRouter.get('/', async (req, res) => {
+  try {
+    const uid = req.user?.userId || req.user?.id || req.user?.uid || req.user?.email || null;
+    const items = await listCommunities(uid); // pass uid so we can mark favourites
+    res.json({ items });
+  } catch (e) {
+    res.status(500).json({ error: 'FAILED_LIST_COMMUNITIES' });
+  }
+});
+
+// POST /api/communities (protected)
+communitiesRouter.post('/', requireAuth, async (req, res) => {
+  try {
+    const { name, description, imageUrl } = req.body || {};
+    if (!name) return res.status(400).json({ error: 'NAME_REQUIRED' });
+
+    const user = req.user;
+    const creatorId = user.userId || user.id || user.uid || user.email;
+    const created = await createCommunity({ name, description, imageUrl, creatorId });
+
+    // auto-favourite by creator
+    await setUserFavouriteCommunity(creatorId, created.id, true);
+
+    res.status(201).json(created);
+  } catch (e) {
+    res.status(500).json({ error: 'FAILED_CREATE_COMMUNITY' });
+  }
+});
+
+// POST /api/communities/:id/favourite (protected)
+communitiesRouter.post('/:id/favourite', requireAuth, async (req, res) => {
+  try {
+    const { favourited } = req.body || {};
+    const uid = req.user?.userId || req.user?.id || req.user?.uid || req.user?.email;
+    if (!uid) return res.status(401).json({ error: 'NO_USER_ID' });
+
+    await setUserFavouriteCommunity(uid, req.params.id, !!favourited);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: 'FAILED_TOGGLE_FAV' });
+  }
+});
+
 export default router;
+
