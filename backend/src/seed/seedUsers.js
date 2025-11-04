@@ -113,6 +113,7 @@ async function seedUsers() {
         cert_number: String(cert),
         listing_price: price,
         sellerEmail: u.email,
+        sellerName: u.name,   // new username field
         sellerId: ref.id,
         status: 'display',
         created_at: new Date().toISOString(),

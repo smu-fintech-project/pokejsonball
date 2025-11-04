@@ -59,6 +59,7 @@ router.get('/', async (req, res) => {
           // listing fields (marketplace needs these)
           cert_number: cert,
           sellerId: l.sellerId || userId,
+          sellerName: l.sellerName || userId,
           sellerEmail: l.sellerEmail || u.email || null,
           listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
           status: l.status || 'display',
@@ -156,6 +157,7 @@ router.get('/ownedCards', async (req, res) => {
         cert_number: String(l.cert_number),
         sellerId: l.sellerId || me.id,
         sellerEmail: l.sellerEmail || email,
+        sellerName: l.sellerName || userId,
         listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
         status: l.status || 'display'
       })
@@ -178,6 +180,7 @@ router.get('/ownedCards', async (req, res) => {
     // --- Listing (ownership) fields ---
     cert_number: l.cert_number,
     sellerEmail: l.sellerEmail,
+    sellerName: l.sellerName,
     sellerId: l.sellerId,
     listing_price: l.listing_price,
     status: l.status,
@@ -291,6 +294,7 @@ router.get('/:cert', async (req, res) => {
         if (activeListing) {
           const listing = activeListing.data();
           payload.sellerEmail = listing.sellerEmail || null;
+          
           payload.sellerId = listing.sellerId || null;
           console.log(`   ✅ Found seller: ${listing.sellerEmail} (${listing.sellerId})`);
         } else {
