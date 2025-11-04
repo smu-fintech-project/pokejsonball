@@ -1,15 +1,48 @@
 <template>
-  <section class="space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-red-700">Community</h1>
-      <button
-        v-if="isAuthenticated"
-        @click="showComposer = true"
-        class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700"
-      >New Thought</button>
-    </div>
+<section class="space-y-6">
+    <!-- Header (centered title + button) -->
+  <div class="flex items-center justify-center gap-3">
+    <h1 class="text-2xl font-bold text-red-700">Share Anything</h1>
+    <button
+      v-if="isAuthenticated"
+      @click="showComposer = true"
+      class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700"
+      aria-label="Create a new thought"
+    >
+      New Thought
+    </button>
+  </div>
+  <!-- 2-column responsive layout (sidebar + feed) -->
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <!-- Left: Communities (1/5 ≈ 2/12) -->
+      <aside
+        class="md:col-span-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4
+               md:sticky md:top-20 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto"
+        aria-label="Communities sidebar"
+      >
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-200">Communities</h2>
+          <button
+            v-if="isAuthenticated"
+            class="text-sm px-2 py-1 rounded bg-red-50 text-red-700 hover:bg-red-100"
+            aria-label="Add community"
+            @click="/* Step 2: open add-community modal */ null"
+            disabled
+            title="Coming soon"
+          >
+            + Add
+          </button>
+        </div>
+        <!-- Placeholder list – Step 2 will render real communities -->
+        <ul class="space-y-2 text-sm">
+          <li class="text-gray-500 dark:text-slate-400">No communities yet.</li>
+        </ul>
+     </aside>
+    
+    <!-- Center: Thoughts feed (expanded to fill remaining width) -->
+    <main class="md:col-span-10 space-y-6" aria-label="Thoughts feed">
 
-    <!-- Composer Modal -->
+        <!-- Composer Modal (existing) -->
     <div v-if="showComposer" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-xl">
         <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Create Thought</h2>
@@ -64,15 +97,15 @@
       </div>
     </div>
 
-    <!-- Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      <!-- Grid: 1 card per row across all breakpoints -->
+      <div class="grid grid-cols-1 gap-6">
       <article v-for="t in thoughts" :key="t.id"
         class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700 shadow-sm flex flex-col">
         <div class="flex items-center justify-between mb-2">
-            <div class="text-sm text-gray-500 dark:text-slate-400">
-              {{ t.authorName || t.authorEmail || 'Anonymous' }} ·
-              <span>{{ formatDate(t.createdAt) }}</span>
-            </div>
+          <div class="text-sm text-gray-500 dark:text-slate-400">
+            {{ t.authorName || t.authorEmail || 'Anonymous' }} ·
+            <span>{{ formatDate(t.createdAt) }}</span>
+          </div>
           <span class="text-xs px-2 py-1 rounded bg-red-100 text-red-700">Thought</span>
         </div>
 
@@ -98,12 +131,14 @@
           </div>
         </div>
       </article>
-    </div>
+      </div>
 
     <div class="text-center" v-if="nextCursor">
-      <button @click="loadMore" class="mt-4 px-5 py-2 rounded-lg border font-medium">
-        Load more
-      </button>
+          <button @click="loadMore" class="mt-4 px-5 py-2 rounded-lg border font-medium">
+            Load more
+          </button>
+        </div>
+      </main>
     </div>
   </section>
 </template>
@@ -151,7 +186,6 @@ async function createThought() {
   try {
     submitting.value = true;
     const payload = {
-      
       title: form.value.title.trim(),
       body: form.value.body.trim(),
       imageUrl: form.value.imageUrl?.trim() || ''
