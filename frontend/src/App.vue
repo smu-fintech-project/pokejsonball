@@ -65,7 +65,6 @@
         <footer class="border-t mt-12 border-gray-200 dark:border-slate-700">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-gray-500 dark:text-slate-400 flex justify-between">
             <div>© {{ year }} PokeJsonBall</div>
-            <div>Built by ❤️ • Elroy, Ye Zhan, Wen Bao, Dao Jun & Marcus</div>
           </div>
         </footer>
       </div>
