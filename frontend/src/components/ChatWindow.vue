@@ -1,24 +1,26 @@
 <template>
-  <div class="chat-window flex flex-col h-full">
+  <div class="chat-window flex flex-col h-full bg-stone-500">
     <!-- Chat Header -->
-    <div class="p-4 border-b bg-gray-50">
-      <div class="flex items-center justify-between">
-        <div>
-          <h3 class="font-semibold text-gray-800">Chat</h3>
-          <div class="flex items-center gap-2 mt-1">
-            <div :class="['w-2 h-2 rounded-full', isConnected ? 'bg-green-500' : 'bg-gray-400']"></div>
-            <span class="text-xs text-gray-500">
-              {{ isConnected ? 'Connected' : 'Connecting...' }}
-            </span>
-          </div>
+  <div class="p-2 h-14 border-b bg-gradient-to-r from-stone-50 to-red-100">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold text-gray-800">
+            Chat with {{ props.otherUser?.name || 'User' }}
+        </h3>
+        <div class="flex items-center gap-2 ">
+          <div :class="['w-2 h-2 rounded-full', isConnected ? 'bg-green-500' : 'bg-gray-400']"></div>
+          <span class="text-xs text-gray-500">
+            {{ isConnected ? 'Connected' : 'Connecting...' }}
+          </span>
         </div>
       </div>
     </div>
+  </div>
 
     <!-- Messages Container -->
     <div
       ref="messagesContainer"
-      class="flex-1 overflow-y-auto p-4 space-y-3 bg-white"
+      class="flex-1 overflow-y-auto p-4 space-y-3 bg-stone-50"
     >
       <!-- Loading State -->
       <div v-if="loadingMessages" class="flex items-center justify-center h-full text-gray-500">
@@ -41,8 +43,8 @@
           :class="[
             'max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow',
             message.senderId === currentUserId
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-800'
+              ? 'bg-red-500 text-stone-100'
+              : 'bg-blue-500 text-stone-100'
           ]"
         >
           <p class="text-sm break-words">{{ message.text }}</p>
@@ -98,6 +100,14 @@ const props = defineProps({
   conversationId: {
     type: String,
     required: true
+  },
+  otherUser: {
+    type: Object,
+    default: () => ({ name: 'User' }) // This is what you're seeing
+  },
+  card: {
+    type: Object,
+    default: () => ({ name: 'Card Listing' })
   }
 });
 
