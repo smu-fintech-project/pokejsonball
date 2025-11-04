@@ -633,8 +633,8 @@
 
     <!-- ✅ Sell Modal -->
     <div v-if="showSellModal"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl">
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div class="bg-white dark:bg-slate-800 rounded-3xl p-4 sm:p-6 md:p-8 max-w-2xl w-full shadow-2xl my-8">
         <div class="flex items-center justify-between mb-6">
           <h3 class="text-2xl font-bold">
             {{ sellStep === 'confirm' ? 'Confirm Listing' : 'Sell Card' }}
