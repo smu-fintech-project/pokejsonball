@@ -5,7 +5,14 @@
 
 import express from 'express';
 import { authenticateToken } from '../middleware/auth.js';
-import * as Conversation from '../models/Conversation.js';
+import {
+  findConversation,
+  createConversation,
+  getUserConversations,
+  getConversationById,
+  isParticipant,
+  updateLastMessage
+} from '../models/Conversation.js';
 import * as Message from '../models/Message.js';
 import admin from 'firebase-admin';
 
@@ -38,7 +45,7 @@ router.post('/find-or-create', authenticateToken, async (req, res) => {
     
     
     // Try to find existing conversation
-    let conversation = await Conversation.findConversation(buyerId, sellerId, cardId);
+    let conversation = await findConversation(buyerId, sellerId, cardId);
     
     if (conversation) {
       
@@ -51,7 +58,7 @@ router.post('/find-or-create', authenticateToken, async (req, res) => {
     }
     
     // Create new conversation
-    conversation = await Conversation.createConversation(buyerId, sellerId, cardId);
+    conversation = await createConversation(buyerId, sellerId, cardId);
     
     
     res.json({
@@ -83,7 +90,7 @@ router.get('/my-conversations', authenticateToken, async (req, res) => {
     
     
     // Get all conversations where user is a participant
-    const conversations = await Conversation.getUserConversations(userId);
+    const conversations = await getUserConversations(userId);
     
     
     // Enrich each conversation with user details and card info
@@ -117,16 +124,22 @@ router.get('/my-conversations', authenticateToken, async (req, res) => {
         let card = null;
         try {
           if (conv.cardId) {
-            const cardDoc = await db.collection('cards').doc(conv.cardId).get();
-            if (cardDoc.exists) {
+            // === START OF FIX ===
+            // We must query by 'cert_number', as conv.cardId is not the Document ID
+            const cardsCollection = db.collection('cards');
+            const cardQuery = await cardsCollection.where('cert_number', '==', conv.cardId).limit(1).get();
+
+            if (!cardQuery.empty) {
+              const cardDoc = cardQuery.docs[0]; // Get the first (and only) document
               const cardData = cardDoc.data();
               card = {
                 id: cardDoc.id,
-                name: cardData.name,
-                imageUrl: cardData.imageUrl,
+                name: cardData.card_name,
+                imageUrl: cardData.image_url,
                 price: cardData.price
               };
             }
+            // === END OF FIX ===
           }
         } catch (err) {
           console.error(`⚠️ Error fetching card ${conv.cardId}:`, err.message);
@@ -139,21 +152,36 @@ router.get('/my-conversations', authenticateToken, async (req, res) => {
         } catch (err) {
           console.error(`⚠️ Error getting unread count:`, err.message);
         }
+
+      // ...
+      const safeDate = (timestamp) => {
+        if (timestamp?.toDate) {
+          return timestamp.toDate().toISOString();
+        }
+        // Add fallback for serialized timestamps
+        if (timestamp?._seconds) {
+          return new Date(timestamp._seconds * 1000).toISOString();
+        }
+        return timestamp; // Keep it if it's already a string or null
+      };
+      enrichedConversations.push({
+        id: conv.id,
+        participants: conv.participants,
+        buyerId: conv.buyerId,
+        sellerId: conv.sellerId,
+        cardId: conv.cardId,
+        lastMessage: conv.lastMessage || null,
+
+        // === FIX IS HERE ===
+        lastMessageAt: safeDate(conv.lastMessageAt) || null,
+        createdAt: safeDate(conv.createdAt),
+        updatedAt: safeDate(conv.updatedAt),
         
-        enrichedConversations.push({
-          id: conv.id,
-          participants: conv.participants,
-          buyerId: conv.buyerId,
-          sellerId: conv.sellerId,
-          cardId: conv.cardId,
-          lastMessage: conv.lastMessage || null,
-          lastMessageAt: conv.lastMessageAt || null,
-          createdAt: conv.createdAt,
-          updatedAt: conv.updatedAt,
-          otherUser,
-          card,
-          unreadCount
-        });
+        otherUser,
+        card,
+        unreadCount
+      });
+      // ...
       } catch (convError) {
         console.error(`⚠️ Error enriching conversation ${conv.id}:`, convError.message);
         // Skip this conversation if there's an error
@@ -190,7 +218,7 @@ router.get('/:conversationId/messages', authenticateToken, async (req, res) => {
     
     
     // Verify conversation exists
-    const conversation = await Conversation.getConversationById(conversationId);
+    const conversation = await getConversationById(conversationId);
     
     if (!conversation) {
       return res.status(404).json({
@@ -200,14 +228,13 @@ router.get('/:conversationId/messages', authenticateToken, async (req, res) => {
     }
     
     // Verify user is participant in this conversation
-    const isParticipant = await Conversation.isParticipant(conversationId, userId);
-    
-    if (!isParticipant) {
-      return res.status(403).json({
-        success: false,
-        error: 'You are not authorized to view this conversation'
-      });
-    }
+// Verify user is participant in this conversation
+  if (!conversation.participants.includes(userId)) {
+    return res.status(403).json({
+    success: false,
+    error: 'You are not authorized to view this conversation'
+  });
+}
     
     
     // Fetch messages
@@ -258,7 +285,7 @@ router.post('/:conversationId/messages', authenticateToken, async (req, res) => 
     }
     
     // Verify user is participant
-    const isParticipant = await Conversation.isParticipant(conversationId, userId);
+    const isParticipant = await isParticipant(conversationId, userId);
     
     if (!isParticipant) {
       return res.status(403).json({
@@ -271,7 +298,7 @@ router.post('/:conversationId/messages', authenticateToken, async (req, res) => 
     const message = await Message.createMessage(conversationId, userId, text);
     
     // Update conversation's last message
-    await Conversation.updateLastMessage(conversationId, text, message.createdAt);
+    await updateLastMessage(conversationId, text, message.createdAt);
     
     
     res.json({

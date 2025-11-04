@@ -35,39 +35,54 @@
                   activeConversationId === conv.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
                 ]"
               >
-                <div class="flex items-start gap-3">
-                  <!-- User Avatar -->
-                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                    {{ conv.otherUser?.name?.charAt(0).toUpperCase() || '?' }}
-                  </div>
-                  
-                  <div class="flex-1 min-w-0">
-                    <!-- Other User Name -->
-                    <div class="flex items-center justify-between mb-1">
-                      <h3 class="font-semibold text-gray-800 truncate">
-                        {{ conv.otherUser?.name || 'Unknown User' }}
-                      </h3>
-                      <span v-if="conv.unreadCount > 0" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
-                        {{ conv.unreadCount }}
-                      </span>
-                    </div>
-                    
-                    <!-- Card Name -->
-                    <p class="text-xs text-gray-500 truncate mb-1">
-                      📦 {{ conv.card?.name || 'Card listing' }}
-                    </p>
-                    
-                    <!-- Last Message -->
-                    <p class="text-sm text-gray-600 truncate">
-                      {{ conv.lastMessage || 'No messages yet' }}
-                    </p>
-                    
-                    <!-- Timestamp -->
-                    <p v-if="conv.lastMessageAt" class="text-xs text-gray-400 mt-1">
-                      {{ formatTimestamp(conv.lastMessageAt) }}
-                    </p>
-                  </div>
+              <div class="flex items-center justify-between gap-3">
+
+              <div class="flex items-start gap-3 flex-1 min-w-0">
+                
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                  {{ conv.otherUser?.name?.charAt(0).toUpperCase() || '?' }}
                 </div>
+
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-1">
+                    <h3 class="font-semibold text-gray-800 truncate">
+                      {{ conv.otherUser?.name || 'Unknown User' }}
+                    </h3>
+                    <span v-if="conv.unreadCount > 0" class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+                      {{ conv.unreadCount }}
+                    </span>
+                  </div>
+
+                  <p class="text-xs text-gray-500 truncate mb-1">
+                    {{ conv.card?.name || 'Card listing' }}
+                  </p>
+
+                  <p class="text-sm text-gray-600 truncate">
+                    {{ conv.lastMessage || 'No messages yet' }}
+                  </p>
+
+                  <p v-if="conv.lastMessageAt" class="text-xs text-gray-400 mt-1">
+                    {{ formatTimestamp(conv.lastMessageAt) }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="w-12 h-16 flex-shrink-0">
+                <img
+                  v-if="conv.card?.imageUrl"
+                  :src="conv.card.imageUrl"
+                  :alt="conv.card.name || 'Card'"
+                  class="w-full h-full object-contain rounded-sm"
+                />
+                <div
+                  v-else
+                  class="w-full h-full rounded-sm bg-gray-100 border border-gray-200 flex items-center justify-center"
+                >
+                  <span class="text-xs text-gray-400">Card</span>
+                </div>
+              </div>
+
+              </div>
               </div>
             </div>
           </div>
@@ -198,44 +213,64 @@ const connectSocket = () => {
 };
 
 /**
- * Handle real-time conversation update
- * This is the key function that keeps the left pane in sync!
- */
+* Handle real-time conversation update
+* This is the key function that keeps the left pane in sync!
+*/
+/**
+* Handle real-time conversation update
+* This is the key function that keeps the left pane in sync!
+*/
 const handleRealtimeUpdate = (updatedConversation) => {
-  
+  // console.log('SOCKET: Received [conversation_updated]', updatedConversation);
+
   // Find if this conversation already exists in the list
   const existingIndex = conversations.value.findIndex(
     conv => conv.id === updatedConversation.id
   );
-  
+
+  let conversationToUpdate;
+
   if (existingIndex !== -1) {
-    // EXISTS: Replace in place, then move to top
+    // === START OF FIX ===
+    // IT EXISTS: Merge new data with existing rich data
     
-    // Remove old version
+    // Get the existing data (with card, otherUser, and good dates)
+    const existingConv = conversations.value[existingIndex];
+    
+    // Create a new object to maintain reactivity
+    // We start with the existing conversation (with all its good data)
+    // and *manually* overwrite just the fields we care about
+    // from the socket's incomplete payload.
+    conversationToUpdate = {
+      ...existingConv, // Keep all old data (card, otherUser, createdAt)
+      
+      // Selectively update with new data from the socket
+      lastMessage: updatedConversation.lastMessage,
+      lastMessageAt: updatedConversation.lastMessageAt,
+      // Use socket's unreadCount, but fall back to existing if socket doesn't send one
+      unreadCount: updatedConversation.unreadCount ?? existingConv.unreadCount,
+    };
+    
+    // Remove old version from the list
     conversations.value.splice(existingIndex, 1);
+    // === END OF FIX ===
+    
   } else {
+    // IT'S A NEW CONVERSATION
+    // We add it to the top. It might be missing card/user data
+    // until the next full refresh, but it will appear.
+    conversationToUpdate = updatedConversation;
   }
-  
-  // Add/re-add to top
-  conversations.value.unshift(updatedConversation);
-  
-  // Remove duplicates by ID (safety check)
-  const seen = new Set();
-  conversations.value = conversations.value.filter(conv => {
-    if (seen.has(conv.id)) {
-      return false;
-    }
-    seen.add(conv.id);
-    return true;
-  });
-  
-  // Sort by lastMessageAt (most recent first)
+
+  // Add the updated/new conversation to the top
+  conversations.value.unshift(conversationToUpdate);
+
+  // Re-sort by lastMessageAt (most recent first)
   conversations.value.sort((a, b) => {
-    const timeA = a.lastMessageAt?.toDate ? a.lastMessageAt.toDate() : new Date(a.lastMessageAt || 0);
-    const timeB = b.lastMessageAt?.toDate ? b.lastMessageAt.toDate() : new Date(b.lastMessageAt || 0);
+    const timeA = new Date(a.lastMessageAt || 0);
+    const timeB = new Date(b.lastMessageAt || 0);
     return timeB - timeA;
   });
-  
 };
 
 /**

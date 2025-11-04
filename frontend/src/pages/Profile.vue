@@ -61,20 +61,20 @@
             </div>
 
             <!-- Portfolio Value -->
-            <div class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4">
-              <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
-                <DollarSign class="w-6 h-6" />
-                <div class="text-base font-black text-white">Portfolio Value</div>
-              </div>
-              <div class="flex items-center justify-center">
-                <div class="text-3xl font-black text-yellow-300">
-                  <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
-                  {{ portfolioValue.toFixed(2) }}
-                </div>
-              </div>
+        <div class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4">
+          <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
+            <DollarSign class="w-6 h-6" />
+            <div class="text-base font-black text-white">Wallet Value</div>
+          </div>
+          <div class="flex items-center justify-center">
+            <div class="text-3xl font-black text-yellow-300">
+              <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+              {{ walletValue.toFixed(2) }}
             </div>
           </div>
+        </div>    
         </div>
+      </div>
       </div>
 
       <!-- Tabs -->
@@ -98,14 +98,6 @@
             Offers
           </button>
 
-          <button @click="activeTab = 'transactions'" :class="[
-            'flex-1 px-6 py-4 font-semibold transition-all',
-            activeTab === 'transactions'
-              ? 'bg-red-600 text-white'
-              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-          ]">
-            Trade History
-          </button>
 
           <button @click="activeTab = 'portfolio'" :class="[
             'flex-1 px-6 py-4 font-semibold transition-all',
@@ -164,24 +156,24 @@
                 <div class="mb-3">
                   <h3 class="font-bold text-lg break-words">{{ card.title }}</h3>
                   <p class="text-sm text-gray-500 dark:text-slate-400">{{ card.set }}</p>
-                  <span class="inline-block mt-2 px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold rounded-lg">
+                  <span class="inline-block mt-2 px-2 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 text-s font-bold rounded-lg">
                     {{ card.grade }}
                   </span>
                   
                   <!-- Status pill -->
                   <span v-if="card.status === 'listed'" class="ml-2 incline-block mt-2 px-2 py-1 
-                  bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-[10px] font-bold rounded">
+                  bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-s font-bold rounded">
                     LISTED
                   </span>
                   
                   <span v-else-if="card.status === 'reserved'"
-                  class="ml-2 inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-[10px] font-bold rounded">
+                  class="inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-[10px] font-bold rounded">
                   RESERVED
                   </span>
                 </div>
 
                 <div class="pt-3 border-t dark:border-slate-600 mb-3">
-                  <p class="text-2xl font-black text-indigo-600">
+                  <p class="text-2xl font-black text-black-600">
                     <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
                     {{ Number(card.price).toFixed(2) }}
                   </p>
@@ -228,62 +220,6 @@
           </div>
         </div>
 
-<!-- Transactions Tab -->
-<div v-if="activeTab === 'transactions'" class="p-6">
-  <h2 class="text-2xl font-bold mb-6">Transaction History</h2>
-  
-  <div v-if="loadingTransactions" class="text-center py-12">
-    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-    <p class="mt-2 text-gray-500">Loading transactions...</p>
-  </div>
-  
-  <div v-else-if="transactionHistory.length === 0" class="text-center py-12">
-    <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
-      <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    </div>
-    <p class="text-gray-500 dark:text-slate-400 text-lg font-semibold">No transactions yet</p>
-    <p class="text-sm text-gray-400 dark:text-slate-500 mt-2">Your transaction history will appear here</p>
-  </div>
-  
-  <div v-else class="space-y-3">
-    <div v-for="tx in transactionHistory" :key="tx.id"
-      class="flex items-center justify-between p-5 rounded-xl border-2 border-gray-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all">
-      <div class="flex items-center gap-4">
-        <!-- Transaction Icon -->
-        <div :class="[
-          'w-12 h-12 rounded-full flex items-center justify-center',
-          tx.type === 'deposit' || tx.type === 'sale' ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'
-        ]">
-          <svg v-if="tx.type === 'deposit' || tx.type === 'sale'" class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          <svg v-else class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-          </svg>
-        </div>
-        
-        <div>
-          <p class="font-bold text-gray-900 dark:text-white">{{ tx.description }}</p>
-          <p class="text-sm text-gray-500 dark:text-slate-400">{{ formatTransactionDate(tx.timestamp) }}</p>
-          <p v-if="tx.cert_number" class="text-xs text-gray-400 mt-1">Cert: {{ tx.cert_number }}</p>
-        </div>
-      </div>
-      
-      <div class="text-right">
-        <p class="text-xl font-black" :class="tx.type === 'deposit' || tx.type === 'sale' ? 'text-green-600' : 'text-red-600'">
-          {{ tx.type === 'deposit' || tx.type === 'sale' ? '+' : '-' }}
-          <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mx-1" />
-          {{ Number(tx.amount).toFixed(2) }}
-        </p>
-        <p class="text-sm text-gray-500 dark:text-slate-400">
-          Balance: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(tx.balanceAfter).toFixed(2) }}
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
 
         <!-- Portfolio Tab -->
         <div v-if="activeTab === 'portfolio'" class="p-6">
@@ -331,7 +267,7 @@
               <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
                 <div class="flex items-center gap-2 text-purple-600 dark:text-purple-400 text-sm mb-1">
                   <DollarSign class="w-4 h-4" />
-                  <span class="font-semibold">Current Value</span>
+                  <span class="font-semibold">Card Portfolio Value</span>
                 </div>
                 <div class="text-2xl font-black text-purple-900 dark:text-purple-100">
                   <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
@@ -809,9 +745,57 @@
         </div>
       </div>
     </div>
+        <!-- Transaction Result Modal -->
+        <div v-if="showTransactionModal" @click="closeTransactionModal" 
+          class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+          <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            
+            <!-- Success Header -->
+            <div v-if="transactionResult.success" 
+                class="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
+              <p class="text-green-100">{{ transactionResult.title }}</p>
+            </div>
 
+            <!-- Error Header -->
+            <div v-else 
+                class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <h2 class="text-3xl font-black text-white mb-2">Action Failed</h2>
+              <p class="text-red-100">{{ transactionResult.title }}</p>
+            </div>
+
+            <!-- Content -->
+            <div class="p-8">
+              <div class="space-y-6">
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-900/30 rounded-2xl p-6 border-2" :class="transactionResult.success ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'">
+                  <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {{ transactionResult.message }}
+                  </p>
+                </div>
+
+                <div class="flex gap-3">
+                  <button @click="closeTransactionModal" 
+                          class="flex-1 px-6 py-3 rounded-xl font-bold transition-all shadow-lg" :class="transactionResult.success ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800'">
+                    {{ transactionResult.success ? 'Great!' : 'Close' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
   </div>
+  
 </template>
 
 <script setup>
@@ -825,7 +809,7 @@ import PortfolioChart from '../components/PortfolioChart.vue'
 
 // --- Auth / state ---
 const isAuthed = ref(false)
-const userProfile = ref({ name: '', email: '', joinDate: '' })
+const userProfile = ref({ name: '', email: '', joinDate: '', walletBalance: 0 }) // <-- Add walletBalance
 const ownedCards = ref([])         // fetched from backend
 const loading = ref(false)
 const activeTab = ref('collection')
@@ -896,6 +880,24 @@ const timeframeOptions = [
   { label: 'All', value: 'All' }
 ]
 
+// Transaction modal state
+const showTransactionModal = ref(false);
+const transactionResult = ref({
+  success: false,
+  title: '',
+  message: ''
+});
+
+function closeTransactionModal() {
+  showTransactionModal.value = false;
+  // Reload data after successful actions
+  if (transactionResult.value.success) {
+    loadReceivedOffers();
+    loadSentOffers();
+    loadOwnedCards();
+  }
+}
+
 // Transaction history state
 const transactionHistory = ref([]);
 const loadingTransactions = ref(false);
@@ -962,8 +964,9 @@ const totalCards = computed(() =>
   ownedCards.value.reduce((t, c) => t + (c.quantity ?? 1), 0)  //what is this???
 )
 
-const portfolioValue = computed(() =>
-  ownedCards.value.reduce((t, c) => t + (Number(c.price || 0) * (c.quantity ?? 1)), 0)
+// This now points to the walletBalance from the user's profile
+const walletValue = computed(() =>
+  Number(userProfile.value.walletBalance) || 0
 )
 
 // Portfolio computed properties
@@ -1052,10 +1055,14 @@ async function loadProfile() {
       userProfile.value.email = data.email || email
       if (data.id) {
         userProfile.value.id = data.id
-        localStorage.setItem('userId', data.id)   // <-- store it
-       }
-     if (data.name) userProfile.value.name = data.name
-     if (data.joinDate) userProfile.value.joinDate = data.joinDate
+        localStorage.setItem('userId', data.id) // <-- store it
+      }
+      if (data.name) userProfile.value.name = data.name
+      if (data.joinDate) userProfile.value.joinDate = data.joinDate
+      
+      // --- THIS IS THE NEW LINE ---
+      if (data.walletBalance) userProfile.value.walletBalance = data.walletBalance
+
     } else if (resp.status === 401) {
       // token invalid
       isAuthed.value = false
@@ -1449,10 +1456,6 @@ async function loadSentOffers() {
 
 // Accept an offer
 async function acceptOffer(offerId) {
-  if (!confirm('Accept this offer? The card will be transferred and payment will be processed.')) {
-    return;
-  }
-
   const token = localStorage.getItem('token');
   try {
     const resp = await fetch(`http://localhost:3001/api/offers/${offerId}/accept`, {
@@ -1466,26 +1469,30 @@ async function acceptOffer(offerId) {
     const data = await resp.json();
 
     if (resp.ok) {
-      alert('✅ Offer accepted! Transaction completed successfully.');
-      // Reload data
-      await loadReceivedOffers();
-      await loadSentOffers();
-      await loadOwnedCards();
+      transactionResult.value = {
+        success: true,
+        title: 'Offer Accepted!',
+        message: 'The transaction has been completed successfully. The card has been transferred and payment processed.'
+      };
     } else {
-      alert(`❌ Failed to accept offer: ${data.error || data.message || 'Unknown error'}`);
+      transactionResult.value = {
+        success: false,
+        title: 'Failed to Accept',
+        message: data.error || data.message || 'Unknown error occurred'
+      };
     }
+    showTransactionModal.value = true;
   } catch (error) {
-    console.error('Failed to accept offer:', error);
-    alert('❌ Failed to accept offer. Please try again.');
+    transactionResult.value = {
+      success: false,
+      title: 'Network Error',
+      message: 'Unable to process the offer. Please check your connection.'
+    };
+    showTransactionModal.value = true;
   }
 }
 
-// Reject an offer
 async function rejectOffer(offerId) {
-  if (!confirm('Reject this offer?')) {
-    return;
-  }
-
   const token = localStorage.getItem('token');
   try {
     const resp = await fetch(`http://localhost:3001/api/offers/${offerId}/reject`, {
@@ -1497,14 +1504,26 @@ async function rejectOffer(offerId) {
     });
 
     if (resp.ok) {
-      alert('Offer rejected');
-      await loadReceivedOffers();
+      transactionResult.value = {
+        success: true,
+        title: 'Offer Rejected',
+        message: 'The offer has been rejected and the buyer has been notified.'
+      };
     } else {
-      alert('Failed to reject offer');
+      transactionResult.value = {
+        success: false,
+        title: 'Failed to Reject',
+        message: 'Unable to reject the offer. Please try again.'
+      };
     }
+    showTransactionModal.value = true;
   } catch (error) {
-    console.error('Failed to reject offer:', error);
-    alert('Failed to reject offer');
+    transactionResult.value = {
+      success: false,
+      title: 'Network Error',
+      message: 'Unable to process the rejection. Please check your connection.'
+    };
+    showTransactionModal.value = true;
   }
 }
 
