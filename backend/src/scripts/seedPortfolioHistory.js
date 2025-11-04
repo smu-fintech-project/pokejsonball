@@ -21,7 +21,7 @@ async function calculateCurrentPortfolioValue(db, userId) {
       .collection('users')
       .doc(userId)
       .collection('listings')
-      .where('status', '==', 'display')
+      .where('status', 'in', ['display', 'listed'])
       .get();
 
     if (listingsSnapshot.empty) {
