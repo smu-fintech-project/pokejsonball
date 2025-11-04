@@ -68,6 +68,13 @@ POKEMON_TCG_API_KEY=your_pokemon_tcg_api_key
 JWT_SECRET=your-super-secret-jwt-key
 ```
 
+For production, update the server section to mirror your deployed domains, for example:
+
+```env
+FRONTEND_URL=https://pokejsonball.com
+FRONTEND_URLS=https://pokejsonball.com,https://www.pokejsonball.com,https://marcus-pokejsonball.vercel.app,http://localhost:3000
+```
+
 **Frontend `.env`** (in `frontend/` directory):
 ```env
 VITE_API_BASE=http://localhost:3001
@@ -103,7 +110,7 @@ App runs on http://localhost:3000
    - Start: `npm start`
 4. In **Variables**, add every key from `backend/.env.example`. Remember to:
    - Paste the Firebase private key with escaped newlines (`\n`).
-   - Point `FRONTEND_URL` (and optional `FRONTEND_URLS`) to your production Vercel domain once it exists.
+   - Point `FRONTEND_URL` to your primary production domain (e.g. `https://pokejsonball.com`) and list every additional origin (preview domains, localhost, etc.) in `FRONTEND_URLS`.
    - Keep a strong, unique `JWT_SECRET`.
 5. Deploy. Railway will expose a public URL like `https://pokejsonball-production.up.railway.app`.
 
@@ -115,7 +122,7 @@ App runs on http://localhost:3000
    - Build Command: `npm run build`
    - Output Directory: `dist`
 3. Add environment variable `VITE_API_BASE` and set it to the Railway URL from the backend deploy.
-4. Trigger the deploy. Once live, update the backend `FRONTEND_URL` (and `FRONTEND_URLS` if you want to allow preview domains) and redeploy the backend so CORS and Socket.IO allow the new origin.
+4. Trigger the deploy. Once live, update the backend `FRONTEND_URL`/`FRONTEND_URLS` to include the production and preview domains served by Vercel (and any custom domains such as `https://pokejsonball.com`), then redeploy the backend so CORS and Socket.IO allow the new origins.
 
 ### Post-Deploy Checklist
 - Run the seeding scripts against Railway (`npm run seed:users`, `npm run seed:history`) either locally with the production env vars exported or via Railway one-off jobs.
