@@ -34,8 +34,9 @@ router.post('/', requireAuth, async (req, res) => {
     const authorId = user.userId || user.id;
     const authorEmail = user.email;
     const authorName = user.name || authorEmail;
+    const authorAvatar = user.avatar || null;
     const payload = await createThought({
-      authorId, authorName, authorEmail, title, body, imageUrl, communityId
+      authorId, authorName, authorEmail, authorAvatar, title, body, imageUrl, communityId
     });
 
     res.status(201).json(payload);
@@ -78,11 +79,13 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
     const authorId = user.userId || user.id || user.uid || user.email;
     const authorEmail = user.email;
     const authorName = user.name || authorEmail || 'Anonymous';
+    const authorAvatar = user.avatar || null;
 
     const comment = await addComment(req.params.id, {
       authorId,
       authorEmail,
       authorName,
+      authorAvatar,
       body,
     });
 
