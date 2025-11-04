@@ -14,6 +14,29 @@ const COLLECTIONS = {
   COMMUNITIES: 'communities',
 };
 
+
+// //Return a signed, time-limited URL for a file in Firebase Storage.
+// @param {string} folder e.g. "avatar"
+// @param {string} filename e.g. "pikachu.png"
+// @param {number} expiresSeconds default 3600 (1h)
+
+export async function getImageSignedUrl(folder, filename, expiresSeconds = 3600) {
+  if (!folder || !filename) throw new Error('FOLDER_OR_FILENAME_MISSING');
+  const bucketName = process.env.VITE_FIREBASE_STORAGE_BUCKET; // e.g. pokejsonball-aa3f2.appspot.com
+  const bucket = bucketName ? admin.storage().bucket(bucketName) : admin.storage().bucket();
+  const file = bucket.file(`${folder}/${filename}`);
+
+  const [exists] = await file.exists();
+  if (!exists) throw new Error('IMAGE_NOT_FOUND');
+
+  const [url] = await file.getSignedUrl({
+    action: 'read',
+    expires: Date.now() + expiresSeconds * 1000,
+  });
+  return url;
+}
+
+
 /**
  * Get all cards
  */
@@ -54,7 +77,7 @@ export async function getMarketplaceCards({limit = 200 } = {}) {
   const cacheKey = `marketplace:limit:${limit}:status:listed`;
   try {
     const cached = await getCache(cacheKey, 30);
-    if (cached) return cached;
+    if (cached) return cached;  
   } catch {}
 
   const entriesMap = new Map();
@@ -172,13 +195,14 @@ export async function upsertCard(cardData) {
 }
 
 // Create a new thought
-export async function createThought({ authorId, authorName, authorEmail, title, body, imageUrl, communityId = null }) {
+export async function createThought({ authorId, authorName, authorEmail, title, body, imageUrl, communityId = null, authorAvatar = null }) {
   const db = getFirestore();
   const now = new Date().toISOString();
   const payload = {
     authorId, authorName, authorEmail,
     title, body, imageUrl: imageUrl || null,
     communityId: communityId || null,
+    authorAvatar: authorAvatar || null,
     createdAt: now, updatedAt: now,
     upvotes: 0, downvotes: 0, commentsCount: 0,
   };
@@ -217,7 +241,7 @@ export async function getThought(thoughtId) {
 }
 
 // Add comment
-export async function addComment(thoughtId, { authorId, authorName, authorEmail, body }) {
+export async function addComment(thoughtId, { authorId, authorName, authorEmail, body, authorAvatar = null }) {
   const db = getFirestore();
   const now = new Date().toISOString();
 
@@ -228,6 +252,7 @@ export async function addComment(thoughtId, { authorId, authorName, authorEmail,
     .add({
       authorId, authorName, authorEmail,
       body,
+      authorAvatar: authorAvatar || null,
       createdAt: now,
       upvotes: 0,
       downvotes: 0,

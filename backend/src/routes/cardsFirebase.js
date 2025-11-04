@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards, getAllUsers, getAllCards} from '../services/firebaseDb.js';
+import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards, getAllUsers, getAllCards, getImageSignedUrl} from '../services/firebaseDb.js';
 
 
 
@@ -420,6 +420,20 @@ router.post('/:cert/undo', async (req, res) => {
   } catch (e) {
     console.error('Failed to undo listing', cert, e.message || e);
     return res.status(500).json({ error: 'Failed to undo listing' });
+  }
+});
+
+
+// GET /api/cards/images/:folder/:filename -> redirects to signed URL
+router.get('/images/:folder/:filename', async (req, res) => {
+  try {
+    const { folder, filename } = req.params;
+    const url = await getImageSignedUrl(folder, filename);
+    // Redirect keeps it super simple for the frontend
+    return res.redirect(url);
+  } catch (e) {
+    const code = e.message === 'IMAGE_NOT_FOUND' ? 404 : 500;
+    return res.status(code).json({ error: e.message || 'FAILED_IMAGE' });
   }
 });
 

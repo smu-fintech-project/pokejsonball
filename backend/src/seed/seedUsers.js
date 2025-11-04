@@ -48,11 +48,11 @@ async function seedUsers() {
   ];
 
   const users = [
-    { email: 'alice@gmail.com', name: 'Alice' },
-    { email: 'bob@gmail.com', name: 'Bob' },
-    { email: 'carol@gmail.com', name: 'Carol' },
-    { email: 'dave@gmail.com', name: 'Dave' },
-    { email: 'eve@gmail.com', name: 'Eve' },
+    { email: 'alice@gmail.com', name: 'Alice', avatar: 'psyduck.png' },
+    { email: 'bob@gmail.com', name: 'Bob', avatar: 'snorlax.png' },
+    { email: 'carol@gmail.com', name: 'Carol' , avatar: 'charmander.png' },
+    { email: 'dave@gmail.com', name: 'Dave' , avatar: 'pikachu.png' },
+    { email: 'eve@gmail.com', name: 'Eve' , avatar: 'bulbasaur.png' },
   ];
 
   const passwordPlain = 'password123';
@@ -83,6 +83,7 @@ async function seedUsers() {
     const userDoc = {
       email: u.email,
       name: u.name,
+      avatar: u.avatar,
       password: hashed,
       createdAt: new Date().toISOString(),
       cards: userCerts,

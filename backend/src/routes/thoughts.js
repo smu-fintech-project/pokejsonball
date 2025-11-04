@@ -1,5 +1,6 @@
 import express from 'express';
 import admin from 'firebase-admin';
+import multer from 'multer';
 import {
   createThought, listThoughts, getThought,
   addComment, listComments, COLLECTIONS
@@ -9,6 +10,12 @@ import {
 import { authenticateToken as requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Configure multer to store files in memory
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 // GET /api/thoughts?limit=20&cursor=docId
 router.get('/', async (req, res) => {
@@ -24,6 +31,45 @@ router.get('/', async (req, res) => {
   }
 });
 
+// POST /api/thoughts/upload-image (protected) - Upload image to Firebase Storage
+router.post('/upload-image', requireAuth, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'NO_IMAGE_PROVIDED' });
+    }
+
+    const file = req.file;
+    const timestamp = Date.now();
+    const filename = `thought_${timestamp}_${file.originalname}`;
+    const bucketName = process.env.VITE_FIREBASE_STORAGE_BUCKET;
+    const bucket = bucketName ? admin.storage().bucket(bucketName) : admin.storage().bucket();
+    const blob = bucket.file(`thoughts/${filename}`);
+
+    const blobStream = blob.createWriteStream({
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
+
+    blobStream.on('error', (err) => {
+      console.error('Upload error:', err);
+      res.status(500).json({ error: 'UPLOAD_FAILED' });
+    });
+
+    blobStream.on('finish', async () => {
+      // Make the file publicly accessible
+      await blob.makePublic();
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+      res.json({ imageUrl: publicUrl });
+    });
+
+    blobStream.end(file.buffer);
+  } catch (e) {
+    console.error('image upload error:', e.message);
+    res.status(500).json({ error: 'FAILED_UPLOAD' });
+  }
+});
+
 // POST /api/thoughts  (protected)
 router.post('/', requireAuth, async (req, res) => {
   try {
@@ -34,8 +80,9 @@ router.post('/', requireAuth, async (req, res) => {
     const authorId = user.userId || user.id;
     const authorEmail = user.email;
     const authorName = user.name || authorEmail;
+    const authorAvatar = user.avatar || null;
     const payload = await createThought({
-      authorId, authorName, authorEmail, title, body, imageUrl, communityId
+      authorId, authorName, authorEmail, title, body, imageUrl, communityId, authorAvatar
     });
 
     res.status(201).json(payload);
@@ -78,12 +125,14 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
     const authorId = user.userId || user.id || user.uid || user.email;
     const authorEmail = user.email;
     const authorName = user.name || authorEmail || 'Anonymous';
+    const authorAvatar = user.avatar || null;
 
     const comment = await addComment(req.params.id, {
       authorId,
       authorEmail,
       authorName,
       body,
+      authorAvatar,
     });
 
     res.status(201).json(comment);

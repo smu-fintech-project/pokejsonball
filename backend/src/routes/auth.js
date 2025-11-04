@@ -100,7 +100,8 @@ router.post("/login", async (req, res) => {
       { 
         email: userData.email,
         userId: userDoc.id,
-        username: userData.name, 
+        username: userData.name,
+        avatar: userData.avatar || null,
       }, 
       process.env.JWT_SECRET, 
       { expiresIn: "24h" }
