@@ -62,10 +62,15 @@ async function seedUsers() {
 
   for (let i = 0; i < users.length; i++) {
     const u = users[i];
-    const userCerts = [];
-    const idx = i * 2;
-    if (certs[idx]) userCerts.push(certs[idx]);
-    if (certs[idx + 1]) userCerts.push(certs[idx + 1]);
+    const numUsers = users.length;
+    const numCerts = certs.length;
+    const certsPerUser = Math.ceil(numCerts / numUsers); // 19 certs / 5 users = 4 (rounded up)
+
+    const startIdx = i * certsPerUser;
+    const endIdx = startIdx + certsPerUser;
+
+    // Slice the certs array to get this user's chunk (will be 3 or 4 cards)
+    const userCerts = certs.slice(startIdx, endIdx);
 
     const existing = await db.collection('users').where('email', '==', u.email).get();
     if (!existing.empty) {
@@ -107,24 +112,34 @@ async function seedUsers() {
       await batch.commit();
     }
 
-    for (const cert of userCerts) {
-      const price = PRICES_BY_CERT[String(cert)] ?? 0;
-      await listingsCol.doc(String(cert)).set({
-        cert_number: String(cert),
-        listing_price: price,
-        sellerEmail: u.email,
-        sellerName: u.name,   // new username field
-        sellerId: ref.id,
-        status: 'display',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-    }
-    console.log(`  Seeded ${userCerts.length} listings for user ${u.email}`);
-    
-    await createInitialTransactions(db, ref.id, u.name);
-    
-  }
+// Loop through ALL assigned certs (e.g., 3 or 4 cards)
+for (let j = 0; j < userCerts.length; j++) {
+  const cert = userCerts[j];
+
+  // FIRST 2 cards are 'listed' (for landing page)
+  // OTHERS are 'display' (not on landing page)
+  const listingStatus = (j < 2) ? 'listed' : 'display';
+
+  const price = PRICES_BY_CERT[String(cert)] ?? 0;
+
+  await listingsCol.doc(String(cert)).set({
+    cert_number: String(cert),
+    listing_price: price,
+    sellerEmail: u.email,
+    sellerName: u.name,
+    sellerId: ref.id,
+    status: listingStatus, // <-- This now sets the correct status
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+}
+
+const listedCount = userCerts.length < 2 ? userCerts.length : 2;
+const displayCount = userCerts.length - listedCount;
+console.log(` Seeded ${userCerts.length} total listings for ${u.email} (${listedCount} 'listed', ${displayCount} 'display')`);
+
+await createInitialTransactions(db, ref.id, u.name);
+}
 
   await seedSampleReviews(db, createdUsers);
 
