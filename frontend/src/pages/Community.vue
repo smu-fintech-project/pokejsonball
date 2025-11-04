@@ -14,17 +14,51 @@
       <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-xl">
         <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Create Thought</h2>
         <div class="space-y-3">
-          <input v-model="form.title" placeholder="Title"
-                 class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white" />
-          <textarea v-model="form.body" placeholder="What’s on your mind?"
-                    class="w-full p-3 rounded-lg border h-28 dark:bg-slate-700 dark:text-white"></textarea>
-          <input v-model="form.imageUrl" placeholder="Image URL (optional)"
-                 class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white" />
+        <!-- Title -->
+        <input
+          v-model="form.title"
+          @blur="touched.title = true"
+          placeholder="Title"
+          class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
+          :class="{
+            'border-red-500 focus:ring-red-500': touched.title && !form.title?.trim()
+          }"
+        />
+        <p v-if="touched.title && !form.title?.trim()" class="text-xs text-red-600 mt-1">
+          Title is required.
+        </p>
+
+        <!-- Body -->
+        <textarea
+          v-model="form.body"
+          @blur="touched.body = true"
+          placeholder="What’s on your mind?"
+          class="w-full p-3 rounded-lg border h-28 dark:bg-slate-700 dark:text-white"
+          :class="{
+            'border-red-500 focus:ring-red-500': touched.body && !form.body?.trim()
+          }"
+        ></textarea>
+        <p v-if="touched.body && !form.body?.trim()" class="text-xs text-red-600 mt-1">
+          Description is required.
+        </p>
+
+        <!-- Image URL (optional) -->
+        <input
+          v-model="form.imageUrl"
+          placeholder="Image URL (optional)"
+          class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
+        />
         </div>
         <div class="mt-4 flex gap-2 justify-end">
           <button @click="showComposer = false" class="px-3 py-2 rounded-lg border">Cancel</button>
-          <button @click="createThought" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">
-            Post
+          <button
+            @click="createThought"
+            :disabled="!isValid || submitting"
+            class="px-4 py-2 rounded-lg font-semibold text-white transition
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  bg-red-600 hover:bg-red-700"
+          >
+            {{ submitting ? 'Posting…' : 'Post' }}
           </button>
         </div>
       </div>
@@ -35,10 +69,10 @@
       <article v-for="t in thoughts" :key="t.id"
         class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700 shadow-sm flex flex-col">
         <div class="flex items-center justify-between mb-2">
-          <div class="text-sm text-gray-500 dark:text-slate-400">
-            {{ t.authorName || t.authorEmail || 'Anonymous' }} ·
-            <span>{{ formatDate(t.createdAt) }}</span>
-          </div>
+            <div class="text-sm text-gray-500 dark:text-slate-400">
+              {{ t.authorName || t.authorEmail || 'Anonymous' }} ·
+              <span>{{ formatDate(t.createdAt) }}</span>
+            </div>
           <span class="text-xs px-2 py-1 rounded bg-red-100 text-red-700">Thought</span>
         </div>
 
@@ -75,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { fetchThoughts, createThoughtApi, voteThought } from '@/utils/api'; 
 import { isAuthenticated as checkAuth } from '@/utils/api';
 
@@ -90,6 +124,13 @@ function formatDate(iso) {
   try { return new Date(iso).toLocaleString(); } catch { return '' }
 }
 
+const touched = ref({ title: false, body: false });
+const submitting = ref(false);
+
+const isValid = computed(() => {
+  return !!form.value.title?.trim() && !!form.value.body?.trim();
+});
+
 async function loadPage(cursor = null) {
   const { items, nextCursor: nxt } = await fetchThoughts({ limit: 12, cursor });
   if (!cursor) thoughts.value = items; else thoughts.value.push(...items);
@@ -101,11 +142,35 @@ async function loadMore() {
 }
 
 async function createThought() {
-  if (!form.value.title || !form.value.body) return;
-  const t = await createThoughtApi(form.value);
-  thoughts.value.unshift(t);
-  showComposer.value = false;
-  form.value = { title: '', body: '', imageUrl: '' };
+  // mark as touched so the red borders + messages appear if empty
+  touched.value.title = true;
+  touched.value.body = true;
+
+  if (!isValid.value) return;
+
+  try {
+    submitting.value = true;
+    const payload = {
+      
+      title: form.value.title.trim(),
+      body: form.value.body.trim(),
+      imageUrl: form.value.imageUrl?.trim() || ''
+    };
+
+    const t = await createThoughtApi(payload);
+    thoughts.value.unshift(t);
+
+    // reset & close
+    form.value = { title: '', body: '', imageUrl: '' };
+    touched.value = { title: false, body: false };
+    showComposer.value = false;
+  } catch (err) {
+    console.error('createThought failed:', err?.response?.data || err?.message || err);
+    // Optional: show a small, inline toast. If you don't have a toast lib,
+    // you can add a small error text near the buttons similarly to the field errors.
+  } finally {
+    submitting.value = false;
+  }
 }
 
 async function doVote(t, value) {
@@ -128,6 +193,8 @@ function share(t) {
   navigator.clipboard.writeText(url);
   // optionally show a toast
 }
+
+
 
 onMounted(() => loadPage());
 </script>

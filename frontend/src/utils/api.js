@@ -14,9 +14,10 @@ const getAuthToken = () => {
 };
 
 /**
+ * 
  * Create axios instance with auth headers
  */
-const createApiClient = () => {
+export const createApiClient = () => {
   const token = getAuthToken();
   
   return axios.create({
