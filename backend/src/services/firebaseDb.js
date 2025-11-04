@@ -172,12 +172,11 @@ export async function upsertCard(cardData) {
 }
 
 // Create a new thought
-export async function createThought({ authorId, authorName, authorEmail, authorAvatar, title, body, imageUrl, communityId = null }) {
+export async function createThought({ authorId, authorName, authorEmail, title, body, imageUrl, communityId = null }) {
   const db = getFirestore();
   const now = new Date().toISOString();
   const payload = {
     authorId, authorName, authorEmail,
-    authorAvatar: authorAvatar || null,
     title, body, imageUrl: imageUrl || null,
     communityId: communityId || null,
     createdAt: now, updatedAt: now,
@@ -218,7 +217,7 @@ export async function getThought(thoughtId) {
 }
 
 // Add comment
-export async function addComment(thoughtId, { authorId, authorName, authorEmail, authorAvatar, body }) {
+export async function addComment(thoughtId, { authorId, authorName, authorEmail, body }) {
   const db = getFirestore();
   const now = new Date().toISOString();
 
@@ -228,7 +227,6 @@ export async function addComment(thoughtId, { authorId, authorName, authorEmail,
     .collection('comments')
     .add({
       authorId, authorName, authorEmail,
-      authorAvatar: authorAvatar || null,
       body,
       createdAt: now,
       upvotes: 0,
