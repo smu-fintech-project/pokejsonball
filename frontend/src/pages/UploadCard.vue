@@ -5,7 +5,7 @@
       <div class="bg-white/80 dark:bg-slate-900/70 backdrop-blur rounded-3xl shadow-xl p-8">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200 rounded-full text-xs font-semibold uppercase tracking-widest">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200 rounded-full text-xs font-semibold uppercase tracking-widest">
               <UploadCloud class="w-4 h-4" />
               Submit Your Card
             </div>
@@ -16,9 +16,9 @@
               Share your latest catch with the community. Manually enter certification details or upload a picture of your card.
             </p>
           </div>
-          <div class="bg-white/80 dark:bg-slate-800/70 border border-indigo-100/60 dark:border-slate-700 rounded-2xl p-4 w-full md:w-auto">
+          <div class="bg-white/80 dark:bg-slate-800/70 border border-red-100/60 dark:border-slate-700 rounded-2xl p-4 w-full md:w-auto">
             <div class="flex items-center gap-3">
-              <ClipboardList class="w-10 h-10 text-indigo-500" />
+              <ClipboardList class="w-10 h-10 text-red-500" />
               <div>
                 <p class="font-semibold text-slate-900 dark:text-white">PSA Certification Required</p>
                 <p class="text-sm text-slate-500 dark:text-slate-400">All cards require PSA certification for authenticity guarantee.</p>
@@ -35,8 +35,8 @@
           :class="[
             'flex items-center justify-between gap-4 px-6 py-5 rounded-2xl border-2 transition-all shadow-sm',
             mode === 'manual'
-              ? 'border-indigo-500 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-300 shadow-lg'
-              : 'border-transparent bg-white/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:border-indigo-200 hover:text-indigo-500'
+              ? 'border-red-500 bg-white dark:bg-slate-900 text-red-600 dark:text-red-300 shadow-lg'
+              : 'border-transparent bg-white/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:border-red-200 hover:text-red-500'
           ]"
         >
           <div class="flex items-center gap-4">
@@ -54,8 +54,8 @@
           :class="[
             'flex items-center justify-between gap-4 px-6 py-5 rounded-2xl border-2 transition-all shadow-sm',
             mode === 'upload'
-              ? 'border-indigo-500 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-300 shadow-lg'
-              : 'border-transparent bg-white/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:border-indigo-200 hover:text-indigo-500'
+              ? 'border-red-500 bg-white dark:bg-slate-900 text-red-600 dark:text-red-300 shadow-lg'
+              : 'border-transparent bg-white/70 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:border-red-200 hover:text-red-500'
           ]"
         >
           <div class="flex items-center gap-4">
@@ -95,12 +95,12 @@
                 imagery, and population reports automatically.
               </p>
             </div>
-            <div class="flex-1 rounded-2xl border border-indigo-200/70 dark:border-indigo-900/50 bg-indigo-50/60 dark:bg-indigo-900/30 p-6 space-y-3">
-              <div class="flex items-center gap-3 text-indigo-700 dark:text-indigo-200">
+            <div class="flex-1 rounded-2xl border border-red-200/70 dark:border-red-900/50 bg-red-50/60 dark:bg-red-900/30 p-6 space-y-3">
+              <div class="flex items-center gap-3 text-red-700 dark:text-red-200">
                 <CheckCircle2 class="w-5 h-5" />
                 <span class="font-semibold">Fast verification</span>
               </div>
-              <p class="text-sm text-indigo-700/80 dark:text-indigo-200/80">
+              <p class="text-sm text-red-700/80 dark:text-red-200/80">
                 We validate the cert directly with PSA. If anything looks off, you&rsquo;ll get a prompt to double-check before the card is published.
               </p>
             </div>
@@ -110,7 +110,7 @@
             <p class="text-sm text-slate-500 dark:text-slate-400">Required: PSA certification number only.</p>
             <button
               type="submit"
-              class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold shadow-lg hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+              class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
               :disabled="certLookup.loading || !isManualValid"
             >
               <Loader2 v-if="certLookup.loading" class="w-5 h-5 animate-spin" />
@@ -122,7 +122,7 @@
           <div class="space-y-4">
             <div
               v-if="certLookup.loading"
-              class="flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50/80 px-4 py-3 text-sm text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-900/30 dark:text-indigo-200"
+              class="flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-200"
             >
               <Loader2 class="w-5 h-5 animate-spin" />
               <span>Validating certification number with PSA...</span>
@@ -160,20 +160,20 @@
             class="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-8 text-center transition-all cursor-pointer"
             :class="[
               dragOver.front
-                ? 'border-indigo-500 bg-indigo-100/40 dark:bg-indigo-900/40'
-                : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:border-indigo-500 dark:hover:bg-indigo-900/30'
+                ? 'border-red-500 bg-red-100/40 dark:bg-red-900/40'
+                : 'border-slate-300 dark:border-slate-600 hover:border-red-400 hover:bg-red-50/40 dark:hover:border-red-500 dark:hover:bg-red-900/30'
             ]"
             @dragover.prevent="setDrag('front', true)"
             @dragleave.prevent="setDrag('front', false)"
             @drop.prevent="handleDrop($event, 'front')"
           >
             <input type="file" accept="image/*" class="hidden" @change="onFileChange($event, 'front')" />
-            <CloudUpload class="w-10 h-10 text-indigo-500" />
+            <CloudUpload class="w-10 h-10 text-red-500" />
             <div>
               <p class="text-base font-semibold text-slate-900 dark:text-white">Front of card</p>
               <p class="text-sm text-slate-500 dark:text-slate-400">Drag & drop or click to browse</p>
             </div>
-            <p v-if="frontFile" class="text-xs text-indigo-600 dark:text-indigo-300">{{ frontFile.name }}</p>
+            <p v-if="frontFile" class="text-xs text-red-600 dark:text-red-300">{{ frontFile.name }}</p>
           </label>
         </div>
 
@@ -186,7 +186,7 @@
           </div>
         </div>
 
-        <div v-if="detection.loading" class="flex items-center gap-3 text-sm text-indigo-600 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl px-4 py-3">
+        <div v-if="detection.loading" class="flex items-center gap-3 text-sm text-red-600 dark:text-red-300 bg-red-50/70 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
           <Loader2 class="w-4 h-4 animate-spin" />
           <span>Detecting PSA certification number...</span>
         </div>
@@ -198,7 +198,7 @@
           <div class="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
-              class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold shadow-lg hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+              class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
               :disabled="!frontFile || detection.loading"
               @click="handleUploadSubmit"
             >
@@ -220,7 +220,7 @@
           :class="uploadMessageType === 'success'
             ? 'text-emerald-600'
             : uploadMessageType === 'info'
-              ? 'text-indigo-500'
+              ? 'text-red-500'
               : 'text-rose-500'">
           {{ uploadMessage }}
         </p>
@@ -251,7 +251,7 @@
             </div>
 
             <div class="flex flex-wrap gap-2">
-              <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200 text-xs font-semibold">
+              <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-200 text-xs font-semibold">
                 Cert #{{ certLookup.data.cert_number }}
               </span>
               <span
@@ -324,7 +324,7 @@
             <div class="flex items-center gap-3 flex-wrap">
               <button
                 type="button"
-                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold shadow-lg hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
                 :disabled="certLookup.ingesting"
                 @click="handleIngest"
               >

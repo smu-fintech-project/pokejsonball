@@ -60,8 +60,10 @@
               </div>
             </div>
 
-            <!-- Portfolio Value -->
-        <div class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4">
+            <!-- Portfolio Value - Clickable -->
+        <router-link 
+          to="/wallet"
+          class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4 hover:bg-white/20 hover:border-white/50 transition-all cursor-pointer transform hover:scale-105">
           <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
             <DollarSign class="w-6 h-6" />
             <div class="text-base font-black text-white">Wallet Value</div>
@@ -72,7 +74,7 @@
               {{ walletValue.toFixed(2) }}
             </div>
           </div>
-        </div>    
+        </router-link>    
         </div>
       </div>
       </div>
@@ -631,8 +633,8 @@
 
     <!-- ✅ Sell Modal -->
     <div v-if="showSellModal"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl">
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div class="bg-white dark:bg-slate-800 rounded-3xl p-4 sm:p-6 md:p-8 max-w-2xl w-full shadow-2xl my-8">
         <div class="flex items-center justify-between mb-6">
           <h3 class="text-2xl font-bold">
             {{ sellStep === 'confirm' ? 'Confirm Listing' : 'Sell Card' }}
@@ -692,12 +694,7 @@
           </div>
 
 
-          <div>
-            <label class="block text-sm font-semibold mb-2">Description <span class="text-gray-400">(optional)</span></label>
-            <textarea v-model="sellForm.description" rows="3"
-                      class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
-                      placeholder="Any extra details for buyers (condition, notes, etc.)"></textarea>
-          </div>
+          
 
           <div>
             <label class="block text-sm font-semibold mb-2">Delivery</label>
@@ -806,6 +803,7 @@ import {
 } from 'lucide-vue-next'
 import jsbImg from '../../images/JSB_image.png'
 import PortfolioChart from '../components/PortfolioChart.vue'
+
 
 // --- Auth / state ---
 const isAuthed = ref(false)
@@ -964,10 +962,11 @@ const totalCards = computed(() =>
   ownedCards.value.reduce((t, c) => t + (c.quantity ?? 1), 0)  //what is this???
 )
 
-// This now points to the walletBalance from the user's profile
-const walletValue = computed(() =>
-  Number(userProfile.value.walletBalance) || 0
-)
+// Wallet balance from backend (actual JSB balance)
+const walletBalance = ref(0)
+
+// Display the actual wallet balance
+const walletValue = computed(() => walletBalance.value)
 
 // Portfolio computed properties
 const filteredChartData = computed(() => {
@@ -1044,34 +1043,41 @@ async function loadProfile() {
   isAuthed.value = true
   userProfile.value.email = email
 
-  // optional: call /api/users/profile to verify token (and maybe get name later)
+  // Load user profile
   try {
     const resp = await fetch('http://localhost:3001/api/users/profile', {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (resp.ok) {
       const data = await resp.json()
-      // your current route only returns { email, portfolio: [] }
       userProfile.value.email = data.email || email
       if (data.id) {
         userProfile.value.id = data.id
-        localStorage.setItem('userId', data.id) // <-- store it
+        localStorage.setItem('userId', data.id)
       }
       if (data.name) userProfile.value.name = data.name
       if (data.joinDate) userProfile.value.joinDate = data.joinDate
-      
-      // --- THIS IS THE NEW LINE ---
-      if (data.walletBalance) userProfile.value.walletBalance = data.walletBalance
-
     } else if (resp.status === 401) {
-      // token invalid
       isAuthed.value = false
     }
   } catch {
     // network error? still keep basic local email
   }
 
-  // If no name from backend, leave it empty and use derivedName in UI
+  // Load wallet balance from wallet endpoint
+  try {
+    const walletResp = await fetch('http://localhost:3001/api/wallet', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (walletResp.ok) {
+      const walletData = await walletResp.json()
+      if (walletData.success && walletData.wallet) {
+        walletBalance.value = Number(walletData.wallet.balance) || 0
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load wallet balance:', e)
+  }
 }
 
 async function loadOwnedCards() {

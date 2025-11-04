@@ -451,7 +451,7 @@ onMounted(async () => {
     return
   }
 
-  await new Promise(resolve => setTimeout(resolve, 2500))
+  await new Promise(resolve => setTimeout(resolve, 4000))
   await loadWallet()
   await loadAccountStatus()
   await loadTransactions()

@@ -1,16 +1,19 @@
 <template>
-  <div class="messages-page min-h-screen bg-gray-50">
-    <div class="container mx-auto px-4 py-6">
-      <h1 class="text-3xl font-bold text-gray-800 mb-6">💬 Messages</h1>
+  <div class="messages-page min-h-screen bg-gray-100">
+    <div class="container mx-auto px-4 py-6 bg-gray-100">
+      <h1 class="text-3xl font-bold text-gray-800 mb-6">Messages</h1>
       
-      <div class="bg-white rounded-lg shadow-lg overflow-hidden" style="height: calc(100vh - 200px);">
-        <div class="flex h-full">
+      <div class="bg-white rounded-lg shadow-2xl overflow-hidden" style="height: calc(100vh - 200px);">
+        <div class="flex h-full shadow-xl">
           
           <!-- LEFT COLUMN: Conversation List -->
           <div class="w-1/3 border-r border-gray-200 overflow-y-auto">
-            <div class="p-4 border-b bg-gray-50">
-              <h2 class="font-semibold text-gray-700">Conversations</h2>
-            </div>
+          <div class="pl-4 h-14 border-b flex flex-col justify-center">
+            <h2 class="font-semibold text-gray-700">Conversations</h2>
+            <span class="text-xs text-gray-500 ">
+                Continue chatting with other collectors
+            </span>
+          </div>
             
             <!-- Loading State -->
             <div v-if="loading" class="p-8 text-center text-gray-500">
@@ -90,9 +93,10 @@
           <!-- RIGHT COLUMN: Chat Window -->
           <div class="flex-1 flex flex-col">
             <ChatWindow
-              v-if="activeConversationId"
-              :conversationId="activeConversationId"
-              :key="activeConversationId"
+              v-if="activeConversation"  :conversationId="activeConversation.id"
+              :key="activeConversation.id"
+              :otherUser="activeConversation.otherUser"
+              :card="activeConversation.card"
             />
             
             <!-- Empty State -->
@@ -111,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { getAuthToken, getCurrentUser } from '@/utils/auth';
 import ChatWindow from '@/components/ChatWindow.vue';
@@ -122,6 +126,9 @@ const route = useRoute();
 const conversations = ref([]);
 const loading = ref(true);
 const activeConversationId = ref(null);
+const activeConversation = computed(() => {
+  return conversations.value.find(conv => conv.id === activeConversationId.value);
+});
 const error = ref(null);
 
 // Socket for real-time conversation list updates

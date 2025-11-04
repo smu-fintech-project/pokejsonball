@@ -21,14 +21,6 @@
         Sign in
       </button>
 
-      <div class="text-center text-sm text-gray-500">
-        Or continue with
-      </div>
-
-      <div class="flex gap-3">
-        <button type="button" class="flex-1 py-2 border rounded-lg text-red-700">Google</button>
-        <button type="button" class="flex-1 py-2 border rounded-lg text-red-700">Apple</button>
-      </div>
     </form>
     <p v-if="error" class="text-sm text-red-500 mt-2">{{ error }}</p>
   </div>

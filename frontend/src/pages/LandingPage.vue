@@ -264,81 +264,71 @@
             </div>
 
             <!-- Card Information -->
-            <div class="space-y-6">
-              <!-- Basic Info -->
-              <div>
-                <div class="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 class="text-3xl font-black mb-1">{{ selectedCard.title }}</h3>
-                    <p class="text-lg text-gray-500 dark:text-slate-400">{{ selectedCard.set }}</p>
-                  </div>
-                  <span
-                  class="flex-shrink-0 px-2 py-1 bg-stone-100 dark:bg-indigo-900 text-red-700 dark:text-indigo-300 text-s font-bold rounded-lg">
-                  {{ selectedCard.rarity }}
-                </span>
-                </div>
-              </div>
+            <div class="space-y-4">
+  <h4 class="font-bold text-lg">Card Information</h4>
 
-              <!-- Price Section -->
-              <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border-2 border-green-200 dark:border-green-800">
-                <p class="text-sm text-gray-600 dark:text-slate-400 mb-1">Current Price</p>
-                <p class="text-4xl font-black text-green-600 mb-2">
-                  <img :src="jsbImg" alt="JSB" class="inline h-[29px] w-[29px] align-[-3px] mr-2" />
-                  {{ selectedCard.price }}
-                </p>
-                <!-- Market Price Suggestion -->
-                <p v-if="formattedMarketPrice" class="market-price-suggestion text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  Market Price: $<span class="font-semibold text-green-400">{{ formattedMarketPrice }}</span>
-                </p>
-                <p class="text-sm text-gray-500">
-                  Last sold: <img :src="jsbImg" alt="JSB" class="inline h-[17px] w-[17px] align-[-2px] mr-1" />{{ selectedCard.lastSold }}
-                </p>
-              </div>
+  
 
-              <div class="space-y-4">
-                <h4 class="font-bold text-lg">Card Information</h4>
+  <!-- Card Details Grid -->
+  <div class="grid grid-cols-2 gap-4">
+    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+      <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">PSA Population</p>
+      <p class="font-semibold">{{ selectedCard.db?.psa_population || 'Unavailable' }}</p>
+    </div>
+    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+      <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Grade Description</p>
+      <p class="font-semibold">{{ selectedCard.db?.grade_description || 'Unavailable' }}</p>
+    </div>
+    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+      <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Art Style</p>
+      <p class="font-semibold">{{ selectedCard.db?.variety || 'Unavailable' }}</p>
+    </div>
+    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+      <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Release Year</p>
+      <p class="font-semibold">{{ selectedCard.db?.release_year || 'Unavailable' }}</p>
+    </div>
+  </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">PSA Population</p>
-                    <p class="font-semibold">{{ selectedCard.db?.psa_population || 'Unavailable' }}</p>
-                  </div>
-                  <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Grade Description</p>
-                    <p class="font-semibold">{{ selectedCard.db?.grade_description || 'Unavailable' }}</p>
-                  </div>
-                  <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Art Style</p>
-                    <p class="font-semibold">{{ selectedCard.db?.variety || 'Unavailable' }}</p>
-                  </div>
-                  <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Release Year</p>
-                    <p class="font-semibold">{{ selectedCard.db?.release_year || 'Unavailable' }}</p>
-                  </div>
-                </div>
+  <!-- Seller Info -->
+  <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-4 border-2 border-purple-200 dark:border-purple-800">
+    <p class="text-sm font-semibold mb-2">Seller Information</p>
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+        <User class="w-5 h-5 text-white" />
+      </div>
+      <div class="flex-1">
+        <p class="font-semibold">{{ selectedCard.sellerName || selectedCard.sellerEmail || 'Unknown Seller' }}</p>
+        <p v-if="selectedCard.reviewStats?.reviewCount"
+           class="text-sm text-gray-500">
+          ⭐ {{ Number(selectedCard.reviewStats.averageRating || 0).toFixed(1) }}
+          ({{ selectedCard.reviewStats.reviewCount }}
+          {{ selectedCard.reviewStats.reviewCount === 1 ? 'review' : 'reviews' }})
+        </p>
+        <p v-else class="text-sm text-gray-500">
+          ⭐ No reviews yet
+        </p>
+      </div>
+    </div>
+  </div>
 
-                <!-- Seller Info -->
-                <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-4 border-2 border-purple-200 dark:border-purple-800">
-                  <p class="text-sm font-semibold mb-2">Seller Information</p>
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                      <User class="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p class="font-semibold">{{ selectedCard.sellerName || selectedCard.sellerEmail || 'Unknown Seller' }}</p>
-                      <p v-if="selectedCard.reviewStats?.reviewCount"
-                         class="text-sm text-gray-500">
-                        ⭐ {{ Number(selectedCard.reviewStats.averageRating || 0).toFixed(1) }}
-                        ({{ selectedCard.reviewStats.reviewCount }}
-                        {{ selectedCard.reviewStats.reviewCount === 1 ? 'review' : 'reviews' }})
-                      </p>
-                      <p v-else class="text-sm text-gray-500">
-                        ⭐ No reviews yet
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+  <!-- Delivery/Meetup Information -->
+  <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 border-2 border-purple-200 dark:border-purple-800">
+    <p class="text-xs text-purple-600 dark:text-purple-400 mb-1 font-semibold">Delivery Options</p>
+    <div class="flex items-center gap-2">
+      <svg v-if="selectedCard.delivery === 'meetup'" class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <svg v-else class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+      </svg>
+      <span class="font-semibold capitalize">{{ selectedCard.delivery || 'meetup' }}</span>
+      <span class="text-sm text-gray-600 dark:text-gray-400 ml-2">
+        {{ selectedCard.delivery === 'meetup' ? 'Local meetup preferred' : 'Shipping available' }}
+      </span>
+    </div>
+  </div>
+
 
               <!-- Action Buttons -->
 
@@ -810,7 +800,9 @@ const loadFeaturedCards = async () => {
           sellerEmail: c?.sellerEmail || null,
           sellerId: c?.sellerId || null,
           reviewStats: null,
-          averageSellPrice: c?.average_sell_price || null
+          averageSellPrice: c?.average_sell_price || null,
+          description: c?.description || null,
+          delivery: c?.delivery || null
         }))
         .filter((card) => card.img); // keep if you only want cards with images
 
