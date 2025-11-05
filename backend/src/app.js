@@ -34,6 +34,7 @@ import cardRoutes from "./routes/cardsFirebase.js";
 import cardsV2Routes from "./routes/cardsV2.js";
 import certRoutes from "./routes/certs.js";
 import walletRoute from "./routes/wallet.js";
+import stripeWebhookRouter from "./routes/stripeWebhook";
 import chatRoutes from "./routes/chat.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import thoughtsRoutes from './routes/thoughts.js';
@@ -76,6 +77,10 @@ const corsOptions = {
 
 // Configure CORS to allow configured frontend origins
 app.use(cors(corsOptions));
+
+
+// webhook first stripe
+app.use('/api/stripe/webhook', stripeWebhookRouter);
 
 // ✅ Parse JSON bodies BEFORE routes
 app.use(express.json({ limit: '15mb' }));
