@@ -392,7 +392,7 @@
 </template>
 
 <script setup>
-import logo from '../assets/js.png'
+import logo from '../assets/JS.png'
 import { watch, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlobalNotifications } from '@/composables/useGlobalNotifications'
