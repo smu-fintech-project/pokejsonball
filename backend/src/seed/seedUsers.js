@@ -63,15 +63,10 @@ async function seedUsers() {
 
   for (let i = 0; i < users.length; i++) {
     const u = users[i];
-    const numUsers = users.length;
-    const numCerts = certs.length;
-    const certsPerUser = Math.ceil(numCerts / numUsers); // 19 certs / 5 users = 4 (rounded up)
-
-    const startIdx = i * certsPerUser;
-    const endIdx = startIdx + certsPerUser;
-
-    // Slice the certs array to get this user's chunk (will be 3 or 4 cards)
-    const userCerts = certs.slice(startIdx, endIdx);
+    const userCerts = [];
+    const idx = i * 2;
+    if (certs[idx]) userCerts.push(certs[idx]);
+    if (certs[idx + 1]) userCerts.push(certs[idx + 1]);
 
     const existing = await db.collection('users').where('email', '==', u.email).get();
     if (!existing.empty) {
@@ -115,34 +110,23 @@ async function seedUsers() {
       await batch.commit();
     }
 
-// Loop through ALL assigned certs (e.g., 3 or 4 cards)
-for (let j = 0; j < userCerts.length; j++) {
-  const cert = userCerts[j];
-
-  // FIRST 2 cards are 'listed' (for landing page)
-  // OTHERS are 'display' (not on landing page)
-  const listingStatus = (j < 2) ? 'listed' : 'display';
-
-  const price = PRICES_BY_CERT[String(cert)] ?? 0;
-
-  await listingsCol.doc(String(cert)).set({
-    cert_number: String(cert),
-    listing_price: price,
-    sellerEmail: u.email,
-    sellerName: u.name,
-    sellerId: ref.id,
-    status: listingStatus, // <-- This now sets the correct status
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  });
-}
-
-const listedCount = userCerts.length < 2 ? userCerts.length : 2;
-const displayCount = userCerts.length - listedCount;
-console.log(` Seeded ${userCerts.length} total listings for ${u.email} (${listedCount} 'listed', ${displayCount} 'display')`);
-
-await createInitialTransactions(db, ref.id, u.name);
-}
+    for (const cert of userCerts) {
+      const price = PRICES_BY_CERT[String(cert)] ?? 0;
+      await listingsCol.doc(String(cert)).set({
+        cert_number: String(cert),
+        listing_price: price,
+        sellerEmail: u.email,
+        sellerId: ref.id,
+        status: 'listed',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    }
+    console.log(`  Seeded ${userCerts.length} listings for user ${u.email}`);
+    
+    await createInitialTransactions(db, ref.id, u.name);
+    
+  }
 
   await seedSampleReviews(db, createdUsers);
 
@@ -179,6 +163,15 @@ async function createInitialTransactions(db, userId, userName) {
     status: 'completed'
   };
 
+  // Transaction 2: Card purchase
+  const tx2 = {
+    type: 'purchase',
+    amount: 25,
+    balanceAfter: 75,
+    description: 'Purchased Charizard PSA 10 listing',
+    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    status: 'completed'
+  };
 
   await transactionsRef.add(tx1);
   await transactionsRef.add(tx2);

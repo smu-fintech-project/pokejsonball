@@ -8,14 +8,18 @@ import admin from 'firebase-admin';
  * Initialize Socket.IO server with JWT authentication and database persistence
  * 
  * @param {http.Server} httpServer - The HTTP server instance
- * @param {string} frontendURL - The frontend URL for CORS configuration
+ * @param {string[] | string} frontendOrigins - Allowed frontend origins for CORS
  * @returns {Server} The configured Socket.IO server instance
  */
-export function initializeSocket(httpServer, frontendURL) {
-  
+export function initializeSocket(httpServer, frontendOrigins) {
+  const originsArray = Array.isArray(frontendOrigins) ? frontendOrigins : [frontendOrigins];
+  const allowedOrigins = originsArray.length > 0 ? originsArray : ['http://localhost:3000'];
+
+  console.log(`🔌 Socket.IO allowed origins: ${JSON.stringify(allowedOrigins)}`);
+
   const io = new Server(httpServer, {
     cors: {
-      origin: frontendURL || 'http://localhost:3000',
+      origin: allowedOrigins,
       methods: ['GET', 'POST'],
       credentials: true
     },
@@ -403,4 +407,3 @@ export function initializeSocket(httpServer, frontendURL) {
 
   return io;
 }
-

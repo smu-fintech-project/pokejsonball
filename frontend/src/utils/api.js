@@ -3,8 +3,9 @@
  */
 
 import axios from 'axios';
+import { API_BASE } from './env';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+const BASE_URL = API_BASE;
 
 /**
  * Get authentication token from localStorage
@@ -21,7 +22,7 @@ export const createApiClient = () => {
   const token = getAuthToken();
   
   return axios.create({
-    baseURL: API_BASE,
+    baseURL: BASE_URL,
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` })

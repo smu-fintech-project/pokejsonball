@@ -646,7 +646,7 @@ async function handleMakeOffer() {
     const token = localStorage.getItem('token');
     const buyerId = localStorage.getItem('userId');
 
-    const response = await fetch('http://localhost:3001/api/offers', {
+    const response = await fetch(`${API_BASE_URL}/api/offers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -725,9 +725,10 @@ import {
 } from "lucide-vue-next";
 import jsbImg from "../../images/JSB_image.png";
 import { getCurrentUser, getAuthToken } from '@/utils/auth';
+import { API_BASE } from '@/utils/env';
 
 const router = useRouter();
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = API_BASE;
 
 const scrollToFeatured = () => {
   const section = document.getElementById("featured-cards");
@@ -781,7 +782,7 @@ const loadFeaturedCards = async () => {
   loading.value = true;
   loadError.value = null;
   try {
-    const resp = await fetch("http://localhost:3001/api/cards");
+    const resp = await fetch(`${API_BASE_URL}/api/cards`);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
 
     const cards = await resp.json();
@@ -1079,7 +1080,7 @@ function toggleWatchlist(id) {
 async function fetchCardV1(certNumber) {
   try {
     const resp = await fetch(
-      `http://localhost:3001/api/cards/${encodeURIComponent(certNumber)}`
+      `${API_BASE_URL}/api/cards/${encodeURIComponent(certNumber)}`
     );
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const payload = await resp.json();
@@ -1102,7 +1103,7 @@ async function openCardModal(card) {
   if (!sellerId || card.reviewStats) return;
 
   try {
-    const resp = await fetch(`${API_URL}/api/users/${encodeURIComponent(sellerId)}/reviews/stats`);
+    const resp = await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(sellerId)}/reviews/stats`);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const stats = await resp.json();
 
@@ -1144,7 +1145,7 @@ async function handleBuyCard() {
   try {
     const token = localStorage.getItem('token');
 
-    const response = await fetch('http://localhost:3001/api/transactions/buy-now', {
+    const response = await fetch(`${API_BASE_URL}/api/transactions/buy-now`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1220,7 +1221,7 @@ async function handleMessageSeller() {
     const cardId = selectedCard.value.id;
 
     // Call find-or-create API
-    const response = await fetch(`${API_URL}/api/chat/find-or-create`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat/find-or-create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

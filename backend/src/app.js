@@ -27,10 +27,7 @@ try {
 }
 // =========================================================
 
-// Import blockchain/Stripe webhook route BEFORE express.json()
-import stripeWebhookRouter from "./routes/stripeWebhook.js";
-
-// Import other routes
+// NOW import routes (after Firebase is initialized)
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import cardRoutes from "./routes/cardsFirebase.js";
@@ -48,8 +45,41 @@ const app = express();
 // Create HTTP server (required for Socket.IO)
 const httpServer = http.createServer(app);
 
-app.use("/api/stripe/webhook", stripeWebhookRouter);
+// Determine allowed frontend origins (supports comma-separated list)
+const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:3000';
+const normalizeOrigin = (origin) => {
+  if (!origin) return '';
+  const trimmed = origin.trim();
+  if (!trimmed) return '';
+  return trimmed.replace(/\/+$/, '');
+};
+const allowedOrigins = rawOrigins
+  .split(',')
+  .map(normalizeOrigin)
+  .filter(Boolean);
 
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn(`⚠️  CORS blocked origin: ${origin}`);
+    return callback(new Error(`Origin ${origin} not allowed by CORS policy`));
+  },
+  credentials: true
+};
+
+// Configure CORS to allow configured frontend origins
+app.use(cors(corsOptions));
+
+// ✅ Parse JSON bodies BEFORE routes
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -62,44 +92,41 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configure CORS to allow frontend origin
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
-
 // Log environment configuration
 console.log('\n🔧 Environment Configuration:');
 console.log(`PORT: ${process.env.PORT || 3001}`);
-console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+console.log(`FRONTEND_URL: ${normalizeOrigin(process.env.FRONTEND_URL) || 'http://localhost:3000'}`);
+if (process.env.FRONTEND_URLS) {
+  console.log(`FRONTEND_URLS raw: ${process.env.FRONTEND_URLS}`);
+}
+console.log(`CORS Allowed Origins: ${JSON.stringify(allowedOrigins)}`);
 console.log(`DATABASE: Firebase Firestore`);
 console.log(`FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID || '❌ Missing'}`);
 console.log(`VITE_FIREBASE_STO: ${process.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Configured' : '❌ Missing'}`);
 console.log(`JWT_SECRET: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing'}`);
 console.log(`PSA_API_KEY: ${process.env.PSA_API_KEY ? '✅ Configured' : '❌ Missing'}`);
 console.log(`POKEMON_TCG_API_KEY: ${process.env.POKEMON_TCG_API_KEY ? '✅ Configured' : '❌ Missing'}`);
-console.log(`Stripe Secret Key: ${process.env.STRIPE_SECRET_KEY ? '✅ Configured' : '❌ Missing'}`);
-console.log(`Stripe Webhook Key: ${process.env.STRIPE_WEBHOOK_SECRET ? '✅ Configured' : '❌ Missing'}`);
-
 
 // Image proxy to bypass CORS on external images
 app.get("/api/proxy-image", async (req, res) => {
   const { url } = req.query;
   console.log(`\n📸 Image Proxy Request: ${url}`);
+  
   if (!url) {
     console.error('❌ Image proxy error: Missing URL parameter');
     return res.status(400).json({ error: "Missing url parameter" });
   }
+  
   try {
     console.log(`⬇️ Fetching image from: ${url}`);
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       timeout: 10000
     });
+    
     const contentType = response.headers['content-type'] || 'image/png';
     console.log(`✅ Image fetched successfully (${contentType})`);
+    
     res.set('Content-Type', contentType);
     res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     res.send(response.data);
@@ -114,12 +141,12 @@ app.get("/api/proxy-image", async (req, res) => {
   }
 });
 
-// Other routes 
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/v2/cards", cardsV2Routes); // Production-ready API with PSA + TCG integration
-app.use("/api/certs", certRoutes); // PSA Cert Gallery API
+app.use("/api/certs", certRoutes);
 app.use("/api/wallet", walletRoute);
 app.use("/api/chat", chatRoutes); // Chat/messaging routes
 app.use("/api/portfolio", portfolioRoutes); // Portfolio history and analytics
@@ -136,7 +163,7 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 // ====== Initialize Socket.IO for real-time chat ======
-const io = initializeSocket(httpServer, process.env.FRONTEND_URL || 'http://localhost:3000');
+const io = initializeSocket(httpServer, allowedOrigins.length > 0 ? allowedOrigins : ['http://localhost:3000']);
 console.log('✅ Socket.IO initialized for real-time chat');
 // =====================================================
 
@@ -148,7 +175,7 @@ app.use((err, req, res, next) => {
     url: req.url,
     method: req.method
   });
-
+  
   res.status(500).json({
     success: false,
     error: 'INTERNAL_SERVER_ERROR',
