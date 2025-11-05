@@ -129,26 +129,92 @@
           Title is required.
         </p>
 
-        <!-- Body -->
-        <textarea
-          v-model="form.body"
-          @blur="touched.body = true"
-          placeholder="What’s on your mind?"
-          class="w-full p-3 rounded-lg border h-28 dark:bg-slate-700 dark:text-white"
-          :class="{
-            'border-red-500 focus:ring-red-500': touched.body && !form.body?.trim()
-          }"
-        ></textarea>
+        <!-- Body with media preview -->
+        <div class="relative">
+          <textarea
+            ref="bodyTextarea"
+            v-model="form.body"
+            @blur="touched.body = true"
+            @paste="handlePaste"
+            placeholder="What's on your mind? (You can paste images/videos here)"
+            class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
+            :class="{
+              'border-red-500 focus:ring-red-500': touched.body && !form.body?.trim(),
+              'h-28': form.mediaPreviews.length === 0,
+              'h-auto min-h-[7rem]': form.mediaPreviews.length > 0
+            }"
+          ></textarea>
+          
+          <!-- Media preview - Video -->
+          <div v-if="form.mediaType === 'video' && form.mediaPreviews[0]" class="mt-2 relative">
+            <video :src="form.mediaPreviews[0]" controls class="w-full rounded-lg max-h-96" />
+            <button
+              @click="removeImage"
+              class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
+              title="Remove video"
+            >×</button>
+          </div>
+          
+          <!-- Media preview - Image Carousel -->
+          <div v-else-if="form.mediaType === 'image' && form.mediaPreviews.length > 0" class="mt-2 relative">
+            <div class="relative">
+              <img :src="form.mediaPreviews[form.currentSlide]" class="w-full rounded-lg max-h-64 object-cover" alt="Preview" />
+              
+              <!-- Carousel controls -->
+              <button
+                v-if="form.mediaPreviews.length > 1"
+                @click="form.currentSlide = (form.currentSlide - 1 + form.mediaPreviews.length) % form.mediaPreviews.length"
+                class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+              >‹</button>
+              
+              <button
+                v-if="form.mediaPreviews.length > 1"
+                @click="form.currentSlide = (form.currentSlide + 1) % form.mediaPreviews.length"
+                class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+              >›</button>
+              
+              <!-- Slide indicators -->
+              <div v-if="form.mediaPreviews.length > 1" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                <div
+                  v-for="(_, i) in form.mediaPreviews"
+                  :key="i"
+                  @click="form.currentSlide = i"
+                  class="w-2 h-2 rounded-full cursor-pointer"
+                  :class="i === form.currentSlide ? 'bg-white' : 'bg-white/50'"
+                ></div>
+              </div>
+            </div>
+            
+            <button
+              @click="removeImage"
+              class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 z-10"
+              title="Remove all media"
+            >×</button>
+          </div>
+        </div>
         <p v-if="touched.body && !form.body?.trim()" class="text-xs text-red-600 mt-1">
           Description is required.
         </p>
 
-        <!-- Image URL (optional) -->
-        <input
-          v-model="form.imageUrl"
-          placeholder="Image URL (optional)"
-          class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
-        />
+        <!-- Upload button -->
+        <div class="flex items-center gap-2">
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*,video/*,.gif"
+            @change="handleFileSelect"
+            :multiple="form.mediaType !== 'video'"
+            class="hidden"
+          />
+          <button
+            @click="$refs.fileInput.click()"
+            type="button"
+            class="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700"
+          >
+            📎 Upload Media
+          </button>
+          <span v-if="uploading" class="text-sm text-gray-500">Uploading...</span>
+        </div>
         </div>
         <div class="mt-4 flex gap-2 justify-end">
           <button @click="showComposer = false" class="px-3 py-2 rounded-lg border">Cancel</button>
@@ -219,13 +285,22 @@
       <!-- Header -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <!-- Avatar (first letter) -->
-          <div class="h-9 w-9 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold">
-            {{ (t.authorName || t.authorEmail || 'A').charAt(0).toUpperCase() }}
+          <!-- Avatar image (fallback to initial) -->
+          <div class="h-9 w-9 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold overflow-hidden">
+            <img
+              v-if="avatarSrcFor(t)"
+              :src="avatarSrcFor(t)"
+              alt=""
+              class="h-full w-full object-cover"
+              loading="lazy"
+            />
+            <span v-else>
+              {{ getDisplayName(t.authorName, t.authorEmail).charAt(0).toUpperCase() }}
+            </span>
           </div>
           <div class="text-sm">
             <div class="font-medium text-gray-900 dark:text-white">
-              {{ t.authorName || t.authorEmail || 'Anonymous' }}
+              {{ getDisplayName(t.authorName, t.authorEmail) }}
             </div>
             <div class="text-gray-500 dark:text-slate-400">{{ formatDate(t.createdAt) }}</div>
           </div>
@@ -245,13 +320,48 @@
         <p class="mt-2 text-gray-700 dark:text-slate-300">
           {{ t.body }}
         </p>
-        <img
-          v-if="t.imageUrl"
+        
+        <!-- Video -->
+        <video
+          v-if="t.imageUrl && isVideo(t.imageUrl)"
           :src="t.imageUrl"
-          alt=""
-          class="mt-3 rounded-xl w-full object-cover max-h-64"
+          controls
+          class="mt-3 rounded-xl w-full max-h-96"
           loading="lazy"
-        />
+        ></video>
+        
+        <!-- Single Image or Carousel -->
+        <div v-else-if="t.imageUrl" class="mt-3 relative">
+          <img
+            :src="Array.isArray(t.imageUrl) ? t.imageUrl[t.currentSlide || 0] : t.imageUrl"
+            alt=""
+            class="rounded-xl w-full object-cover max-h-64"
+            loading="lazy"
+          />
+          
+          <!-- Carousel controls (only if imageUrl is array) -->
+          <template v-if="Array.isArray(t.imageUrl) && t.imageUrl.length > 1">
+            <button
+              @click.prevent="t.currentSlide = ((t.currentSlide || 0) - 1 + t.imageUrl.length) % t.imageUrl.length"
+              class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+            >‹</button>
+            
+            <button
+              @click.prevent="t.currentSlide = ((t.currentSlide || 0) + 1) % t.imageUrl.length"
+              class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+            >›</button>
+            
+            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+              <div
+                v-for="(_, i) in t.imageUrl"
+                :key="i"
+                @click.prevent="t.currentSlide = i"
+                class="w-2 h-2 rounded-full cursor-pointer"
+                :class="i === (t.currentSlide || 0) ? 'bg-white' : 'bg-white/50'"
+              ></div>
+            </div>
+          </template>
+        </div>
       </router-link>
 
       <!-- Actions -->
@@ -321,7 +431,10 @@ const isAuthenticated = checkAuth();
 const activeCommunityId = ref(null);
 const loading = ref(true);
 
-const form = ref({ title: '', body: '', imageUrl: '' });
+const form = ref({ title: '', body: '', imageUrl: '', imagePreview: null, imageFile: null, mediaFiles: [], mediaPreviews: [], mediaType: null, currentSlide: 0 });
+const bodyTextarea = ref(null);
+const fileInput = ref(null);
+const uploading = ref(false);
 
 // Communities state
 const communities = ref([]);
@@ -330,8 +443,42 @@ const communityForm = ref({ name: '', description: '', imageUrl: '' });
 const communityTouched = ref({ name: false });
 const addingCommunity = ref(false);
 
+// Helper: Extract username from email or use name
+function getDisplayName(authorName, authorEmail) {
+  if (authorName.trim().includes('@')){
+    return authorName.split('@')[0][0].toUpperCase() + authorName.split('@')[0].slice(1);
+  }else if(!authorName.trim().includes('@')) {
+    return authorName
+  }else{
+  return 'Anonymous';
+}
+}
+
+// Helper: Format as relative time
 function formatDate(iso) {
-  try { return new Date(iso).toLocaleString(); } catch { return '' }
+  if (!iso) return '';
+  try {
+    const date = new Date(iso);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+    
+    if (diffSec < 60) return diffSec <= 1 ? 'just now' : `${diffSec}s ago`;
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHour < 24) return `${diffHour}h ago`;
+    if (diffDay < 30) return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`;
+    
+    const diffMonth = Math.floor(diffDay / 30);
+    if (diffMonth < 12) return `${diffMonth} month${diffMonth === 1 ? '' : 's'} ago`;
+    
+    const diffYear = Math.floor(diffDay / 365);
+    return `${diffYear} year${diffYear === 1 ? '' : 's'} ago`;
+  } catch {
+    return '';
+  }
 }
 
 const touched = ref({ title: false, body: false });
@@ -349,6 +496,7 @@ async function loadPage(cursor = null) {
     t.upvotes = t.upvotes ?? 0;
     t.downvotes = t.downvotes ?? 0;
     t.voteBusy = false;
+    t.currentSlide = 0; // Initialize carousel slide
   }
   if (!cursor) thoughts.value = items; else thoughts.value.push(...items);
   nextCursor.value = nxt;
@@ -367,10 +515,27 @@ async function createThought() {
 
   try {
     submitting.value = true;
+    
+    // Upload media files if there are any
+    let imageUrl = form.value.imageUrl || '';
+    if (form.value.mediaFiles.length > 0) {
+      uploading.value = true;
+      if (form.value.mediaType === 'video') {
+        // Upload single video
+        imageUrl = await uploadImage(form.value.mediaFiles[0]);
+      } else {
+        // Upload multiple images and store as array
+        const uploadPromises = form.value.mediaFiles.map(file => uploadImage(file));
+        const urls = await Promise.all(uploadPromises);
+        imageUrl = urls.length === 1 ? urls[0] : urls; // Store as string if 1, array if multiple
+      }
+      uploading.value = false;
+    }
+    
     const payload = {
       title: form.value.title.trim(),
       body: form.value.body.trim(),
-      imageUrl: form.value.imageUrl?.trim() || '',
+      imageUrl: imageUrl,
       communityId: activeCommunityId.value || undefined
     };
 
@@ -378,16 +543,123 @@ async function createThought() {
     thoughts.value.unshift(t);
 
     // reset & close
-    form.value = { title: '', body: '', imageUrl: '' };
+    form.value = { title: '', body: '', imageUrl: '', imagePreview: null, imageFile: null, mediaFiles: [], mediaPreviews: [], mediaType: null, currentSlide: 0 };
     touched.value = { title: false, body: false };
     showComposer.value = false;
   } catch (err) {
     console.error('createThought failed:', err?.response?.data || err?.message || err);
-    // Optional: show a small, inline toast. If you don't have a toast lib,
-    // you can add a small error text near the buttons similarly to the field errors.
   } finally {
     submitting.value = false;
+    uploading.value = false;
   }
+}
+
+// Upload image to backend
+async function uploadImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const response = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:3001'}/api/thoughts/upload-image`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  });
+  
+  if (!response.ok) throw new Error('Upload failed');
+  const data = await response.json();
+  return data.imageUrl;
+}
+
+// Handle file selection from button
+function handleFileSelect(event) {
+  const files = Array.from(event.target.files || []);
+  if (files.length === 0) return;
+  
+  const firstFile = files[0];
+  const isVideoFile = firstFile.type.startsWith('video/') || firstFile.name.endsWith('.gif');
+  
+  if (isVideoFile) {
+    // Only allow 1 video
+    if (files.length > 1) {
+      alert('Only 1 video/gif allowed');
+      return;
+    }
+    setMediaFiles(files, 'video');
+  } else if (firstFile.type.startsWith('image/')) {
+    // Allow multiple images
+    setMediaFiles(files, 'image');
+  } else {
+    alert('Please select image or video files');
+    return;
+  }
+}
+
+// Handle paste event
+function handlePaste(event) {
+  const items = event.clipboardData?.items;
+  if (!items) return;
+  
+  const files = [];
+  for (const item of items) {
+    if (item.type.startsWith('image/') || item.type.startsWith('video/')) {
+      const file = item.getAsFile();
+      if (file) files.push(file);
+    }
+  }
+  
+  if (files.length > 0) {
+    event.preventDefault();
+    const isVideoFile = files[0].type.startsWith('video/');
+    if (isVideoFile && files.length > 1) {
+      setMediaFiles([files[0]], 'video'); // Only first video
+    } else if (isVideoFile) {
+      setMediaFiles(files, 'video');
+    } else {
+      setMediaFiles(files, 'image');
+    }
+  }
+}
+
+// Set media files and create previews
+function setMediaFiles(files, type) {
+  form.value.mediaFiles = files;
+  form.value.mediaType = type;
+  form.value.mediaPreviews = [];
+  form.value.currentSlide = 0;
+  
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      form.value.mediaPreviews.push(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Remove media
+function removeImage() {
+  form.value.mediaFiles = [];
+  form.value.mediaPreviews = [];
+  form.value.mediaType = null;
+  form.value.imageFile = null;
+  form.value.imagePreview = null;
+  form.value.imageUrl = '';
+  form.value.currentSlide = 0;
+  if (fileInput.value) fileInput.value.value = '';
+}
+
+// Check if URL is video
+function isVideo(url) {
+  if (!url) return false;
+  // If it's an array, it's multiple images (not a video)
+  if (Array.isArray(url)) return false;
+  // Must be a string to check extension
+  if (typeof url !== 'string') return false;
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.gif'];
+  return videoExtensions.some(ext => url.toLowerCase().includes(ext));
 }
 
 async function doVote(t, value) {
@@ -465,6 +737,15 @@ async function selectCommunity(id) {
   await loadPage(null);
 }
 
+function avatarSrcFor(thought) {
+  // If backend provided filename like "pikachu.png", build API route URL.
+  // If no avatar set, return null and we’ll fall back to the initial.
+  
+  if (!thought?.authorAvatar) return null;
+  return `/api/cards/images/avatar/${encodeURIComponent(thought.authorAvatar)}`;
+}
+
+
 async function toggleFavourite(c) {
   // optimistic toggle
   const prev = !!c.favourited;
@@ -517,6 +798,6 @@ onMounted(async () => {
     loading.value = false;
   }
 });
-
-
 </script>
+
+

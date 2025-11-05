@@ -4,8 +4,17 @@
 
     <article v-if="thought" class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700">
       <div class="flex items-center justify-between">
-        <div class="text-sm text-gray-500 dark:text-slate-400">
-          {{ thought.authorName || thought.authorEmail || 'Anonymous' }} · {{ formatDate(thought.createdAt) }}
+        <div class="flex items-center gap-3">
+          <!-- Avatar (first letter) -->
+          <div class="h-10 w-10 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold">
+            {{ getDisplayName(thought.authorName, thought.authorEmail).charAt(0).toUpperCase() }}
+          </div>
+          <div class="text-sm">
+            <div class="font-medium text-gray-900 dark:text-white">
+              {{ getDisplayName(thought.authorName, thought.authorEmail) }}
+            </div>
+            <div class="text-gray-500 dark:text-slate-400">{{ formatDate(thought.createdAt) }}</div>
+          </div>
         </div>
         <div class="flex items-center gap-2">
             <!-- Upvote -->
@@ -63,8 +72,17 @@
     <!-- Comments -->
     <div class="space-y-4">
       <div v-for="c in comments" :key="c.id" class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700">
-        <div class="text-sm text-gray-500 dark:text-slate-400">
-          {{ c.authorName || c.authorEmail || 'Anonymous' }} · {{ formatDate(c.createdAt) }}
+        <div class="flex items-center gap-3 mb-3">
+          <!-- Avatar (first letter) -->
+          <div class="h-8 w-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold text-sm">
+            {{ getDisplayName(c.authorName, c.authorEmail).charAt(0).toUpperCase() }}
+          </div>
+          <div class="text-sm">
+            <div class="font-medium text-gray-900 dark:text-white">
+              {{ getDisplayName(c.authorName, c.authorEmail) }}
+            </div>
+            <div class="text-gray-500 dark:text-slate-400">{{ formatDate(c.createdAt) }}</div>
+          </div>
         </div>
         <p class="mt-2 text-gray-800 dark:text-slate-200 whitespace-pre-wrap">{{ c.body }}</p>
         <div class="mt-3 flex items-center gap-2">
@@ -126,8 +144,42 @@ const nextCursor = ref(null);
 const newComment = ref('');
 const isAuthenticated = checkAuth();
 
+// Helper: Extract username from email or use name
+function getDisplayName(authorName, authorEmail) {
+  if (authorName.trim().includes('@')){
+    return authorName.split('@')[0][0].toUpperCase() + authorName.split('@')[0].slice(1);
+  }else if(!authorName.trim().includes('@')) {
+    return authorName
+  }else{
+  return 'Anonymous';
+}
+}
+
+// Helper: Format as relative time
 function formatDate(iso) {
-  try { return new Date(iso).toLocaleString(); } catch { return '' }
+  if (!iso) return '';
+  try {
+    const date = new Date(iso);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+    
+    if (diffSec < 60) return diffSec <= 1 ? 'just now' : `${diffSec}s ago`;
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHour < 24) return `${diffHour}h ago`;
+    if (diffDay < 30) return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`;
+    
+    const diffMonth = Math.floor(diffDay / 30);
+    if (diffMonth < 12) return `${diffMonth} month${diffMonth === 1 ? '' : 's'} ago`;
+    
+    const diffYear = Math.floor(diffDay / 365);
+    return `${diffYear} year${diffYear === 1 ? '' : 's'} ago`;
+  } catch {
+    return '';
+  }
 }
 
 async function loadThought() {
