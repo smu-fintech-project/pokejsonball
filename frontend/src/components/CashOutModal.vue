@@ -55,6 +55,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { API_BASE } from '@/utils/env'
 
 const props = defineProps({
   show: Boolean,
@@ -98,7 +99,7 @@ async function handleCashOut() {
 
   try {
     const token = localStorage.getItem('token')
-    const resp = await fetch('http://localhost:3001/api/wallet/cash-out', {
+    const resp = await fetch(`${API_BASE}/api/wallet/cash-out`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

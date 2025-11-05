@@ -454,7 +454,7 @@ onMounted(async () => {
 async function loadWallet() {
   try {
     const token = localStorage.getItem('token')
-    const resp = await fetch('http://localhost:3001/api/wallet', {
+    const resp = await fetch(`${API_BASE}/api/wallet`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     const data = await resp.json()
@@ -471,7 +471,7 @@ async function loadAccountStatus() {
   accountLoading.value = true
   try {
     const token = localStorage.getItem('token')
-    const resp = await fetch('http://localhost:3001/api/wallet/stripe-account-status', {
+    const resp = await fetch(`${API_BASE}/api/wallet/stripe-account-status`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     
@@ -495,7 +495,7 @@ async function loadTransactions() {
   loading.value = true
   try {
     const token = localStorage.getItem('token')
-    const resp = await fetch('http://localhost:3001/api/wallet', {
+    const resp = await fetch(`${API_BASE}/api/wallet`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     const data = await resp.json()
@@ -541,7 +541,7 @@ async function handleLinkAccount() {
   linkingAccount.value = true
   try {
     const token = localStorage.getItem('token')
-    const resp = await fetch('http://localhost:3001/api/wallet/create-connect-account', {
+    const resp = await fetch(`${API_BASE}/api/wallet/create-connect-account`, {
       method: 'POST',
       headers: { 
         'Authorization': `Bearer ${token}`,

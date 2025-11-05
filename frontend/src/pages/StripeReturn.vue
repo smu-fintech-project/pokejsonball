@@ -35,6 +35,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE } from '@/utils/env'
 
 const router = useRouter()
 const loading = ref(true)
@@ -48,7 +49,7 @@ onMounted(async () => {
 async function checkAccountStatus() {
   try {
     const token = localStorage.getItem('token')
-    const resp = await fetch('http://localhost:3001/api/wallet/stripe-account-status', {
+    const resp = await fetch(`${API_BASE}/api/wallet/stripe-account-status`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     

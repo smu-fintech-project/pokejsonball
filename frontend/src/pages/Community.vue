@@ -585,6 +585,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { fetchThoughts, createThoughtApi, voteThought, fetchCommunities, createCommunityApi, toggleCommunityFavourite } from '@/utils/api'; 
 import { isAuthenticated as checkAuth } from '@/utils/api';
+import { API_BASE } from '@/utils/env';
 
 const thoughts = ref([]);
 const nextCursor = ref(null);
@@ -766,7 +767,7 @@ async function uploadImage(file) {
   formData.append('image', file);
   
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-  const response = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:3001'}/api/thoughts/upload-image`, {
+  const response = await fetch(`${API_BASE}/api/thoughts/upload-image`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`
@@ -1023,5 +1024,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-

@@ -29,6 +29,7 @@
 <script setup>
 import { ref } from 'vue'
 import { loadStripe } from '@stripe/stripe-js'
+import { API_BASE } from '@/utils/env'
 
 const emit = defineEmits(['close', 'success'])
 const amount = ref(10)
@@ -41,7 +42,7 @@ async function startPayment() {
   error.value = ''
   try {
     const token = localStorage.getItem('token')
-    const resp = await fetch('http://localhost:3001/api/wallet/purchase-jsb', {
+    const resp = await fetch(`${API_BASE}/api/wallet/purchase-jsb`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
