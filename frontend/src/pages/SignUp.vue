@@ -158,6 +158,8 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
+import { API_BASE } from '@/utils/env';
+
 const router = useRouter();
 const name = ref('');
 const email = ref('');
@@ -194,7 +196,7 @@ async function handleSignup() {
 
     console.log('Attempting signup with name...');
 
-    const response = await axios.post('http://localhost:3001/api/auth/signup', {
+    const response = await axios.post(`${API_BASE}/api/auth/signup`, {
       name: name.value.trim(),
       email: email.value,
       password: password.value

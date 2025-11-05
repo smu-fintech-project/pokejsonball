@@ -45,11 +45,15 @@ npm run seed:history    # Backfill 100 days of portfolio data
 
 ### Environment Setup
 
+Copy the example files (`backend/.env.example`, `frontend/.env.example`) to real `.env` files before running locally or deploying.
+
 **Backend `.env`** (in `backend/` directory):
 ```env
 # Server
 PORT=3001
 FRONTEND_URL=http://localhost:3000
+# Optional: allow multiple origins (comma separated)
+# FRONTEND_URLS=http://localhost:3000,https://preview-your-app.vercel.app
 
 # Firebase Configuration
 FIREBASE_PROJECT_ID=your_project_id
@@ -64,10 +68,21 @@ POKEMON_TCG_API_KEY=your_pokemon_tcg_api_key
 JWT_SECRET=your-super-secret-jwt-key
 ```
 
+For production, update the server section to mirror your deployed domains, for example:
+
+```env
+FRONTEND_URL=https://pokejsonball.com
+FRONTEND_URLS=https://pokejsonball.com,https://www.pokejsonball.com,https://marcus-pokejsonball.vercel.app,http://localhost:3000
+```
+
 **Frontend `.env`** (in `frontend/` directory):
 ```env
 VITE_API_BASE=http://localhost:3001
+# Optional: override socket base; defaults to VITE_API_BASE
+# VITE_API_URL=http://localhost:3001
 ```
+
+When deploying, swap these values for your production Railway and Vercel domains.
 
 ### Running the Application
 
@@ -84,6 +99,35 @@ cd frontend
 npm run dev
 ```
 App runs on http://localhost:3000
+
+## 🚢 Deployment (Railway + Vercel)
+
+### Backend on Railway
+1. Push the repository to GitHub (or connect the repo you already have).
+2. In Railway, create a **New Project → Deploy from GitHub** and select this repo's `backend/` folder.
+3. Set the build and start commands:
+   - Build: `npm install`
+   - Start: `npm start`
+4. In **Variables**, add every key from `backend/.env.example`. Remember to:
+   - Paste the Firebase private key with escaped newlines (`\n`).
+   - Point `FRONTEND_URL` to your primary production domain (e.g. `https://pokejsonball.com`) and list every additional origin (preview domains, localhost, etc.) in `FRONTEND_URLS`.
+   - Keep a strong, unique `JWT_SECRET`.
+5. Deploy. Railway will expose a public URL like `https://pokejsonball-production.up.railway.app`.
+
+### Frontend on Vercel
+1. In Vercel, create a new project and import the same GitHub repo.
+2. When prompted, set:
+   - Framework Preset: **Vite**
+   - Root Directory: `frontend`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+3. Add environment variable `VITE_API_BASE` and set it to the Railway URL from the backend deploy.
+4. Trigger the deploy. Once live, update the backend `FRONTEND_URL`/`FRONTEND_URLS` to include the production and preview domains served by Vercel (and any custom domains such as `https://pokejsonball.com`), then redeploy the backend so CORS and Socket.IO allow the new origins.
+
+### Post-Deploy Checklist
+- Run the seeding scripts against Railway (`npm run seed:users`, `npm run seed:history`) either locally with the production env vars exported or via Railway one-off jobs.
+- Test login, chat, portfolio charts, and image proxy in production.
+- Configure custom domains/SSL in Railway and Vercel when ready.
 
 ## 🔐 Admin Access
 
@@ -677,3 +721,7 @@ MIT License
 ---
 
 **Questions?** Check troubleshooting or open a GitHub issue.
+
+
+
+hehe xd redeploy test
