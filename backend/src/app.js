@@ -39,6 +39,9 @@ import certRoutes from "./routes/certs.js";
 import walletRoute from "./routes/wallet.js";
 import chatRoutes from "./routes/chat.js";
 import portfolioRoutes from "./routes/portfolio.js";
+import thoughtsRoutes from './routes/thoughts.js';
+import { communitiesRouter } from './routes/thoughts.js';
+import adminRoutes from './routes/admin.js';
 
 const app = express();
 
@@ -73,6 +76,7 @@ console.log(`PORT: ${process.env.PORT || 3001}`);
 console.log(`FRONTEND_URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
 console.log(`DATABASE: Firebase Firestore`);
 console.log(`FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID || '❌ Missing'}`);
+console.log(`VITE_FIREBASE_STO: ${process.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Configured' : '❌ Missing'}`);
 console.log(`JWT_SECRET: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing'}`);
 console.log(`PSA_API_KEY: ${process.env.PSA_API_KEY ? '✅ Configured' : '❌ Missing'}`);
 console.log(`POKEMON_TCG_API_KEY: ${process.env.POKEMON_TCG_API_KEY ? '✅ Configured' : '❌ Missing'}`);
@@ -121,6 +125,9 @@ app.use("/api/chat", chatRoutes); // Chat/messaging routes
 app.use("/api/portfolio", portfolioRoutes); // Portfolio history and analytics
 app.use('/api/offers', offersRoutes);
 app.use('/api/transactions', transactionsRoutes);
+app.use('/api/thoughts', thoughtsRoutes);
+app.use('/api/communities', communitiesRouter);
+app.use('/api/admin', adminRoutes); // Admin-only routes
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running ✅" });

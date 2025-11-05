@@ -100,19 +100,22 @@ router.post("/login", async (req, res) => {
       { 
         email: userData.email,
         userId: userDoc.id,
-        username: userData.name, 
+        username: userData.name,
+        avatar: userData.avatar || null,
+        isAdmin: userData.isAdmin || false,
       }, 
       process.env.JWT_SECRET, 
       { expiresIn: "24h" }
     );
     
-    console.log(`✅ User logged in: ${userData.name} (${email})`);
+    console.log(`✅ User logged in: ${userData.name} (${email})${userData.isAdmin ? ' [ADMIN]' : ''}`);
     
     res.json({ 
       token,
       email: userData.email,
       userId: userDoc.id,
       username: userData.name,
+      isAdmin: userData.isAdmin || false,
       message: "Login successful ✅"
     });
     

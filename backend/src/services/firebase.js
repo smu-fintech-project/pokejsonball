@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 let db = null;
+let storage = null;
 
 export function initializeFirebase() {
   if (!db) {
@@ -25,11 +26,13 @@ export function initializeFirebase() {
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
           projectId: process.env.FIREBASE_PROJECT_ID,
+          storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
         });
         console.log('Firebase initialized successfully from firebase.js');
       }
 
       db = admin.firestore();
+      storage = admin.storage();
     } catch (error) {
       console.error('Firebase initialization failed:', error.message);
       throw error;
@@ -46,4 +49,11 @@ export function getFirestore() {
   return db;
 }
 
-export default { initializeFirebase, getFirestore };
+export function getStorage() {
+  if (!storage) {
+    initializeFirebase();
+  }
+  return storage;
+}
+
+export default { initializeFirebase, getFirestore, getStorage };
