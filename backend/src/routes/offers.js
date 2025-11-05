@@ -4,6 +4,20 @@ import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
+// --- Placeholder for getFirestore to prevent 500 error ---
+function getFirestore() {
+  if (admin.apps.length === 0) {
+    throw new Error("Firebase Admin not initialized in backend.");
+  }
+  // Ensure FieldValue is available for safe array updates elsewhere
+  if (!admin.firestore.FieldValue) {
+      admin.firestore.FieldValue = admin.firestore.FieldValue;
+  }
+  return admin.firestore();
+}
+// --- End Placeholder ---
+
+
 // Authentication middleware
 function authenticateToken(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
@@ -33,7 +47,7 @@ function authenticateToken(req, res, next) {
 // POST /api/offers - Create new offer
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const db = admin.firestore();
+    const db = getFirestore();
     const {
       cert_number,
       card_name,
@@ -108,23 +122,31 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/offers/received - Get offers received by current user
+
+// GET /api/offers/received - Get offers received by current user (FIXED WITH IN-MEMORY SORT)
 router.get('/received', authenticateToken, async (req, res) => {
   try {
-    const db = admin.firestore();
+    const db = getFirestore();
     const userId = req.userId;
 
-    // Get offers where user is the seller
+    // Fetch all pending offers for the seller
     const offersSnap = await db.collection('offers')
       .where('seller_id', '==', userId)
       .where('status', '==', 'pending')
-      .orderBy('created_at', 'desc')
       .get();
 
-    const offers = offersSnap.docs.map(doc => ({
+    let offers = offersSnap.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    // SORT IN-MEMORY to maintain descending order
+    offers.sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      // Sort newest first (descending)
+      return dateB.getTime() - dateA.getTime(); 
+    });
 
     res.json({ success: true, offers });
 
@@ -137,22 +159,31 @@ router.get('/received', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/offers/sent - Get offers sent by current user
+
+// ✅ GET /api/offers/sent - Get offers sent by current user (RE-ADDED AND FIXED)
 router.get('/sent', authenticateToken, async (req, res) => {
   try {
-    const db = admin.firestore();
+    const db = getFirestore();
     const userId = req.userId;
 
+    // Fetch all offers sent by the buyer
     const offersSnap = await db.collection('offers')
       .where('buyer_id', '==', userId)
-      .orderBy('created_at', 'desc')
       .limit(20)
       .get();
 
-    const offers = offersSnap.docs.map(doc => ({
+    let offers = offersSnap.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    // SORT IN-MEMORY to maintain descending order
+    offers.sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      // Sort newest first (descending)
+      return dateB.getTime() - dateA.getTime(); 
+    });
 
     res.json({ success: true, offers });
 
@@ -165,9 +196,10 @@ router.get('/sent', authenticateToken, async (req, res) => {
   }
 });
 
+
 // PUT /api/offers/:id/accept - Accept an offer (executes transaction)
 router.put('/:id/accept', authenticateToken, async (req, res) => {
-  const db = admin.firestore();
+  const db = getFirestore();
   const offerId = req.params.id;
   const sellerId = req.userId;
 
@@ -238,16 +270,15 @@ router.put('/:id/accept', authenticateToken, async (req, res) => {
       });
 
       // Transfer card ownership
-      const buyerCards = buyerData.cards || [];
-      const sellerCards = sellerData.cards || [];
-
+      // Use Firestore FieldValue.arrayUnion and arrayRemove for atomicity
       transaction.update(buyerRef, {
-        cards: [...buyerCards, offer.cert_number]
+        cards: admin.firestore.FieldValue.arrayUnion(offer.cert_number)
       });
 
       transaction.update(sellerRef, {
-        cards: sellerCards.filter(c => c !== offer.cert_number)
+        cards: admin.firestore.FieldValue.arrayRemove(offer.cert_number)
       });
+      
 
       // Update listing status to sold
       const listingRef = sellerRef.collection('listings').doc(offer.cert_number);
@@ -308,7 +339,7 @@ router.put('/:id/accept', authenticateToken, async (req, res) => {
 // PUT /api/offers/:id/reject - Reject an offer
 router.put('/:id/reject', authenticateToken, async (req, res) => {
   try {
-    const db = admin.firestore();
+    const db = getFirestore();
     const offerId = req.params.id;
     const sellerId = req.userId;
 

@@ -1461,6 +1461,7 @@ function formatJoinDate(timestamp) {
   }
 
   // Load sent offers (offers buyers made)
+  // Load sent offers (offers you made)
   async function loadSentOffers() {
     const token = localStorage.getItem('token');
     
@@ -1468,6 +1469,7 @@ function formatJoinDate(timestamp) {
     
     if (!token) {
       console.warn('⚠️ No token found');
+      sentOffers.value = [];
       return;
     }
 
@@ -1478,21 +1480,24 @@ function formatJoinDate(timestamp) {
 
       console.log('📤 Sent offers response status:', resp.status);
 
+      // Attempt to parse JSON, but use the status code if parsing fails on a server error
+      const data = await resp.json().catch(() => ({})); 
+
       if (resp.ok) {
-        const data = await resp.json();
         console.log('📤 Sent offers data:', data);
         sentOffers.value = data.offers || [];
         console.log('✅ Loaded', sentOffers.value.length, 'sent offers');
       } else {
-        console.error('❌ Failed to load sent offers:', resp.status);
+        // If status is not OK (e.g., 500, 403, 404)
+        const errorMessage = data.message || data.error || `Server Error (Status ${resp.status})`;
+        console.error('❌ Failed to load sent offers:', errorMessage);
         sentOffers.value = [];
       }
     } catch (error) {
-      console.error('❌ Failed to load sent offers:', error);
+      console.error('❌ Failed to load sent offers (Network/Unknown Error):', error);
       sentOffers.value = [];
     }
   }
-
   // Accept an offer
   async function acceptOffer(offerId) {
     const token = localStorage.getItem('token');
