@@ -1,16 +1,16 @@
 <template>
-  <div
-    >
+  <div>
     <div class="max-w-[90rem] mx-auto px-4 py-8 space-y-8">
       <!-- 3D Pokeball Hero Section -->
-      <section class="relative overflow-hidden bg-[radial-gradient(circle_at_center,_#e5e7eb_0%,_#dfe3e8_30%,_#ffffff_100%)] dark:bg-[radial-gradient(circle_at_center,_#0f172a_0%,_#1e293b_100%)] rounded-3xl p-8 md:p-12 shadow-2xl">
-         
+      <section
+        class="relative overflow-hidden bg-[radial-gradient(circle_at_center,_#e5e7eb_0%,_#dfe3e8_30%,_#ffffff_100%)] dark:bg-[radial-gradient(circle_at_center,_#0f172a_0%,_#1e293b_100%)] rounded-3xl p-8 md:p-12 shadow-2xl">
+
         <div class="text-center">
           <!-- 3D Pokeball Canvas -->
           <div ref="canvasContainer" class="w-full h-80 mb-8 cursor-grab active:cursor-grabbing">
             <canvas ref="canvas" class="w-full h-full"></canvas>
           </div>
-          
+
           <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
             <span class="inline-block hover:scale-110 transition-transform text-gray-900 dark:text-white">Catch</span>
             <span class="inline-block hover:scale-110 transition-transform text-red-500"> 'Em</span>
@@ -18,144 +18,147 @@
             <span class="inline-block hover:scale-110 transition-transform text-yellow-500 mr-5">All</span>
             <span class="inline-block hover:scale-110 transition-transform text-gray-900 dark:text-white">Again</span>
           </h1>
-          
+
           <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Join Singapore's newest & most trusted pokemon community. <br />Live prices, PSA-graded cards, and secure P2P trading guaranteed!
+            Join Singapore's newest & most trusted pokemon community. <br />Live prices, PSA-graded cards, and secure
+            P2P trading guaranteed!
           </p>
-          
+
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button @click="scrollToFeatured" class="px-8 py-4 bg-red-500 text-white rounded-full font-bold text-lg hover:bg-red-600 transition-all shadow-xl hover:shadow-2xl hover:scale-105">
+            <button @click="scrollToFeatured"
+              class="px-8 py-4 bg-red-500 text-white rounded-full font-bold text-lg hover:bg-red-600 transition-all shadow-xl hover:shadow-2xl hover:scale-105">
               Begin Adventure →
             </button>
-            <router-link v-if="!isLoggedIn" to="/login" class="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-50 transition-all shadow-lg border-2 border-gray-200">
+            <router-link v-if="!isLoggedIn" to="/login"
+              class="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-50 transition-all shadow-lg border-2 border-gray-200">
               Login / Sign Up
             </router-link>
           </div>
         </div>
       </section>
 
-<!-- Main Search & Filter Bar -->
-<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-slate-700">
-  <!-- Search Row -->
-  <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-    <!-- Search Input -->
-    <div class="flex-1 relative">
-      <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-      <input
-        type="text"
-        placeholder="Search cards..."
-        v-model="searchTerm"
-        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm"
-      />
-    </div>
+      <!-- Main Search & Filter Bar -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-slate-700">
+        <!-- Search Row -->
+        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <!-- Search Input -->
+          <div class="flex-1 relative">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input type="text" placeholder="Search cards..." v-model="searchTerm"
+              class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm" />
+          </div>
 
-    <!-- Filter Toggle -->
-    <button @click="showFilters = !showFilters"
-      :class="[
-        'flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all whitespace-nowrap',
-        showFilters
-          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-          : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600'
-      ]"
-    >
-      <Filter class="w-4 h-4" />
-      <span>Filters</span>
-      <svg :class="['w-4 h-4 transition-transform', showFilters ? 'rotate-180' : '']"
-        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-      </svg>
-    </button>
-  </div>
+          <!-- Filter Toggle -->
+          <button @click="showFilters = !showFilters" :class="[
+            'flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all whitespace-nowrap',
+            showFilters
+              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+              : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600'
+          ]">
+            <Filter class="w-4 h-4" />
+            <span>Filters</span>
+            <svg :class="['w-4 h-4 transition-transform', showFilters ? 'rotate-180' : '']"
+              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
 
-  
 
-  <!-- Filters Panel -->
-  <div v-if="showFilters" class="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-      <!-- Sort Dropdown -->
-      <div>
-        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Sort By</label>
-        <div class="relative">
-          <select
-            v-model="sortBy"
-            class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white text-sm appearance-none cursor-pointer focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 pr-8 transition-all"
-          >
-            <option value="name-asc">Name: A-Z</option>
-            <option value="name-desc">Name: Z-A</option>
-            <option value="price-low">Price: Low→High</option>
-            <option value="price-high">Price: High→Low</option>
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-          </select>
-          <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
-            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+
+        <!-- Filters Panel -->
+        <div v-if="showFilters" class="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <!-- Sort Dropdown -->
+            <div>
+              <label
+                class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Sort
+                By</label>
+              <div class="relative">
+                <select v-model="sortBy"
+                  class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white text-sm appearance-none cursor-pointer focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 pr-8 transition-all">
+                  <option value="name-asc">Name: A-Z</option>
+                  <option value="name-desc">Name: Z-A</option>
+                  <option value="price-low">Price: Low→High</option>
+                  <option value="price-high">Price: High→Low</option>
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                </select>
+                <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+
+
+            <!-- Price Range -->
+            <div class="ml-4">
+              <label
+                class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Price
+                Range ($)</label>
+              <div class="flex gap-2 items-center">
+                <input type="number" min="0" max="1000" v-model.number="priceRange[0]"
+                  class="w-16 px-2 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" />
+                <span class="text-gray-400">-</span>
+                <input type="number" min="0" max="1000" v-model.number="priceRange[1]"
+                  class="w-16 px-2 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" />
+              </div>
+            </div>
+
+            <!-- PSA Grade -->
+            <div>
+              <label
+                class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">PSA
+                Grade</label>
+              <div class="relative">
+                <select v-model="selectedGrade"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none pr-8 transition-all">
+                  <option value="all">All</option>
+                  <option value="PSA 10">PSA 10</option>
+                  <option value="PSA 9">PSA 9</option>
+                  <option value="PSA 8">PSA 8</option>
+                  <option value="PSA 7">PSA 7</option>
+                  <option value="PSA 6">PSA 6</option>
+                  <option value="PSA 5">PSA 5</option>
+                  <option value="PSA 4">PSA 4</option>
+                  <option value="PSA 3">PSA 3</option>
+                  <option value="PSA 2">PSA 2</option>
+                  <option value="PSA 1">PSA 1</option>
+
+                </select>
+                <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Clear Filters Button -->
+            <div class="flex gap-3 items-end">
+              <button
+                v-if="searchTerm || selectedGrade !== 'all' || selectedRarity !== 'all' || priceRange[0] > 0 || priceRange[1] < 1000 || sortBy !== 'name-asc'"
+                @click="resetAllFilters"
+                class="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
+                Clear All
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      
+      <div class="flex items-center gap-3 mr-2 justify-self-end">
 
-      <!-- Price Range -->
-      <div class="ml-4">
-        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">Price Range ($)</label>
-        <div class="flex gap-2 items-center"> 
-          <input type="number" min="0" max="1000" v-model.number="priceRange[0]"
-            class="w-16 px-2 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" />
-          <span class="text-gray-400">-</span>
-          <input type="number" min="0" max="1000" v-model.number="priceRange[1]"
-            class="w-16 px-2 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all" />
-        </div>
-      </div>
-
-      <!-- PSA Grade -->
-      <div>
-        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">PSA Grade</label>
-        <div class="relative">
-          <select v-model="selectedGrade"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 rounded text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none pr-8 transition-all">
-            <option value="all">All</option>
-            <option value="PSA 10">PSA 10</option>
-            <option value="PSA 9">PSA 9</option>
-            <option value="PSA 8">PSA 8</option>
-            <option value="PSA 7">PSA 7</option>
-            <option value="PSA 6">PSA 6</option>
-            <option value="PSA 5">PSA 5</option>
-            <option value="PSA 4">PSA 4</option>
-            <option value="PSA 3">PSA 3</option>
-            <option value="PSA 2">PSA 2</option>
-            <option value="PSA 1">PSA 1</option>
-            
-          </select>
-          <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
-            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </div>
-
-        <!-- Clear Filters Button -->
-      <div class="flex gap-3 items-end">
-        <button v-if="searchTerm || selectedGrade !== 'all' || selectedRarity !== 'all' || priceRange[0] > 0 || priceRange[1] < 1000 || sortBy !== 'name-asc'" @click="resetAllFilters"
-          class="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
-          Clear All
+        <button @click="showOwnCards = !showOwnCards"
+          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+          :class="showOwnCards ? 'bg-green-600' : 'bg-gray-300 dark:bg-slate-600'">
+          <span class="sr-only">Toggle owned cards</span>
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+            :class="showOwnCards ? 'translate-x-6' : 'translate-x-1'" />
         </button>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Hide Owned</span>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="flex items-center gap-3 mr-2 justify-self-end">
-  
-  <button @click="showOwnCards = !showOwnCards"
-    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-    :class="showOwnCards ? 'bg-green-600' : 'bg-gray-300 dark:bg-slate-600'">
-    <span class="sr-only">Toggle owned cards</span>
-    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-      :class="showOwnCards ? 'translate-x-6' : 'translate-x-1'" />
-  </button>
-    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Hide Owned</span>
-</div>
 
       <!-- Watchlist feature -->
       <div v-if="watchlist.length > 0"
@@ -174,7 +177,7 @@
         <div class=" -ml-6 flex items-center justify-between mb-6">
           <h2 id="featured-cards" class="text-2xl font-bold flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"></svg>
-            Featured PSA-Certified Cards
+            Listed PSA-Certified Cards
             <span class="text-m font-normal text-gray-500">Total ({{ filteredCards.length }} cards)</span>
           </h2>
         </div>
@@ -186,20 +189,22 @@
         </div>
 
         <!-- Error State -->
-        <div v-else-if="loadError" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center">
+        <div v-else-if="loadError"
+          class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center">
           <p class="text-red-600 dark:text-red-400 font-semibold mb-2">⚠️ {{ loadError }}</p>
           <p class="text-sm text-gray-600 dark:text-slate-400">Make sure your backend is running on port 3001</p>
-          <button @click="loadFeaturedCards" class="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+          <button @click="loadFeaturedCards"
+            class="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
             Retry
           </button>
         </div>
 
         <!-- Cards Grid -->
-      <div v-else class="cards-grid grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div v-else class="cards-grid grid grid-cols-1 md:grid-cols-3 gap-6">
           <div v-for="card in filteredCards" :key="card.id"
             class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden">
             <!-- <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800"> -->
-              <div class="relative p-4">
+            <div class="relative p-4">
               <button @click="toggleWatchlist(card.id)"
                 class="absolute top-2 right-2 z-10 p-2 rounded-full backdrop-blur-sm transition-all" :class="watchlist.includes(card.id)
                   ? 'bg-red-500 text-white'
@@ -211,7 +216,7 @@
 
             <div class="p-4">
               <div class="flex items-start justify-between mb-2">
-                <div class = "min-w-0">
+                <div class="min-w-0">
                   <h3 class="font-sans font-bold text-xl">{{ toTitleCase(card.title) }}</h3>
                   <p class="font-mono text-m text-gray-500 dark:text-slate-400 truncate">{{ card.set }}</p>
                 </div>
@@ -223,7 +228,7 @@
 
               <div class="flex items-center justify-between pt-3 border-t dark:border-slate-700">
                 <div>
-                  <p class="text-xl font-black text-black">
+                  <p class="text-xl font-black text-black dark:text-white">
                     <img :src="jsbImg" alt="JSB" class="inline h-[32px] w-[32px] align-[-8px]" />
                     {{ card.price }}
                   </p>
@@ -244,10 +249,12 @@
     </div>
 
     <!-- Card Detail Modal -->
-    <div v-if="selectedCard" @click="closeModal" 
+    <div v-if="selectedCard" @click="closeModal"
       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
-        <div class="sticky top-0 bg-gradient-to-r from-red-600 via-red-500 to-red-600 p-6 flex items-center justify-between z-10">
+      <div @click.stop
+        class="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto">
+        <div
+          class="sticky top-0 bg-gradient-to-r from-red-600 via-red-500 to-red-600 p-6 flex items-center justify-between z-10">
           <h2 class="text-2xl font-black text-white">Card Details</h2>
           <button @click="closeModal" class="p-2 hover:bg-white/20 rounded-lg transition-all">
             <X class="w-6 h-6 text-white" />
@@ -258,7 +265,8 @@
           <div class="grid md:grid-cols-2 gap-8">
             <!-- Card Image -->
             <div class="relative">
-              <div class="sticky top-24 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800 rounded-2xl p-6 shadow-lg">
+              <div
+                class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800 rounded-2xl p-6 shadow-lg flex items-center justify-center min-h-[480px] md:min-h-[520px]">
                 <img :src="selectedCard.img" :alt="selectedCard.title" class="w-full object-contain max-h-96" />
               </div>
             </div>
@@ -267,67 +275,74 @@
             <div class="space-y-4">
   <h4 class="font-bold text-lg">Card Information</h4>
 
-  
-
-  <!-- Card Details Grid -->
   <div class="grid grid-cols-2 gap-4">
-    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-      <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">PSA Population</p>
-      <p class="font-semibold">{{ selectedCard.db?.psa_population || 'Unavailable' }}</p>
+    <div class="bg-white dark:bg-slate-700 rounded-xl p-3 border border-gray-200 dark:border-slate-600">
+      <p class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">PSA Population</p>
+      <p class="font-bold text-lg">{{ selectedCard.db?.psa_population || '—' }}</p>
     </div>
-    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-      <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Grade Description</p>
-      <p class="font-semibold">{{ selectedCard.db?.grade_description || 'Unavailable' }}</p>
+    <div class="bg-white dark:bg-slate-700 rounded-xl p-3 border border-gray-200 dark:border-slate-600">
+      <p class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Grade Description</p>
+      <p class="font-bold text-lg truncate">{{ selectedCard.db?.grade_description || '—' }}</p>
     </div>
-    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-      <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Art Style</p>
-      <p class="font-semibold">{{ selectedCard.db?.variety || 'Unavailable' }}</p>
+    <div class="bg-white dark:bg-slate-700 rounded-xl p-3 border border-gray-200 dark:border-slate-600">
+    <p class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Art Style</p>
+    <p class="font-bold text-lg">
+      {{ selectedCard.db?.variety || '—' }}
+    </p>
     </div>
-    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-      <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Release Year</p>
-      <p class="font-semibold">{{ selectedCard.db?.release_year || 'Unavailable' }}</p>
-    </div>
-  </div>
-
-  <!-- Seller Info -->
-  <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-4 border-2 border-purple-200 dark:border-purple-800">
-    <p class="text-sm font-semibold mb-2">Seller Information</p>
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-        <User class="w-5 h-5 text-white" />
-      </div>
-      <div class="flex-1">
-        <p class="font-semibold">{{ selectedCard.sellerName || selectedCard.sellerEmail || 'Unknown Seller' }}</p>
-        <p v-if="selectedCard.reviewStats?.reviewCount"
-           class="text-sm text-gray-500">
-          ⭐ {{ Number(selectedCard.reviewStats.averageRating || 0).toFixed(1) }}
-          ({{ selectedCard.reviewStats.reviewCount }}
-          {{ selectedCard.reviewStats.reviewCount === 1 ? 'review' : 'reviews' }})
-        </p>
-        <p v-else class="text-sm text-gray-500">
-          ⭐ No reviews yet
-        </p>
-      </div>
+    <div class="bg-white dark:bg-slate-700 rounded-xl p-3 border border-gray-200 dark:border-slate-600">
+      <p class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Release Year</p>
+      <p class="font-bold text-lg">{{ selectedCard.db?.release_year || '—' }}</p>
     </div>
   </div>
 
-  <!-- Delivery/Meetup Information -->
-  <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 border-2 border-purple-200 dark:border-purple-800">
-    <p class="text-xs text-purple-600 dark:text-purple-400 mb-1 font-semibold">Delivery Options</p>
-    <div class="flex items-center gap-2">
-      <svg v-if="selectedCard.delivery === 'meetup'" class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-      </svg>
-      <svg v-else class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
-      </svg>
-      <span class="font-semibold capitalize">{{ selectedCard.delivery || 'meetup' }}</span>
-      <span class="text-sm text-gray-600 dark:text-gray-400 ml-2">
-        {{ selectedCard.delivery === 'meetup' ? 'Local meetup preferred' : 'Shipping available' }}
-      </span>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div
+      class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4 border border-gray-200 dark:border-slate-600">
+      <p class="text-sm font-semibold mb-2 flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+        <User class="w-4 h-4" />
+        Seller Information
+      </p>
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center flex-shrink-0">
+          <User class="w-4 h-4 text-indigo-600 dark:text-indigo-300" />
+        </div>
+        <div class="flex-1">
+          <p class="font-semibold text-gray-900 dark:text-white">{{ selectedCard.sellerName || selectedCard.sellerEmail || 'Unknown Trainer' }}</p>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <div
+      class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4 border border-gray-200 dark:border-slate-600">
+      <p class="text-sm font-semibold mb-2 flex items-center gap-2 text-red-600 dark:text-red-400">
+        
+        Delivery Method
+      </p>
+      <div class="flex items-center gap-2">
+        <svg v-if="selectedCard.delivery === 'meetup'" class="w-5 h-5 text-green-600" fill="none"
+          stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <svg v-else class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+        </svg>
+        <span class="font-bold capitalize text-gray-900 dark:text-white">
+          {{ selectedCard.delivery || 'meetup' }}
+        </span>
+      </div>
+    </div>
+
+
+
+                <div class="pt-4 space-y-3">
+                </div>
+              </div>
 
 
               <!-- Action Buttons -->
@@ -335,27 +350,21 @@
               <div class="pt-4 space-y-3">
                 <!-- Row 1: Buy + Offer -->
                 <div class="flex gap-3">
-                  <button
-                    @click="handleBuyCard"
-                    :disabled="!selectedCard || !selectedCard.price"
+                  <button @click="handleBuyCard" :disabled="!selectedCard || !selectedCard.price"
                     class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                    Buy Now 
+                    Buy Now
                     <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-4.5px] mr-1" />
                     {{ selectedCard.price }}
                   </button>
 
-                  <button
-                    @click="showOfferModal = true"
-                    :disabled="!selectedCard"
+                  <button @click="showOfferModal = true" :disabled="!selectedCard"
                     class="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
                     Make Offer
                   </button>
                 </div>
                 <!-- Row 2: Message -->
                 <div>
-                  <button
-                    @click="handleMessageSeller"
-                    :disabled="!selectedCard || messagingLoading"
+                  <button @click="handleMessageSeller" :disabled="!selectedCard || messagingLoading"
                     class="w-full px-6 py-4 bg-gradient-to-r from-yellow-500 to-yellow-500 text-white rounded-xl font-bold hover:from-yellow-500 hover:to-yellow-500 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
                     <span v-if="messagingLoading">Loading...</span>
                     <span v-else>Message Seller</span>
@@ -364,197 +373,192 @@
               </div>
             </div>
           </div>
-        </div>       
+        </div>
       </div>
     </div>
     <!-- Make Offer Modal -->
-<div v-if="showOfferModal" @click="closeOfferModal" 
-  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-  <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl p-8">
-    <div class="flex items-center justify-between mb-6">
-      <h3 class="text-2xl font-bold">Make an Offer</h3>
-      <button @click="closeOfferModal" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
-        <X class="w-6 h-6" />
-      </button>
-    </div>
+    <div v-if="showOfferModal" @click="closeOfferModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold">Make an Offer</h3>
+          <button @click="closeOfferModal" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
+            <X class="w-6 h-6" />
+          </button>
+        </div>
 
-    <div class="space-y-4">
-      <!-- Card Info -->
-      <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-        <p class="text-sm text-gray-500 dark:text-slate-400 mb-1">Offering on</p>
-        <p class="font-bold text-lg">{{ selectedCard?.title }}</p>
-        <p class="text-sm text-gray-600 dark:text-slate-300">
-          Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[17px] w-[17px] align-[-2px] mr-1" />{{ selectedCard?.price }}
-        </p>
-      </div>
-
-      <!-- Offer Amount -->
-        <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-            Your Offer Amount (JSB)
-          </label>
-          <div class="relative">
-            <img :src="jsbImg" alt="JSB" class="absolute left-3 top-1/2 -translate-y-1/2 h-[21px] w-[21px]" />
-            <input
-              v-model.number="offerAmount"
-              type="number"
-              :min="1"
-              :max="selectedCard?.price"
-              step="0.01"
-              placeholder="Enter your offer"
-              class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-            />
+        <div class="space-y-4">
+          <!-- Card Info -->
+          <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+            <p class="text-sm text-gray-500 dark:text-slate-400 mb-1">Offering on</p>
+            <p class="font-bold text-lg">{{ selectedCard?.title }}</p>
+            <p class="text-sm text-gray-600 dark:text-slate-300">
+              Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[17px] w-[17px] align-[-2px] mr-1" />{{
+                selectedCard?.price }}
+            </p>
           </div>
-          <p class="text-xs text-gray-500 mt-1">
-            Suggested: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ (selectedCard?.price * 0.9).toFixed(2) }}
-          </p>
-        </div>
 
-        <!-- Optional Message -->
-        <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-            Message to Seller (Optional)
-          </label>
-          <textarea
-            v-model="offerMessage"
-            rows="3"
-            placeholder="Add a message to the seller..."
-            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none"
-          ></textarea>
-        </div>
-        <!-- Correct Action Buttons in Offer Modal -->
-<div class="flex gap-3">
-  <button @click="closeOfferModal" 
-    class="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all">
-    Cancel
-  </button>
-  <button @click="handleMakeOffer" 
-    :disabled="!offerAmount || offerAmount <= 0 || offerLoading"
-    class="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-    <span v-if="offerLoading">Sending...</span>
-    <span v-else>Send Offer</span>
-  </button>
-</div>
-  
+          <!-- Offer Amount -->
+          <div>
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+              Your Offer Amount (JSB)
+            </label>
+            <div class="relative">
+              <img :src="jsbImg" alt="JSB" class="absolute left-3 top-1/2 -translate-y-1/2 h-[21px] w-[21px]" />
+              <input v-model.number="offerAmount" type="number" :min="1" :max="selectedCard?.price" step="0.01"
+                placeholder="Enter your offer"
+                class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" />
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+              Suggested: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{
+                (selectedCard?.price * 0.9).toFixed(2) }}
+            </p>
+          </div>
 
+          <!-- Optional Message -->
+          <div>
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+              Message to Seller (Optional)
+            </label>
+            <textarea v-model="offerMessage" rows="3" placeholder="Add a message to the seller..."
+              class="w-full px-4 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none"></textarea>
+          </div>
+          <!-- Correct Action Buttons in Offer Modal -->
+          <div class="flex gap-3">
+            <button @click="closeOfferModal"
+              class="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all">
+              Cancel
+            </button>
+            <button @click="handleMakeOffer" :disabled="!offerAmount || offerAmount <= 0 || offerLoading"
+              class="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              <span v-if="offerLoading">Sending...</span>
+              <span v-else>Send Offer</span>
+            </button>
+          </div>
+
+
+        </div>
       </div>
     </div>
-  </div>
-  <!-- Transaction Result Modal -->
-  <div v-if="showTransactionModal" @click="closeTransactionModal" 
-    class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
-    <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
-      
-      <!-- Success Header -->
-      <div v-if="transactionResult.success" 
-          class="bg-gradient-to-r from-red-500 to-red-800 p-8 text-center">
-        <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
-        <p class="text-green-100">{{ transactionResult.title }}</p>
-      </div>
+    <!-- Transaction Result Modal -->
+    <div v-if="showTransactionModal" @click="closeTransactionModal"
+      class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+      <div @click.stop
+        class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
 
-      <!-- Error Header -->
-      <div v-else 
-          class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
-        <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+        <!-- Success Header -->
+        <div v-if="transactionResult.success" class="bg-gradient-to-r from-red-500 to-red-800 p-8 text-center">
+          <div
+            class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
+          <p class="text-green-100">{{ transactionResult.title }}</p>
         </div>
-        <h2 class="text-3xl font-black text-white mb-2">Transaction Failed</h2>
-        <p class="text-red-100">{{ transactionResult.title }}</p>
-      </div>
 
-      <!-- Content -->
-      <div class="p-8">
-        <!-- Success Content -->
-        <div v-if="transactionResult.success" class="space-y-6">
-          <!-- Transaction Details -->
-          <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border-2 border-green-200 dark:border-green-800">
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Card</span>
-                <span class="font-bold text-gray-900 dark:text-white">{{ transactionResult.cardName }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Amount Paid</span>
-                <div class="flex items-center gap-1">
-                  <img :src="jsbImg" alt="JSB" class="h-[18px] w-[18px]" />
-                  <span class="font-black text-xl text-green-600">{{ transactionResult.amount }}</span>
+        <!-- Error Header -->
+        <div v-else class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
+          <div
+            class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h2 class="text-3xl font-black text-white mb-2">Transaction Failed</h2>
+          <p class="text-red-100">{{ transactionResult.title }}</p>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8">
+          <!-- Success Content -->
+          <div v-if="transactionResult.success" class="space-y-6">
+            <!-- Transaction Details -->
+            <div
+              class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border-2 border-green-200 dark:border-green-800">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Card</span>
+                  <span class="font-bold text-gray-900 dark:text-white">{{ transactionResult.cardName }}</span>
                 </div>
-              </div>
-              <div v-if="transactionResult.newBalance !== undefined" class="flex justify-between items-center pt-3 border-t border-green-200 dark:border-green-800">
-                <span class="text-sm text-gray-600 dark:text-gray-400">New Balance</span>
-                <div class="flex items-center gap-1">
-                  <img :src="jsbImg" alt="JSB" class="h-[18px] w-[18px]" />
-                  <span class="font-bold text-gray-900 dark:text-white">{{ transactionResult.newBalance?.toFixed(2) }}</span>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Amount Paid</span>
+                  <div class="flex items-center gap-1">
+                    <img :src="jsbImg" alt="JSB" class="h-[18px] w-[18px]" />
+                    <span class="font-black text-xl text-green-600">{{ transactionResult.amount }}</span>
+                  </div>
+                </div>
+                <div v-if="transactionResult.newBalance !== undefined"
+                  class="flex justify-between items-center pt-3 border-t border-green-200 dark:border-green-800">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">New Balance</span>
+                  <div class="flex items-center gap-1">
+                    <img :src="jsbImg" alt="JSB" class="h-[18px] w-[18px]" />
+                    <span class="font-bold text-gray-900 dark:text-white">{{ transactionResult.newBalance?.toFixed(2)
+                      }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Success Message -->
-          <p class="text-center text-gray-600 dark:text-gray-300">
-            {{ transactionResult.message }}
-          </p>
-
-          <!-- Action Buttons -->
-          <div class="flex gap-3">
-            <button @click="closeTransactionModal" 
-                    class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg">
-              Awesome!
-            </button>
-            <button @click="goToProfile" 
-                    class="flex-1 px-6 py-3 bg-white dark:bg-slate-700 border-2 border-yellow-600 dark:border-yellow-500 text-yellow-600 dark:text-yellow-400 rounded-xl font-bold hover:bg-yellow-50 dark:hover:bg-slate-600 transition-all">
-              View Collection
-            </button>
-          </div>
-        </div>
-
-        <!-- Error Content -->
-        <div v-else class="space-y-6">
-          <!-- Error Details -->
-          <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/30 rounded-2xl p-6 border-2 border-red-200 dark:border-red-800">
-            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+            <!-- Success Message -->
+            <p class="text-center text-gray-600 dark:text-gray-300">
               {{ transactionResult.message }}
             </p>
-            
-            <!-- Insufficient Funds Help -->
-            <div v-if="transactionResult.errorType === 'INSUFFICIENT_FUNDS'" class="mt-4 pt-4 border-t border-red-200 dark:border-red-800">
-              <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">💡 Need more JSB?</p>
-              <router-link to="/wallet" 
-                          @click="closeTransactionModal"
-                          class="inline-flex items-center gap-2 text-sm text-red-600 dark:text-red-400 font-semibold hover:underline">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Add Funds to Wallet
-              </router-link>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+              <button @click="closeTransactionModal"
+                class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-700 transition-all shadow-lg">
+                Awesome!
+              </button>
+              <button @click="goToProfile"
+                class="flex-1 px-6 py-3 bg-white dark:bg-slate-700 border-2 border-yellow-600 dark:border-yellow-500 text-yellow-600 dark:text-yellow-400 rounded-xl font-bold hover:bg-yellow-50 dark:hover:bg-slate-600 transition-all">
+                View Collection
+              </button>
             </div>
           </div>
 
-          <!-- Action Buttons -->
-          <div class="flex gap-3">
-            <button @click="closeTransactionModal" 
-                    class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-800 transition-all shadow-lg">
-              Close
-            </button>
-            <button v-if="transactionResult.errorType === 'INSUFFICIENT_FUNDS'" 
-                    @click="retryTransaction" 
-                    class="flex-1 px-6 py-3 bg-white dark:bg-slate-700 border-2 border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-50 dark:hover:bg-slate-600 transition-all">
-              Try Again
-            </button>
+          <!-- Error Content -->
+          <div v-else class="space-y-6">
+            <!-- Error Details -->
+            <div
+              class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/30 rounded-2xl p-6 border-2 border-red-200 dark:border-red-800">
+              <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {{ transactionResult.message }}
+              </p>
+
+              <!-- Insufficient Funds Help -->
+              <div v-if="transactionResult.errorType === 'INSUFFICIENT_FUNDS'"
+                class="mt-4 pt-4 border-t border-red-200 dark:border-red-800">
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">💡 Need more JSB?</p>
+                <router-link to="/wallet" @click="closeTransactionModal"
+                  class="inline-flex items-center gap-2 text-sm text-red-600 dark:text-red-400 font-semibold hover:underline">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Funds to Wallet
+                </router-link>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+              <button @click="closeTransactionModal"
+                class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-800 transition-all shadow-lg">
+                Close
+              </button>
+              <button v-if="transactionResult.errorType === 'INSUFFICIENT_FUNDS'" @click="retryTransaction"
+                class="flex-1 px-6 py-3 bg-white dark:bg-slate-700 border-2 border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-50 dark:hover:bg-slate-600 transition-all">
+                Try Again
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-  
+
 </template>
 
 <script setup>
@@ -565,10 +569,10 @@ const offerAmount = ref(0);
 const offerMessage = ref('');
 const offerLoading = ref(false);
 // Helper function
-  function toTitleCase(str) {
-    if (!str) return '';
-    return str.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
-  }
+function toTitleCase(str) {
+  if (!str) return '';
+  return str.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
+}
 
 const showTransactionModal = ref(false);
 const transactionResult = ref({
@@ -611,18 +615,18 @@ async function handleMakeOffer() {
     return;
   }
   // Prevent offering on your own card
-    const currentUserId = localStorage.getItem('userId');
-      if (currentUserId === selectedCard.value.sellerId) {
-        transactionResult.value = {
-          success: false,
-          title: 'Cannot Make Offer',
-          message: 'You cannot make an offer on your own card',
-          errorType: 'INVALID_ACTION'
-        };
-        showTransactionModal.value = true;
-        showOfferModal.value = false;
-        return;
-      }
+  const currentUserId = localStorage.getItem('userId');
+  if (currentUserId === selectedCard.value.sellerId) {
+    transactionResult.value = {
+      success: false,
+      title: 'Cannot Make Offer',
+      message: 'You cannot make an offer on your own card',
+      errorType: 'INVALID_ACTION'
+    };
+    showTransactionModal.value = true;
+    showOfferModal.value = false;
+    return;
+  }
 
 
   if (!offerAmount.value || offerAmount.value <= 0) {
@@ -1139,7 +1143,7 @@ async function handleBuyCard() {
 
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch('http://localhost:3001/api/transactions/buy-now', {
       method: 'POST',
       headers: {
@@ -1198,23 +1202,23 @@ const messagingLoading = ref(false);
  */
 async function handleMessageSeller() {
   const currentUser = getCurrentUser();
-  
+
   // Check if user is logged in
   if (!currentUser.isAuthenticated) {
     alert('Please log in to message the seller');
     router.push('/login');
     return;
   }
-  
+
   messagingLoading.value = true;
-  
+
   try {
     const token = getAuthToken();
-    
+
     // Use sellerId from the selected card, or fallback to mock
     const sellerId = selectedCard.value.sellerId || selectedCard.value.db?.sellerId || 'igyU5vIHYTADDrgHLt8X';
     const cardId = selectedCard.value.id;
-    
+
     // Call find-or-create API
     const response = await fetch(`${API_URL}/api/chat/find-or-create`, {
       method: 'POST',
@@ -1227,13 +1231,13 @@ async function handleMessageSeller() {
         cardId: cardId
       })
     });
-    
+
     const data = await response.json();
-    
+
     if (response.ok) {
       // Close modal
       closeModal();
-      
+
       // Redirect to Messages page with the conversation active
       router.push({
         path: '/messages',
@@ -1243,7 +1247,7 @@ async function handleMessageSeller() {
       console.error('❌ Failed to create conversation:', data.error);
       alert(data.error || 'Failed to start conversation');
     }
-    
+
   } catch (err) {
     console.error('❌ Network error:', err);
     alert('Network error. Please try again.');
@@ -1332,41 +1336,49 @@ const filteredCards = computed(() => {
 /* Market Price Suggestion Styling */
 .market-price-suggestion {
   font-size: 0.9rem;
-  color: #6b7280; /* gray-600 */
+  color: #6b7280;
+  /* gray-600 */
   line-height: 1.5;
 }
 
 .dark .market-price-suggestion {
-  color: #9ca3af; /* gray-400 in dark mode */
+  color: #9ca3af;
+  /* gray-400 in dark mode */
 }
 
 .market-price-suggestion span {
   font-weight: 600;
-  color: #4ade80; /* green-400 - light green */
+  color: #4ade80;
+  /* green-400 - light green */
 }
 
 .dark .market-price-suggestion span {
-  color: #4ade80; /* green-400 - light green in dark mode too */
+  color: #4ade80;
+  /* green-400 - light green in dark mode too */
 }
 
 /* Market Price Suggestion Styling */
 .market-price-suggestion {
   font-size: 0.9rem;
-  color: #6b7280; /* gray-600 */
+  color: #6b7280;
+  /* gray-600 */
   line-height: 1.5;
 }
 
 .dark .market-price-suggestion {
-  color: #9ca3af; /* gray-400 in dark mode */
+  color: #9ca3af;
+  /* gray-400 in dark mode */
 }
 
 .market-price-suggestion span {
   font-weight: 600;
-  color: #4ade80; /* green-400 - light green */
+  color: #4ade80;
+  /* green-400 - light green */
 }
 
 .dark .market-price-suggestion span {
-  color: #4ade80; /* green-400 - light green in dark mode too */
+  color: #4ade80;
+  /* green-400 - light green in dark mode too */
 }
 
 /* Custom card grid breakpoint for 576px - 767px */
@@ -1375,5 +1387,4 @@ const filteredCards = computed(() => {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
 </style>
