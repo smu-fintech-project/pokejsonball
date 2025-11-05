@@ -184,7 +184,7 @@
               Front preview
             </div>
           </div>
-        </div>
+        </div>    
 
         <div v-if="detection.loading" class="flex items-center gap-3 text-sm text-red-600 dark:text-red-300 bg-red-50/70 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
           <Loader2 class="w-4 h-4 animate-spin" />
@@ -324,7 +324,7 @@
             <div class="flex items-center gap-3 flex-wrap">
               <button
                 type="button"
-                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
+                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold shadow-lg hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed"
                 :disabled="certLookup.ingesting"
                 @click="handleIngest"
               >
@@ -374,7 +374,6 @@
 <script setup>
 import { ref, reactive, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { API_BASE } from '@/utils/env'
 import {
   UploadCloud,
   FileText,
@@ -410,6 +409,8 @@ const manualMessageType = ref('success')
 
 const requiredFields = ['cert_number']
 const isManualValid = computed(() => requiredFields.every((field) => manualForm[field] !== '' && manualForm[field] !== null))
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001'
 
 const certLookup = reactive({
   loading: false,
