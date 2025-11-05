@@ -1,6 +1,15 @@
 <template>
   <section class="space-y-6">
-    <router-link to="/community" class="text-sm text-gray-500 hover:underline">← Back to Community</router-link>
+    <!-- Improved back button -->
+    <router-link 
+      to="/community" 
+      class="inline-flex items-center gap-2 text-gray-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors group"
+    >
+      <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      <span class="font-medium">Back to Community</span>
+    </router-link>
 
     <article v-if="thought" class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700">
       <div class="flex items-center justify-between">
@@ -10,8 +19,13 @@
             {{ getDisplayName(thought.authorName, thought.authorEmail).charAt(0).toUpperCase() }}
           </div>
           <div class="text-sm">
-            <div class="font-medium text-gray-900 dark:text-white">
-              {{ getDisplayName(thought.authorName, thought.authorEmail) }}
+            <div class="flex items-center gap-2">
+              <span class="font-medium text-gray-900 dark:text-white">
+                {{ getDisplayName(thought.authorName, thought.authorEmail) }}
+              </span>
+              <span v-if="communityName" class="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                {{ communityName }}
+              </span>
             </div>
             <div class="text-gray-500 dark:text-slate-400">{{ formatDate(thought.createdAt) }}</div>
           </div>
@@ -182,7 +196,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import {
-  fetchThought, fetchComments, addCommentApi, voteThought, voteComment as voteCommentApi
+  fetchThought, fetchComments, addCommentApi, voteThought, voteComment as voteCommentApi, fetchCommunities
 } from '@/utils/api';
 import { isAuthenticated as checkAuth } from '@/utils/api';
 
@@ -194,6 +208,7 @@ const comments = ref([]);
 const nextCursor = ref(null);
 const newComment = ref('');
 const isAuthenticated = checkAuth();
+const communityName = ref(null);
 
 // Helper: Extract username from email or use name
 function getDisplayName(authorName, authorEmail) {
@@ -252,6 +267,17 @@ async function loadThought() {
   t.downvotes = t.downvotes ?? 0;
   t.currentSlide = 0; // Initialize carousel slide
   thought.value = t;
+  
+  // Load community name if thought belongs to one
+  if (t.communityId) {
+    try {
+      const communitiesData = await fetchCommunities();
+      const community = communitiesData.items?.find(c => c.id === t.communityId);
+      communityName.value = community?.name || null;
+    } catch (e) {
+      console.error('Failed to load community', e);
+    }
+  }
 }
 
 async function loadComments(cursor = null) {

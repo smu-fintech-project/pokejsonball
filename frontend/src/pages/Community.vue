@@ -65,12 +65,9 @@
       @keydown.enter.prevent="selectCommunity(c.id)"
       @keydown.space.prevent="selectCommunity(c.id)"
     >
-      <img
-        v-if="c.imageUrl"
-        :src="c.imageUrl"
-        class="w-6 h-6 rounded object-cover"
-        :alt="`${c.name} logo`"
-      />
+      <div class="w-6 h-6 rounded bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-bold text-xs">
+        {{ c.name.charAt(0).toUpperCase() }}
+      </div>
       <div class="flex-1 truncate">
         <span class="font-medium text-gray-800 dark:text-slate-100 truncate">{{ c.name }}</span>
       </div>
@@ -128,6 +125,65 @@
         <p v-if="touched.title && !form.title?.trim()" class="text-xs text-red-600 mt-1">
           Title is required.
         </p>
+
+        <!-- Community Selector -->
+        <div class="relative">
+          <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+            Post to Community <span class="text-gray-400">(optional)</span>
+          </label>
+          <div class="relative">
+            <input
+              v-model="communitySearchQuery"
+              @focus="showCommunityDropdown = true"
+              @input="showCommunityDropdown = true"
+              @blur="handleCommunityBlur"
+              type="text"
+              placeholder="Search or select a community..."
+              class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white pr-10"
+            />
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+            
+            <!-- Dropdown -->
+            <div 
+              v-if="showCommunityDropdown && filteredCommunities.length > 0"
+              class="absolute z-10 w-full mt-1 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+            >
+              <button
+                v-for="community in filteredCommunities"
+                :key="community.id"
+                @mousedown.prevent="selectCommunityForThought(community)"
+                class="w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-slate-600 flex items-center gap-2 border-b border-gray-100 dark:border-slate-600 last:border-b-0"
+              >
+                <div class="w-6 h-6 rounded bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                  {{ community.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-gray-900 dark:text-white truncate">{{ community.name }}</div>
+                  <div class="text-xs text-gray-500 dark:text-slate-400 truncate">{{ community.description || 'No description' }}</div>
+                </div>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Selected community badge -->
+          <div v-if="form.selectedCommunity" class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm">
+            <div class="w-5 h-5 rounded bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-bold text-xs">
+              {{ form.selectedCommunity.name.charAt(0).toUpperCase() }}
+            </div>
+            <span class="font-medium">{{ form.selectedCommunity.name }}</span>
+            <button 
+              @click="clearSelectedCommunity"
+              class="hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full p-0.5"
+              title="Remove community"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
         <!-- Body with media preview -->
         <div class="relative">
@@ -234,41 +290,79 @@
 
     <!-- Add Community Modal -->
     <div v-if="showAddCommunity" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl">
-        <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Add Community</h2>
-        <div class="space-y-3">
-          <input
-            v-model="communityForm.name"
-            @blur="communityTouched.name = true"
-            placeholder="Community name"
-            class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
-            :class="{'border-red-500': communityTouched.name && !communityForm.name?.trim()}"
-            aria-label="Community name"
-          />
-          <textarea
-            v-model="communityForm.description"
-            placeholder="Description (optional)"
-            class="w-full p-3 rounded-lg border h-24 dark:bg-slate-700 dark:text-white"
-            aria-label="Community description"
-          ></textarea>
-          <input
-            v-model="communityForm.imageUrl"
-            placeholder="Logo URL (optional)"
-            class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
-            aria-label="Community logo URL"
-          />
-          <p v-if="communityTouched.name && !communityForm.name?.trim()" class="text-xs text-red-600">
-            Name is required.
-          </p>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-xl">
+        <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Create New Community</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Left: Form inputs -->
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Community Name</label>
+              <input
+                v-model="communityForm.name"
+                @blur="communityTouched.name = true"
+                placeholder="e.g., Pokémon TCG Collectors"
+                class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
+                :class="{'border-red-500': communityTouched.name && !communityForm.name?.trim()}"
+                aria-label="Community name"
+                maxlength="50"
+              />
+              <p v-if="communityTouched.name && !communityForm.name?.trim()" class="text-xs text-red-600 mt-1">
+                Name is required.
+              </p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Description</label>
+              <textarea
+                v-model="communityForm.description"
+                placeholder="What's this community about?"
+                class="w-full p-3 rounded-lg border h-32 dark:bg-slate-700 dark:text-white resize-none"
+                aria-label="Community description"
+                maxlength="200"
+              ></textarea>
+              <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                {{ communityForm.description?.length || 0 }}/200
+              </p>
+            </div>
+          </div>
+          
+          <!-- Right: Live preview -->
+          <div class="flex flex-col">
+            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Preview</label>
+            <div class="flex-1 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-4 bg-gray-50 dark:bg-slate-900/50">
+              <div class="bg-white dark:bg-slate-800 rounded-lg p-3 border border-gray-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="w-8 h-8 rounded bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-bold text-sm">
+                    {{ communityForm.name?.charAt(0).toUpperCase() || '?' }}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                      {{ communityForm.name || 'Community Name' }}
+                    </h3>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-600 dark:text-slate-400 line-clamp-3">
+                  {{ communityForm.description || 'Your community description will appear here...' }}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="mt-4 flex gap-2 justify-end">
-          <button @click="closeAddCommunity()" class="px-3 py-2 rounded-lg border">Cancel</button>
+        
+        <div class="mt-6 flex gap-2 justify-end">
+          <button 
+            @click="closeAddCommunity()" 
+            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            Cancel
+          </button>
           <button
             @click="submitAddCommunity"
             :disabled="!communityForm.name?.trim() || addingCommunity"
-            class="px-4 py-2 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+            class="px-4 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
           >
-            {{ addingCommunity ? 'Saving…' : 'Create' }}
+            {{ addingCommunity ? 'Creating…' : 'Create Community' }}
           </button>
         </div>
       </div>
@@ -299,13 +393,17 @@
             </span>
           </div>
           <div class="text-sm">
-            <div class="font-medium text-gray-900 dark:text-white">
-              {{ getDisplayName(t.authorName, t.authorEmail) }}
+            <div class="flex items-center gap-2">
+              <span class="font-medium text-gray-900 dark:text-white">
+                {{ getDisplayName(t.authorName, t.authorEmail) }}
+              </span>
+              <span v-if="getCommunityName(t.communityId)" class="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                {{ getCommunityName(t.communityId) }}
+              </span>
             </div>
             <div class="text-gray-500 dark:text-slate-400">{{ formatDate(t.createdAt) }}</div>
           </div>
         </div>
-        <span class="text-xs px-2 py-1 rounded bg-red-50 text-red-700">Thought</span>
       </div>
 
       <!-- Content -->
@@ -400,10 +498,26 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <router-link :to="`/community/${t.id}`" class="text-red-600 hover:underline">
-            {{ t.commentsCount || 0 }} comments →
+          <router-link 
+            :to="`/community/${t.id}`" 
+            class="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <span class="text-sm font-medium">{{ t.commentsCount || 0 }}</span>
           </router-link>
-          <button @click="share(t)" class="text-gray-500 hover:text-gray-700" aria-label="Share">↗︎ Share</button>
+          <button 
+            @click="share(t)" 
+            class="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors" 
+            aria-label="Share"
+            title="Share thought"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            <span class="text-sm">Share</span>
+          </button>
         </div>
       </div>
     </article>
@@ -431,17 +545,33 @@ const isAuthenticated = checkAuth();
 const activeCommunityId = ref(null);
 const loading = ref(true);
 
-const form = ref({ title: '', body: '', imageUrl: '', imagePreview: null, imageFile: null, mediaFiles: [], mediaPreviews: [], mediaType: null, currentSlide: 0 });
+const form = ref({ title: '', body: '', imageUrl: '', imagePreview: null, imageFile: null, mediaFiles: [], mediaPreviews: [], mediaType: null, currentSlide: 0, selectedCommunity: null });
 const bodyTextarea = ref(null);
 const fileInput = ref(null);
 const uploading = ref(false);
 
+// Community selector state
+const communitySearchQuery = ref('');
+const showCommunityDropdown = ref(false);
+
 // Communities state
 const communities = ref([]);
 const showAddCommunity = ref(false);
-const communityForm = ref({ name: '', description: '', imageUrl: '' });
+const communityForm = ref({ name: '', description: '' });
 const communityTouched = ref({ name: false });
 const addingCommunity = ref(false);
+
+// Computed: Filter communities based on search query
+const filteredCommunities = computed(() => {
+  if (!communitySearchQuery.value.trim()) {
+    return communities.value;
+  }
+  const query = communitySearchQuery.value.toLowerCase();
+  return communities.value.filter(c => 
+    c.name.toLowerCase().includes(query) || 
+    c.description?.toLowerCase().includes(query)
+  );
+});
 
 // Helper: Extract username from email or use name
 function getDisplayName(authorName, authorEmail) {
@@ -452,6 +582,32 @@ function getDisplayName(authorName, authorEmail) {
   }else{
   return 'Anonymous';
 }
+}
+
+// Helper: Get community name by ID
+function getCommunityName(communityId) {
+  if (!communityId) return null;
+  const community = communities.value.find(c => c.id === communityId);
+  return community?.name || null;
+}
+
+// Community selector functions
+function selectCommunityForThought(community) {
+  form.value.selectedCommunity = community;
+  communitySearchQuery.value = community.name;
+  showCommunityDropdown.value = false;
+}
+
+function clearSelectedCommunity() {
+  form.value.selectedCommunity = null;
+  communitySearchQuery.value = '';
+}
+
+function handleCommunityBlur() {
+  // Delay to allow click on dropdown item
+  setTimeout(() => {
+    showCommunityDropdown.value = false;
+  }, 200);
 }
 
 // Helper: Format as relative time
@@ -536,14 +692,15 @@ async function createThought() {
       title: form.value.title.trim(),
       body: form.value.body.trim(),
       imageUrl: imageUrl,
-      communityId: activeCommunityId.value || undefined
+      communityId: form.value.selectedCommunity?.id || activeCommunityId.value || undefined
     };
 
     const t = await createThoughtApi(payload);
     thoughts.value.unshift(t);
 
     // reset & close
-    form.value = { title: '', body: '', imageUrl: '', imagePreview: null, imageFile: null, mediaFiles: [], mediaPreviews: [], mediaType: null, currentSlide: 0 };
+    form.value = { title: '', body: '', imageUrl: '', imagePreview: null, imageFile: null, mediaFiles: [], mediaPreviews: [], mediaType: null, currentSlide: 0, selectedCommunity: null };
+    communitySearchQuery.value = '';
     touched.value = { title: false, body: false };
     showComposer.value = false;
   } catch (err) {
@@ -760,7 +917,7 @@ async function toggleFavourite(c) {
 
 function openAddCommunity() {
   communityTouched.value = { name: false };
-  communityForm.value = { name: '', description: '', imageUrl: '' };
+  communityForm.value = { name: '', description: '' };
   showAddCommunity.value = true;
 }
 function closeAddCommunity() {
@@ -774,7 +931,6 @@ async function submitAddCommunity() {
     const created = await createCommunityApi({
       name: communityForm.value.name.trim(),
       description: communityForm.value.description?.trim() || '',
-      imageUrl: communityForm.value.imageUrl?.trim() || '',
     });
     // prepend and select it
     communities.value.unshift({ ...created, favourited: true });
