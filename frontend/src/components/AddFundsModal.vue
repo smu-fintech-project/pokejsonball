@@ -4,7 +4,7 @@
       <h2 class="text-xl font-bold mb-4">Purchase JSB Coins</h2>
       <div>
         <label class="block mb-1">Amount (SGD)</label>
-        <input v-model.number="amount" type="number" min="1" class="w-full mb-2 px-2 py-1 border rounded" />
+        <input v-model.number="amount" type="number" min="1" class="w-full mb-2 px-2 py-1 border rounded" :disabled="!!clientSecret"  />
         <p class="mb-4 text-sm text-gray-500">You will receive: {{ amount  }} JSB</p>
       </div>
       <div v-if="clientSecret" id="payment-element" class="mb-4"></div>
