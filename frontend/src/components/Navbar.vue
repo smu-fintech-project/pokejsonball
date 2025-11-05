@@ -7,7 +7,7 @@
     <div class="flex items-center space-x-3 flex-1 md:flex-initial">
       <router-link to="/" class="block">
         <div
-          class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl transform rotate-2 hover:rotate-0 hover:scale-110 transition-all duration-500 ease-in-out hover:shadow-2xl overflow-hidden"
+          
         >
           <img
             :src="logo"
@@ -392,7 +392,7 @@
 </template>
 
 <script setup>
-import logo from '../assets/logo.png'
+import logo from '../assets/js.png'
 import { watch, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlobalNotifications } from '@/composables/useGlobalNotifications'
