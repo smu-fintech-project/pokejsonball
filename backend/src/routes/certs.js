@@ -313,13 +313,16 @@ router.post('/ingest', async (req, res) => {
 
     // Prioritize userId from JWT for lookup; fallback to email query
     const userId = req.user?.userId || null;
-    let userRef = null;
+    
+    // Declare userRef here, initialized to null
+    let userRef = null; 
 
     if (userId) {
       const docRef = db.collection('users').doc(userId);
       const docSnap = await docRef.get();
       if (docSnap.exists) {
-        userRef = docRef;
+        // ✅ userRef is assigned here
+        userRef = docRef; 
       }
     }
 
@@ -343,6 +346,12 @@ router.post('/ingest', async (req, res) => {
       });
     }
 
+    const userDocSnap = await userRef.get();
+    const currentCards = userDocSnap.get('cards') || [];
+    if (!currentCards.includes(certNumber)) {
+       await userRef.update({ cards: [...currentCards, certNumber] });
+    }
+
     const listingsRef = userRef.collection('listings').doc(certNumber);
     const existingListing = await listingsRef.get();
 
@@ -350,7 +359,7 @@ router.post('/ingest', async (req, res) => {
       cert_number: certNumber,
       sellerEmail: ownerEmail,
       sellerId: userRef.id,
-      status: 'listed',
+      status: 'display',
       updated_at: now,
     };
 

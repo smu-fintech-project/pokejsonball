@@ -44,8 +44,13 @@ export function initializeFirebase() {
 
 export function getFirestore() {
   if (!db) {
-    return initializeFirebase();
+        initializeFirebase();
   }
+
+  if (!db.FieldValue) {
+      db.FieldValue = admin.firestore.FieldValue;
+  }
+  
   return db;
 }
 

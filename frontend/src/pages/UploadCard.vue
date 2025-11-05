@@ -324,13 +324,13 @@
             <div class="flex items-center gap-3 flex-wrap">
               <button
                 type="button"
-                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold shadow-lg hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
                 :disabled="certLookup.ingesting"
                 @click="handleIngest"
               >
                 <Loader2 v-if="certLookup.ingesting" class="w-5 h-5 animate-spin" />
                 <UploadCloud v-else class="w-5 h-5" />
-                <span>{{ certLookup.ingesting ? 'Uploading...' : 'Upload to Firebase' }}</span>
+                <span>{{ certLookup.ingesting ? 'Uploading...' : 'Upload to Collection' }}</span>
               </button>
 
               <button
@@ -351,10 +351,10 @@
               <button
                 type="button"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold shadow hover:bg-emerald-700"
-                @click="goToMarketplace"
+                @click="goToProfile"
               >
                 <Package class="w-4 h-4" />
-                View Marketplace
+                View Profile
               </button>
             </div>
 
@@ -704,9 +704,9 @@ async function handleIngest() {
       return
     }
 
-    certLookup.ingestSuccess = 'Card uploaded to Firebase successfully. Check the marketplace to see it live.'
+    certLookup.ingestSuccess = 'Card uploaded to collection successfully. Click on your profile to see it.'
   } catch (error) {
-    certLookup.ingestError = error.message || 'Failed to upload the card to Firebase.'
+    certLookup.ingestError = error.message || 'Failed to upload the card to profile.'
   } finally {
     certLookup.ingesting = false
   }
@@ -727,8 +727,8 @@ function resetManualFlow() {
   uploadMessageType.value = 'success'
 }
 
-function goToMarketplace() {
-  router.push('/')
+function goToProfile() { // Changed from goToMarketplace
+  router.push('/profile') // Navigate to the profile page
 }
 
 function formatCurrency(amount, symbol = '$') {

@@ -309,7 +309,9 @@
           <User class="w-4 h-4 text-indigo-600 dark:text-indigo-300" />
         </div>
         <div class="flex-1">
-          <p class="font-semibold text-gray-900 dark:text-white">{{ selectedCard.sellerName || selectedCard.sellerEmail || 'Unknown Trainer' }}</p>
+          <p class="font-semibold text-gray-900 dark:text-white">
+            {{ getFriendlySellerName(selectedCard) }}
+          </p>
         </div>
       </div>
     </div>
@@ -572,6 +574,19 @@ const offerLoading = ref(false);
 function toTitleCase(str) {
   if (!str) return '';
   return str.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
+}
+
+function getFriendlySellerName(card) {
+  const name = card.sellerName || card.sellerEmail || 'Unknown Trainer';
+  const email = card.sellerEmail || '';
+  
+  // Check if the displayed name is likely a Firebase/Firestore User ID (long, alphanumeric)
+  // This helps avoid showing the raw ID if a valid email/name is present.
+  if (name.length > 15 && /[a-zA-Z0-9]{15,}/.test(name) && email) {
+      // If it looks like a long ID and we have an email, show the email prefix
+      return email.split('@')[0] || 'Unknown Trainer';
+  }
+  return name;
 }
 
 const showTransactionModal = ref(false);
