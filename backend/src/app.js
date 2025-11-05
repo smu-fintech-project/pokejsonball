@@ -41,6 +41,7 @@ import chatRoutes from "./routes/chat.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import thoughtsRoutes from './routes/thoughts.js';
 import { communitiesRouter } from './routes/thoughts.js';
+import adminRoutes from './routes/admin.js';
 
 const app = express();
 
@@ -126,6 +127,7 @@ app.use('/api/offers', offersRoutes);
 app.use('/api/transactions', transactionsRoutes);
 app.use('/api/thoughts', thoughtsRoutes);
 app.use('/api/communities', communitiesRouter);
+app.use('/api/admin', adminRoutes); // Admin-only routes
 
 app.get("/", (req, res) => {
   res.json({ message: "Trading Card Marketplace API running ✅" });

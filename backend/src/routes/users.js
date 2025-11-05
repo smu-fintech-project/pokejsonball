@@ -23,6 +23,7 @@ router.get('/profile', authMiddleware, async (req, res) => {
       email: data.email,
       name: data.name || '',
       username: data.name || '',
+      avatar: data.avatar || null,
       userId: doc.id,
       joinDate: data.createdAt || '',
       cards: data.cards || [],   //returns owned cert numbers

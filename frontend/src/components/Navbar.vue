@@ -138,6 +138,16 @@
                   >
                     Wallet
                   </router-link>
+
+                  <router-link
+                    v-if="isAdmin"
+                    @click="closeProfileMenu"
+                    to="/admin"
+                    class="block px-3 py-2 rounded-md text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    :class="{ 'bg-red-50 dark:bg-red-900/20': isActive('/admin') }"
+                  >
+                    🔐 Admin Panel
+                  </router-link>
                 </div>
 
                 <div class="border-t border-gray-200 dark:border-slate-700 mx-2 my-2"></div>
@@ -330,6 +340,16 @@
               Wallet
             </router-link>
 
+            <router-link
+              v-if="isAdmin"
+              @click="closeMobileMenu"
+              to="/admin"
+              class="block px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium transition-colors"
+              :class="{ 'bg-red-50 dark:bg-red-900/20 font-semibold': isActive('/admin') }"
+            >
+              🔐 Admin Panel
+            </router-link>
+
             <button
               @click="logout"
               class="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
@@ -379,6 +399,7 @@ const isActive = (path) => route.path === path
 const isAuthed = ref(false)
 const userEmail = ref('')
 const username = ref('')
+const isAdmin = ref(false)
 const isMobileMenuOpen = ref(false)
 const isProfileMenuOpen = ref(false) // State for Profile dropdown
 const profileMenuRef = ref(null)     // Ref for Profile dropdown
@@ -467,6 +488,18 @@ function syncAuthFromStorage() {
   isAuthed.value = !!token && !!email
   userEmail.value = email || ''
   username.value = storedUsername || ''
+
+  // Check if user is admin from JWT token
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      isAdmin.value = payload.isAdmin || false
+    } catch (e) {
+      isAdmin.value = false
+    }
+  } else {
+    isAdmin.value = false
+  }
 
   // Connect/disconnect notifications based on auth state
   if (isAuthed.value && !wasAuthed) {

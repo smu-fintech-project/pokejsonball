@@ -35,6 +35,9 @@ export function initializeSocket(httpServer, frontendURL) {
   io.on('connection', (socket) => {
     
     // userId is now set by authenticateSocket middleware from JWT
+    
+    // Store isAdmin status from JWT
+    socket.isAdmin = socket.user?.isAdmin || false;
 
     // ============================================================
     // JOIN PERSONAL USER ROOM (for global notifications)
@@ -304,6 +307,66 @@ export function initializeSocket(httpServer, frontendURL) {
       if (socket.currentRoom === roomId) {
         socket.currentRoom = null;
         socket.currentConversationId = null;
+      }
+    });
+
+    // ============================================================
+    // ADMIN BROADCAST MESSAGE
+    // ============================================================
+    /**
+     * Handle 'admin_broadcast' event (admin-only)
+     * Allows admins to send messages to specific users or all users
+     * 
+     * Payload: {
+     *   message: string,
+     *   targetUserId?: string (optional, if omitted sends to all)
+     * }
+     */
+    socket.on('admin_broadcast', async ({ message, targetUserId }) => {
+      // Verify admin status
+      if (!socket.isAdmin) {
+        console.error(`❌ Non-admin user ${socket.userId} attempted broadcast`);
+        socket.emit('error', { message: 'Admin access required' });
+        return;
+      }
+
+      if (!message || typeof message !== 'string') {
+        socket.emit('error', { message: 'Valid message is required' });
+        return;
+      }
+
+      try {
+        const broadcastData = {
+          from: 'System Admin',
+          message: message.trim(),
+          timestamp: new Date().toISOString(),
+          type: 'admin_broadcast'
+        };
+
+        if (targetUserId) {
+          // Send to specific user
+          const targetRoom = `user_${targetUserId}`;
+          io.to(targetRoom).emit('admin_message', broadcastData);
+          console.log(`✅ Admin broadcast sent to user ${targetUserId}`);
+          
+          socket.emit('broadcast_sent', { 
+            success: true, 
+            target: 'user',
+            userId: targetUserId 
+          });
+        } else {
+          // Broadcast to all connected users
+          io.emit('admin_message', broadcastData);
+          console.log(`✅ Admin broadcast sent to all users`);
+          
+          socket.emit('broadcast_sent', { 
+            success: true, 
+            target: 'all' 
+          });
+        }
+      } catch (error) {
+        console.error('❌ Admin broadcast error:', error);
+        socket.emit('error', { message: 'Failed to send broadcast' });
       }
     });
 

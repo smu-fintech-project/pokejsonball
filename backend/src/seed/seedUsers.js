@@ -48,6 +48,7 @@ async function seedUsers() {
   ];
 
   const users = [
+    { email: 'admin@pokejsonball.com', name: 'Admin', avatar: 'pikachu.png', isAdmin: true },
     { email: 'alice@gmail.com', name: 'Alice', avatar: 'psyduck.png' },
     { email: 'bob@gmail.com', name: 'Bob', avatar: 'snorlax.png' },
     { email: 'carol@gmail.com', name: 'Carol' , avatar: 'charmander.png' },
@@ -84,6 +85,7 @@ async function seedUsers() {
       email: u.email,
       name: u.name,
       avatar: u.avatar,
+      isAdmin: u.isAdmin || false,
       password: hashed,
       createdAt: new Date().toISOString(),
       cards: userCerts,
@@ -102,7 +104,7 @@ async function seedUsers() {
 
     const ref = await db.collection('users').add(userDoc);
     console.log(`Created user ${u.email} (id=${ref.id}) with certs: ${JSON.stringify(userCerts)}`);
-    createdUsers.push({ id: ref.id, email: u.email, name: u.name });
+    createdUsers.push({ id: ref.id, email: u.email, name: u.name, avatar: u.avatar });
 
     // Reset and seed listings subcollection for this user
     const listingsCol = ref.collection('listings');
