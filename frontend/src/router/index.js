@@ -10,6 +10,8 @@ const About = () => import('../pages/About.vue');
 const UploadCard = () => import('../pages/UploadCard.vue');
 const CardDetail = () => import('../pages/CardDetail.vue');
 const Messages = () => import('../pages/Messages.vue');
+const ThoughtDetail = () => import('../pages/ThoughtDetail.vue');
+const AdminPanel = () => import('../pages/AdminPanel.vue');
 
 
 const routes = [
@@ -24,12 +26,38 @@ const routes = [
   { path: '/stripe-return', component: StripeReturn, meta: {title: 'Return from Bank Verification'}  },
   { path: '/messages', component: Messages, meta: { title: 'Messages' } },
   { path: '/login', component: Login, meta: { title: 'Login' } },
-  { path: '/signup', component:SignUp, meta:{title: 'Sign Up'}}
+  { path: '/signup', component:SignUp, meta:{title: 'Sign Up'}},
+  { path: '/community/:id', component: ThoughtDetail, props: true, meta: { title: 'Thought' }},
+  { path: '/admin', component: AdminPanel, meta: { title: 'Admin Panel', requiresAdmin: true } },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Navigation guard for admin routes
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAdmin) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      next('/login');
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (!payload.isAdmin) {
+        alert('Access denied. Admin privileges required.');
+        next('/');
+        return;
+      }
+    } catch (e) {
+      next('/login');
+      return;
+    }
+  }
+  next();
 });
 
 router.afterEach((to) => {

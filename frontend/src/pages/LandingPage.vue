@@ -266,7 +266,7 @@
             <!-- Card Image -->
             <div class="relative">
               <div
-                class="sticky top-24 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800 rounded-2xl p-6 shadow-lg">
+                class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800 rounded-2xl p-6 shadow-lg flex items-center justify-center min-h-[480px] md:min-h-[520px]">
                 <img :src="selectedCard.img" :alt="selectedCard.title" class="w-full object-contain max-h-96" />
               </div>
             </div>
@@ -285,8 +285,10 @@
       <p class="font-bold text-lg truncate">{{ selectedCard.db?.grade_description || '—' }}</p>
     </div>
     <div class="bg-white dark:bg-slate-700 rounded-xl p-3 border border-gray-200 dark:border-slate-600">
-      <p class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Art Style</p>
-      <p class="font-bold text-lg truncate">{{ selectedCard.db?.variety || '—' }}</p>
+    <p class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Art Style</p>
+    <p class="font-bold text-lg">
+      {{ selectedCard.db?.variety || '—' }}
+    </p>
     </div>
     <div class="bg-white dark:bg-slate-700 rounded-xl p-3 border border-gray-200 dark:border-slate-600">
       <p class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Release Year</p>

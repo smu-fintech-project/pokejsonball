@@ -3,13 +3,39 @@
  */
 
 import { getFirestore } from './firebase.js';
+import admin from 'firebase-admin'
 
 // Collections
 const COLLECTIONS = {
   CARDS: 'cards',
   USERS: 'users',
   CACHE: 'api_cache',
+  THOUGHTS: 'thoughts',
+  COMMUNITIES: 'communities',
 };
+
+
+// //Return a signed, time-limited URL for a file in Firebase Storage.
+// @param {string} folder e.g. "avatar"
+// @param {string} filename e.g. "pikachu.png"
+// @param {number} expiresSeconds default 3600 (1h)
+
+export async function getImageSignedUrl(folder, filename, expiresSeconds = 3600) {
+  if (!folder || !filename) throw new Error('FOLDER_OR_FILENAME_MISSING');
+  const bucketName = process.env.VITE_FIREBASE_STORAGE_BUCKET; // e.g. pokejsonball-aa3f2.appspot.com
+  const bucket = bucketName ? admin.storage().bucket(bucketName) : admin.storage().bucket();
+  const file = bucket.file(`${folder}/${filename}`);
+
+  const [exists] = await file.exists();
+  if (!exists) throw new Error('IMAGE_NOT_FOUND');
+
+  const [url] = await file.getSignedUrl({
+    action: 'read',
+    expires: Date.now() + expiresSeconds * 1000,
+  });
+  return url;
+}
+
 
 /**
  * Get all cards
@@ -51,7 +77,7 @@ export async function getMarketplaceCards({limit = 200 } = {}) {
   const cacheKey = `marketplace:limit:${limit}:status:listed`;
   try {
     const cached = await getCache(cacheKey, 30);
-    if (cached) return cached;
+    if (cached) return cached;  
   } catch {}
 
   const entriesMap = new Map();
@@ -168,6 +194,99 @@ export async function upsertCard(cardData) {
   }
 }
 
+// Create a new thought
+export async function createThought({ authorId, authorName, authorEmail, title, body, imageUrl, communityId = null, authorAvatar = null }) {
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  const payload = {
+    authorId, authorName, authorEmail,
+    title, body, imageUrl: imageUrl || null,
+    communityId: communityId || null,
+    authorAvatar: authorAvatar || null,
+    createdAt: now, updatedAt: now,
+    upvotes: 0, downvotes: 0, commentsCount: 0,
+  };
+  const ref = await db.collection(COLLECTIONS.THOUGHTS).add(payload);
+  return { id: ref.id, ...payload };
+}
+
+// List thoughts (paged, newest first)
+  export async function listThoughts({ limit = 20, cursor = null, communityId }) {
+  const db = getFirestore();
+    let query = db.collection(COLLECTIONS.THOUGHTS).orderBy('createdAt', 'desc').limit(limit);
+  if (communityId) {
+    // Firestore needs an index for where+orderBy. If missing, console will print a link to create it.
+    query = db.collection(COLLECTIONS.THOUGHTS)
+      .where('communityId', '==', communityId)
+      .orderBy('createdAt', 'desc')
+      .limit(limit);
+  }
+  if (cursor) {
+    const cursorDoc = await db.collection(COLLECTIONS.THOUGHTS).doc(cursor).get();
+    if (cursorDoc.exists) query = query.startAfter(cursorDoc);
+  }
+
+  const snap = await query.get();
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const nextCursor = snap.docs.length ? snap.docs[snap.docs.length - 1].id : null;
+  return { items, nextCursor };
+}
+
+// Get one thought
+export async function getThought(thoughtId) {
+  const db = getFirestore();
+  const doc = await db.collection(COLLECTIONS.THOUGHTS).doc(thoughtId).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...doc.data() };
+}
+
+// Add comment
+export async function addComment(thoughtId, { authorId, authorName, authorEmail, body, authorAvatar = null }) {
+  const db = getFirestore();
+  const now = new Date().toISOString();
+
+  const commentRef = await db
+    .collection(COLLECTIONS.THOUGHTS)
+    .doc(thoughtId)
+    .collection('comments')
+    .add({
+      authorId, authorName, authorEmail,
+      body,
+      authorAvatar: authorAvatar || null,
+      createdAt: now,
+      upvotes: 0,
+      downvotes: 0,
+    });
+
+  // increment counter
+  await db.collection(COLLECTIONS.THOUGHTS).doc(thoughtId)
+    .update({ commentsCount: admin.firestore.FieldValue.increment(1) }).catch(()=>{});
+
+  const newDoc = await commentRef.get();
+  return { id: newDoc.id, ...newDoc.data() };
+}
+
+// List comments (paged, oldest first for readability)
+export async function listComments(thoughtId, { limit = 20, cursor = null }) {
+  const db = getFirestore();
+  let query = db.collection(COLLECTIONS.THOUGHTS).doc(thoughtId)
+    .collection('comments').orderBy('createdAt', 'asc').limit(limit);
+
+  if (cursor) {
+    const cDoc = await db.collection(COLLECTIONS.THOUGHTS).doc(thoughtId)
+      .collection('comments').doc(cursor).get();
+    if (cDoc.exists) query = query.startAfter(cDoc);
+  }
+
+  const snap = await query.get();
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const nextCursor = snap.docs.length ? snap.docs[snap.docs.length - 1].id : null;
+  return { items, nextCursor };
+}
+
+
+
+
 /**
  * Delete card
  */
@@ -242,5 +361,55 @@ export async function clearAllData() {
   
   console.log('🗑️ All data cleared from Firebase');
 }
+
+
+export async function createCommunity({ name, description, imageUrl, creatorId }) {
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  const payload = {
+    name,
+    description: description || '',
+    imageUrl: imageUrl || null,
+    createdAt: now,
+    createdBy: creatorId || null,
+  };
+  const ref = await db.collection(COLLECTIONS.COMMUNITIES).add(payload);
+  return { id: ref.id, ...payload };
+}
+
+export async function listCommunities(uid) {
+  const db = getFirestore();
+  const snap = await db.collection(COLLECTIONS.COMMUNITIES)
+    .orderBy('createdAt', 'desc')
+    .limit(200)
+    .get();
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  if (!uid) return items;
+
+  // join favourites
+  const favSnap = await db.collection(COLLECTIONS.USERS)
+    .doc(String(uid))
+    .collection('community_favourites')
+    .get();
+  const favSet = new Set(favSnap.docs.filter(x => x.data()?.favourited).map(x => x.id));
+  return items.map(x => ({ ...x, favourited: favSet.has(x.id) }));
+}
+
+export async function setUserFavouriteCommunity(uid, communityId, favourited) {
+  const db = getFirestore();
+  const ref = db.collection(COLLECTIONS.USERS)
+    .doc(String(uid))
+    .collection('community_favourites')
+    .doc(String(communityId));
+  if (favourited) {
+    await ref.set({ favourited: true, updatedAt: new Date().toISOString() }, { merge: true });
+  } else {
+    await ref.set({ favourited: false, updatedAt: new Date().toISOString() }, { merge: true });
+  }
+}
+
+
+
 
 export { COLLECTIONS };
