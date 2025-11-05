@@ -135,78 +135,82 @@
 
             <!-- Cards -->
             <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div v-for="card in ownedCards.filter(c => c.status !== 'sold')" :key="card.id"
+    class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden">
 
+    <div class="relative p-4">
+      <div v-if="card.quantity > 1"
+        class="absolute top-2 right-2 z-10 px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
+        x{{ card.quantity }}
+      </div>
 
-              <div v-for="card in ownedCards.filter(c => c.status !== 'sold')" :key="card.id"
-              class="group relative bg-white dark:bg-slate-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden
-              flex flex-col min-h-[420px]">
-                <div class="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-600 dark:to-slate-700">
-                  <img :src="card.img" :alt="card.title" class="w-full h-48 object-contain" />
-                  <div v-if="card.quantity > 1"
-                    class="absolute top-2 left-2 px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
-                    x{{ card.quantity }}
-                  </div>
-                </div>
+      <img :src="card.img" :alt="card.title" class="w-full h-80 object-contain" />
+    </div>
 
-                <div class="p-4 flex-1 flex flex-col">
-                  <div class="mb-3">
-                    <h3 class="font-bold text-lg break-words">{{ card.title }}</h3>
-                    <p class="text-sm text-gray-500 dark:text-slate-400">{{ card.set }}</p>
-                    <span class="inline-block mt-2 px-2 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 text-s font-bold rounded-lg">
-                      {{ card.grade }}
-                    </span>
-                    
-                    <!-- Status pill -->
-                    <span v-if="card.status === 'listed'" class="ml-2 incline-block mt-2 px-2 py-1 
-                    bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-s font-bold rounded">
-                      LISTED
-                    </span>
-                    
-                    <span v-else-if="card.status === 'reserved'"
-                    class="inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-[10px] font-bold rounded">
-                    RESERVED
-                    </span>
-                  </div>
+    <div class="p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div class="min-w-0">
+          <h3 class="font-sans font-bold text-xl">{{ card.title }}</h3>
+          <p class="font-mono text-m text-gray-500 dark:text-slate-400 truncate">{{ card.set }}</p>
+        </div>
 
-                  <div class="pt-3 border-t dark:border-slate-600 mb-3">
-                    <p class="text-2xl font-black text-black-600">
-                      <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
-                      {{ Number(card.price).toFixed(2) }}
-                    </p>
-                    <p class="text-xs text-gray-500">Cert: {{ card.cert }}</p>
-                  </div>
-                  
-                  <div class="flex flex-wrap gap-2 mt-auto sm:flex-nowrap">
-                  <!-- Edit Button -->
-                    <button @click="openEditModal(card)"
-                      class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-500 transition-all">
-                      <Edit2 class="w-3 h-3" />
-                      Edit
-                    </button>
+        <div class="flex-shrink-0 flex flex-col items-end">
+          <span
+            class="flex-shrink-0 px-2 py-1 bg-stone-100 dark:bg-indigo-900 text-red-700 dark:text-indigo-300 text-s font-bold rounded-lg mb-1">
+            {{ card.grade }}
+          </span>
 
-                    <!-- Sell / Undo -->
-                    <button v-if="card.status !== 'listed'"
-                    @click="openSellModal(card)"
-                    class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all">
-                    <Plus class="w-3 h-3" />
-                    Sell
-                    </button>
-                    <button v-else
-                    @click="undoListing(card)"
-                    class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all">
-                    Undo
-                    </button>
+          <span v-if="card.status === 'listed'"
+            class="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-s font-bold rounded-lg">
+            LISTED
+          </span>
+          <span v-else-if="card.status === 'reserved'"
+            class="px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-s font-bold rounded-lg">
+            RESERVED
+          </span>
+          <span v-else
+            class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 text-s font-bold rounded-lg">
+            OWNED
+          </span>
+        </div>
+      </div>
 
-                    <!-- Delete Button -->
-                    <button @click="handleDeleteCard(card.id)"
-                      class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 text-sm bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-800 transition-all">
-                      <Trash2 class="w-3 h-3" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div class="flex items-center justify-between pt-3 border-t dark:border-slate-700 mb-4">
+        <div>
+          <p class="text-xl font-black text-black dark:text-white">
+            <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+            {{ Number(card.price).toFixed(2) }}
+          </p>
+          <p class="text-sm text-gray-500">Cert: {{ card.cert }}</p>
+        </div>
+        
+        <button @click="openEditModal(card)"
+          class="flex items-center justify-center gap-1 p-2 bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-500 transition-all text-sm">
+          <Edit2 class="w-4 h-4" />
+          Edit
+        </button>
+      </div>
+
+      <div class="flex gap-3 mt-2">
+        <button v-if="card.status !== 'listed'" @click="openSellModal(card)"
+          class="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg flex items-center justify-center gap-1">
+          <Plus class="w-4 h-4" />
+          Sell
+        </button>
+        <button v-else @click="undoListing(card)"
+          class="flex-1 px-4 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all shadow-lg flex items-center justify-center gap-1">
+          Undo
+        </button>
+        
+        <button @click="handleDeleteCard(card.id)"
+          class="flex-1 px-4 py-3 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-xl font-bold hover:bg-red-200 dark:hover:bg-red-900 transition-all flex items-center justify-center gap-1">
+          <Trash2 class="w-4 h-4" />
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
             <!-- Empty state -->
             <div v-if="!loading && ownedCards.length === 0" class="text-center py-12 text-gray-500 dark:text-slate-400">
