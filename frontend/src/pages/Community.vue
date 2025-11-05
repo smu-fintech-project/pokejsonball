@@ -1,37 +1,67 @@
 <template>
 <section class="space-y-6">
-    <!-- Header (centered title + button) -->
-  <div class="flex items-center justify-center gap-3">
-    <h1 class="text-2xl font-bold text-red-700">Share Anything</h1>
+    <!-- Header (centered button) -->
+  <div class="flex items-center justify-center">
     <button
       v-if="isAuthenticated"
       @click="showComposer = true"
-      class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700"
+      class="px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-600 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-2"
       aria-label="Create a new thought"
     >
-      New Thought
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>Create New Thought</span>
     </button>
   </div>
+  
+  <!-- Collapsible sidebar toggle (mobile/tablet) -->
+  <button
+    v-if="!sidebarOpen"
+    @click="sidebarOpen = true"
+    class="fixed left-4 top-24 z-40 lg:hidden bg-white dark:bg-slate-800 p-3 rounded-full shadow-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+    aria-label="Open communities sidebar"
+  >
+    <svg class="w-6 h-6 text-gray-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
+  
   <!-- 2-column responsive layout (sidebar + feed) -->
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-      <!-- Left: Communities (1/5 ≈ 2/12) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
+      <!-- Backdrop overlay for mobile -->
+      <div
+        v-if="sidebarOpen"
+        @click="sidebarOpen = false"
+        class="fixed inset-0 bg-black/50 z-30 lg:hidden"
+      ></div>
+      
+      <!-- Left: Communities sidebar -->
       <aside
-        class="md:col-span-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4
-               md:sticky md:top-20 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto"
+        :class="[
+          'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4',
+          'transition-transform duration-300 ease-in-out',
+          'lg:col-span-2 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:translate-x-0',
+          'fixed top-0 left-0 h-full z-40 overflow-y-auto',
+          sidebarOpen ? 'translate-x-0 w-[250px]' : '-translate-x-full w-[250px] lg:translate-x-0'
+        ]"
         aria-label="Communities sidebar"
       >
+        <!-- Close button for mobile -->
+        <button
+          @click="sidebarOpen = false"
+          class="lg:hidden absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+          aria-label="Close sidebar"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-200">Communities</h2>
-          <button
-            v-if="isAuthenticated"
-            class="text-sm px-2 py-1 rounded bg-red-50 text-red-700 hover:bg-red-100"
-            aria-label="Add community"
-            @click="openAddCommunity()"
-          >
-            + Add
-          </button>
         </div>
-        <ul class="space-y-1 text-sm" role="listbox" aria-label="Communities list">
+        <ul class="space-y-1 text-sm mb-4" role="listbox" aria-label="Communities list">
     <!-- All thoughts option -->
     <li
       role="option"
@@ -73,22 +103,40 @@
       </div>
       <button
         v-if="isAuthenticated"
-        class="ml-2 text-yellow-500 hover:scale-110 transition"
-        :aria-label="c.favourited ? 'Unfavourite community' : 'Favourite community'"
         @click.stop="toggleFavourite(c)"
-        :title="c.favourited ? 'Unfavourite' : 'Favourite'"
+        class="ml-2 hover:scale-110 transition-transform"
+        :aria-label="c.favourited ? 'Unpin community' : 'Pin community'"
+        :title="c.favourited ? 'Unpin from top' : 'Pin to top'"
       >
-        {{ c.favourited ? '★' : '☆' }}
+        <img 
+          src="@/assets/psyduck_coin.png" 
+          :class="c.favourited ? 'opacity-100' : 'opacity-30 grayscale'"
+          class="w-6 h-6 transition-all"
+          alt="Pin"
+        />
       </button>
     </li>
     <li v-if="!communities.length" class="text-gray-500 dark:text-slate-400 px-2 py-1">
       No communities yet.
     </li>
   </ul>
+  
+  <!-- Add Community button at bottom -->
+  <button
+    v-if="isAuthenticated"
+    @click="openAddCommunity()"
+    class="w-full mt-auto py-2 px-3 text-sm rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 font-semibold transition-all shadow-sm flex items-center justify-center gap-2"
+    aria-label="Add community"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    <span>Add Community</span>
+  </button>
      </aside>
     
     <!-- Center: Thoughts feed (expanded to fill remaining width) -->
-    <main class="md:col-span-10 space-y-6" aria-label="Thoughts feed">
+    <main class="lg:col-span-10 space-y-6" aria-label="Thoughts feed">
 
     <!-- Loading state -->
     <div v-if="loading" class="space-y-4">
@@ -544,6 +592,7 @@ const showComposer = ref(false);
 const isAuthenticated = checkAuth();
 const activeCommunityId = ref(null);
 const loading = ref(true);
+const sidebarOpen = ref(false); // Collapsible sidebar state
 
 const form = ref({ title: '', body: '', imageUrl: '', imagePreview: null, imageFile: null, mediaFiles: [], mediaPreviews: [], mediaType: null, currentSlide: 0, selectedCommunity: null });
 const bodyTextarea = ref(null);
@@ -881,8 +930,13 @@ function share(t) {
 async function loadCommunities() {
   try {
     const data = await fetchCommunities();
-    communities.value = data.items || [];
-    // Don't auto-select or filter - show all thoughts initially
+    // Sort: pinned (favourited) communities first
+    const sorted = (data.items || []).sort((a, b) => {
+      if (a.favourited && !b.favourited) return -1;
+      if (!a.favourited && b.favourited) return 1;
+      return 0;
+    });
+    communities.value = sorted;
   } catch (e) {
     console.error('fetchCommunities failed', e);
   }
@@ -907,10 +961,24 @@ async function toggleFavourite(c) {
   // optimistic toggle
   const prev = !!c.favourited;
   c.favourited = !prev;
+  
+  // Re-sort immediately for instant UI feedback
+  communities.value.sort((a, b) => {
+    if (a.favourited && !b.favourited) return -1;
+    if (!a.favourited && b.favourited) return 1;
+    return 0;
+  });
+  
   try {
     await toggleCommunityFavourite(c.id, c.favourited);
   } catch (e) {
     c.favourited = prev; // rollback
+    // Re-sort again after rollback
+    communities.value.sort((a, b) => {
+      if (a.favourited && !b.favourited) return -1;
+      if (!a.favourited && b.favourited) return 1;
+      return 0;
+    });
     console.error('toggle favourite failed', e);
   }
 }
