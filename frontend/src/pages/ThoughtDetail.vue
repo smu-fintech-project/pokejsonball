@@ -54,7 +54,58 @@
 
       <h1 class="text-2xl font-bold mt-2 text-gray-900 dark:text-white">{{ thought.title }}</h1>
       <p class="mt-3 text-gray-700 dark:text-slate-300 whitespace-pre-wrap">{{ thought.body }}</p>
-      <img v-if="thought.imageUrl" :src="thought.imageUrl" class="mt-4 rounded-xl w-full object-cover max-h-96">
+      
+      <!-- Video -->
+      <video
+        v-if="thought.imageUrl && isVideo(thought.imageUrl)"
+        :src="thought.imageUrl"
+        controls
+        class="mt-4 rounded-xl w-full max-h-[32rem] object-contain bg-black"
+        loading="lazy"
+      ></video>
+      
+      <!-- Single Image or Carousel -->
+      <div v-else-if="thought.imageUrl" class="mt-4 relative">
+        <img
+          :src="Array.isArray(thought.imageUrl) ? thought.imageUrl[thought.currentSlide] : thought.imageUrl"
+          class="rounded-xl w-full max-h-[32rem] object-contain bg-gray-50 dark:bg-slate-900"
+          loading="lazy"
+          alt="Thought media"
+        />
+        
+        <!-- Carousel controls (only show if multiple images) -->
+        <template v-if="Array.isArray(thought.imageUrl) && thought.imageUrl.length > 1">
+          <!-- Left arrow -->
+          <button
+            @click.stop="thought.currentSlide = (thought.currentSlide - 1 + thought.imageUrl.length) % thought.imageUrl.length"
+            class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-10 h-10 flex items-center justify-center"
+            aria-label="Previous image"
+          >
+            ‹
+          </button>
+          
+          <!-- Right arrow -->
+          <button
+            @click.stop="thought.currentSlide = (thought.currentSlide + 1) % thought.imageUrl.length"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-10 h-10 flex items-center justify-center"
+            aria-label="Next image"
+          >
+            ›
+          </button>
+          
+          <!-- Slide indicators -->
+          <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+            <button
+              v-for="(_, idx) in thought.imageUrl"
+              :key="idx"
+              @click.stop="thought.currentSlide = idx"
+              class="w-2 h-2 rounded-full transition-all"
+              :class="thought.currentSlide === idx ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/75'"
+              :aria-label="`Go to slide ${idx + 1}`"
+            ></button>
+          </div>
+        </template>
+      </div>
     </article>
 
     <!-- Add comment -->
@@ -182,12 +233,24 @@ function formatDate(iso) {
   }
 }
 
+// Check if URL is video
+function isVideo(url) {
+  if (!url) return false;
+  // If it's an array, it's multiple images (not a video)
+  if (Array.isArray(url)) return false;
+  // Must be a string to check extension
+  if (typeof url !== 'string') return false;
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.gif'];
+  return videoExtensions.some(ext => url.toLowerCase().includes(ext));
+}
+
 async function loadThought() {
   const t = await fetchThought(thoughtId);
   // Ensure defaults for UI
   t.userVote = t.userVote ?? 0;
   t.upvotes = t.upvotes ?? 0;
   t.downvotes = t.downvotes ?? 0;
+  t.currentSlide = 0; // Initialize carousel slide
   thought.value = t;
 }
 

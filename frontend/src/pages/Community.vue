@@ -147,7 +147,7 @@
           
           <!-- Media preview - Video -->
           <div v-if="form.mediaType === 'video' && form.mediaPreviews[0]" class="mt-2 relative">
-            <video :src="form.mediaPreviews[0]" controls class="w-full rounded-lg max-h-96" />
+            <video :src="form.mediaPreviews[0]" controls class="w-full rounded-lg max-h-[24rem] object-contain bg-black" />
             <button
               @click="removeImage"
               class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
@@ -158,7 +158,7 @@
           <!-- Media preview - Image Carousel -->
           <div v-else-if="form.mediaType === 'image' && form.mediaPreviews.length > 0" class="mt-2 relative">
             <div class="relative">
-              <img :src="form.mediaPreviews[form.currentSlide]" class="w-full rounded-lg max-h-64 object-cover" alt="Preview" />
+              <img :src="form.mediaPreviews[form.currentSlide]" class="w-full rounded-lg max-h-[24rem] object-contain bg-gray-50 dark:bg-slate-900" />
               
               <!-- Carousel controls -->
               <button
@@ -326,7 +326,7 @@
           v-if="t.imageUrl && isVideo(t.imageUrl)"
           :src="t.imageUrl"
           controls
-          class="mt-3 rounded-xl w-full max-h-96"
+          class="mt-3 rounded-xl w-full max-h-[24rem] object-contain bg-black"
           loading="lazy"
         ></video>
         
@@ -334,8 +334,8 @@
         <div v-else-if="t.imageUrl" class="mt-3 relative">
           <img
             :src="Array.isArray(t.imageUrl) ? t.imageUrl[t.currentSlide || 0] : t.imageUrl"
-            alt=""
-            class="rounded-xl w-full object-cover max-h-64"
+            alt="Thought media"
+            class="rounded-xl w-full max-h-[24rem] object-contain bg-gray-50 dark:bg-slate-900"
             loading="lazy"
           />
           
