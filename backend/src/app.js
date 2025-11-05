@@ -34,7 +34,7 @@ import cardRoutes from "./routes/cardsFirebase.js";
 import cardsV2Routes from "./routes/cardsV2.js";
 import certRoutes from "./routes/certs.js";
 import walletRoute from "./routes/wallet.js";
-import stripeWebhookRouter from "./routes/stripeWebhook";
+import stripeWebhookRouter from "./routes/stripeWebhook.js";
 import chatRoutes from "./routes/chat.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import thoughtsRoutes from './routes/thoughts.js';
