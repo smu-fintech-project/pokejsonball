@@ -177,7 +177,7 @@
         <div class=" -ml-6 flex items-center justify-between mb-6">
           <h2 id="featured-cards" class="text-2xl font-bold flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"></svg>
-            Featured PSA-Certified Cards
+            Listed PSA-Certified Cards
             <span class="text-m font-normal text-gray-500">Total ({{ filteredCards.length }} cards)</span>
           </h2>
         </div>
@@ -228,7 +228,7 @@
 
               <div class="flex items-center justify-between pt-3 border-t dark:border-slate-700">
                 <div>
-                  <p class="text-xl font-black text-black">
+                  <p class="text-xl font-black text-black dark:text-white">
                     <img :src="jsbImg" alt="JSB" class="inline h-[32px] w-[32px] align-[-8px]" />
                     {{ card.price }}
                   </p>
