@@ -7,7 +7,7 @@
     <div class="flex items-center space-x-3 flex-1 md:flex-initial">
       <router-link to="/" class="block">
         <div
-          
+          class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl transform rotate-2 hover:rotate-0 hover:scale-110 transition-all duration-500 ease-in-out hover:shadow-2xl overflow-hidden"
         >
           <img
             :src="logo"
@@ -66,14 +66,7 @@
               @click="toggleProfileMenu"
               class="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <span
-                v-if="hasUnreadMessages"
-                class="flex items-center justify-center w-5 h-5 bg-red-600 text-white text-[10px] font-bold rounded-full"
-              >
-                {{ unreadCount }}
-              </span>
-              <span v-else class="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span>
-
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span>
               <span class="text-gray-700 dark:text-gray-200 text-sm truncate max-w-[160px]">
                 {{ username }}
               </span>
@@ -144,16 +137,6 @@
                     :class="{ 'bg-gray-100 dark:bg-slate-700': isActive('/wallet') }"
                   >
                     Wallet
-                  </router-link>
-
-                  <router-link
-                    v-if="isAdmin"
-                    @click="closeProfileMenu"
-                    to="/admin"
-                    class="block px-3 py-2 rounded-md text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    :class="{ 'bg-red-50 dark:bg-red-900/20': isActive('/admin') }"
-                  >
-                    🔐 Admin Panel
                   </router-link>
                 </div>
 
@@ -347,16 +330,6 @@
               Wallet
             </router-link>
 
-            <router-link
-              v-if="isAdmin"
-              @click="closeMobileMenu"
-              to="/admin"
-              class="block px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium transition-colors"
-              :class="{ 'bg-red-50 dark:bg-red-900/20 font-semibold': isActive('/admin') }"
-            >
-              🔐 Admin Panel
-            </router-link>
-
             <button
               @click="logout"
               class="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
@@ -392,7 +365,7 @@
 </template>
 
 <script setup>
-import logo from '../assets/JS.png'
+import logo from '../assets/logo.png'
 import { watch, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlobalNotifications } from '@/composables/useGlobalNotifications'
@@ -406,7 +379,6 @@ const isActive = (path) => route.path === path
 const isAuthed = ref(false)
 const userEmail = ref('')
 const username = ref('')
-const isAdmin = ref(false)
 const isMobileMenuOpen = ref(false)
 const isProfileMenuOpen = ref(false) // State for Profile dropdown
 const profileMenuRef = ref(null)     // Ref for Profile dropdown
@@ -495,18 +467,6 @@ function syncAuthFromStorage() {
   isAuthed.value = !!token && !!email
   userEmail.value = email || ''
   username.value = storedUsername || ''
-
-  // Check if user is admin from JWT token
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      isAdmin.value = payload.isAdmin || false
-    } catch (e) {
-      isAdmin.value = false
-    }
-  } else {
-    isAdmin.value = false
-  }
 
   // Connect/disconnect notifications based on auth state
   if (isAuthed.value && !wasAuthed) {
