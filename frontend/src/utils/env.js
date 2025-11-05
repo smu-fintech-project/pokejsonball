@@ -19,4 +19,3 @@ const resolveBase = (explicitValue) => {
 
 export const API_BASE = resolveBase(import.meta.env.VITE_API_BASE);
 export const API_URL = resolveBase(import.meta.env.VITE_API_URL) || API_BASE;
-
