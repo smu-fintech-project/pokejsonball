@@ -176,15 +176,6 @@ async function createInitialTransactions(db, userId, userName) {
     status: 'completed'
   };
 
-  // Transaction 2: Card purchase
-  const tx2 = {
-    type: 'purchase',
-    amount: 25,
-    balanceAfter: 75,
-    description: 'Purchased Charizard PSA 10 listing',
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-    status: 'completed'
-  };
 
   await transactionsRef.add(tx1);
   await transactionsRef.add(tx2);
