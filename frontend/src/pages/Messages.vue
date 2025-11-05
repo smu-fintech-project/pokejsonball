@@ -1,9 +1,9 @@
 <template>
-  <div class="messages-page min-h-screen bg-gray-100 dark:bg-gray-900">
-    <div class="container mx-auto px-4 py-6 bg-gray-100 dark:bg-gray-900">
+  <div class="messages-page min-h-screen flex bg-gray-100 dark:bg-gray-900">
+    <div class="container mx-auto flex-1 flex flex-col px-4 py-6">
       <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">Messages</h1>
 
-      <div class="bg-white rounded-lg shadow-2xl overflow-hidden dark:bg-gray-800" style="height: calc(100vh - 200px);">
+      <div class="flex-1 min-h-0 bg-white rounded-lg shadow-2xl overflow-hidden dark:bg-gray-800">
         <div class="flex h-full shadow-xl">
           <div class="w-1/3 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
             <div class="pl-4 h-14 border-b dark:border-gray-700 flex flex-col justify-center">
