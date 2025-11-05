@@ -357,6 +357,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AddFundsModal from '../components/AddFundsModal.vue'
 import CashOutModal from '../components/CashOutModal.vue'
+import { API_BASE } from '@/utils/env'
 
 const router = useRouter()
 const wallet = ref({ balance: 0, currency: 'JSB' })
