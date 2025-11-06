@@ -1,13 +1,17 @@
 <template>
 <section class="space-y-6">
     <!-- Header with Pokémon-styled button -->
-  <div class="space-y-6 ">
+  <div class="space-y-6">
     <div 
         v-if="isAuthenticated"
-    class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-3 flex items-center justify-between px-4 mx-8"
-        :class="loading || !thoughts.length ? 'w-full' : 'max-w-full'"
+    class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-3 flex items-center justify-between lg:mx-8"
+        :class="[
+          loading || !thoughts.length ? 'w-auto' : 'max-w-full',
+          'lg:px-4 px-4',
+          'ml-[12.5%] lg:ml-8 mr-4'
+        ]"
     >
-        <div class="text-gray-500 dark:text-slate-400 pl-3 font-semibold text-base">
+        <div class="text-gray-500 dark:text-slate-400 pl-3 font-semibold text-base truncate">
             Add a new thread
         </div>
         <button 
@@ -15,7 +19,7 @@
             class="bg-red-600 hover:bg-red-700 
                    text-white 
                    w-10 h-10 rounded-xl 
-                   flex items-center justify-center 
+                   flex items-center justify-center flex-shrink-0
                    text-xl font-bold 
                    shadow-md transition-all duration-200
                    focus:outline-none focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-700"
@@ -41,7 +45,8 @@
   </button>
   
    <!-- 2-column responsive layout (sidebar + feed) -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 relative max-w-full overflow-hidden px-4 lg:px-8">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 relative max-w-full overflow-hidden lg:px-8"
+       :class="'pl-[12.5%] pr-4 lg:pl-8'">
       <!-- Backdrop overlay for mobile -->
       <div
         v-if="sidebarOpen"
@@ -173,10 +178,10 @@
     </div>
 
         <!-- Composer Modal (Pokémon card style) -->
-    <div v-if="showComposer" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-gradient-to-br from-white via-red-50 to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 rounded-3xl w-full max-w-2xl p-8 shadow-2xl border-4 border-red-500 dark:border-red-700">
-        <h2 class="text-2xl font-black mb-6 text-red-700 dark:text-red-400 uppercase tracking-wide flex items-center gap-3">
-          <span class="text-3xl">✨</span>
+    <div v-if="showComposer" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div class="bg-gradient-to-br from-white via-red-50 to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 rounded-3xl w-full max-w-2xl p-6 md:p-8 shadow-2xl border-4 border-red-500 dark:border-red-700 my-8 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl md:text-2xl font-black mb-4 md:mb-6 text-red-700 dark:text-red-400 uppercase tracking-wide flex items-center gap-3">
+          <span class="text-2xl md:text-3xl">✨</span>
           Create Thought
         </h2>
         <div class="space-y-4">
