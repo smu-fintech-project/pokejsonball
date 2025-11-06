@@ -14,9 +14,18 @@
     <article v-if="thought" class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 px-6">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <!-- Avatar (first letter) -->
-          <div class="h-10 w-10 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold">
-            {{ getDisplayName(thought.authorName, thought.authorEmail).charAt(0).toUpperCase() }}
+          <!-- Avatar image (fallback to initial) -->
+          <div class="h-10 w-10 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold overflow-hidden">
+            <img
+              v-if="avatarSrcFor(thought)"
+              :src="avatarSrcFor(thought)"
+              alt=""
+              class="h-full w-full object-cover"
+              loading="lazy"
+            />
+            <span v-else>
+              {{ getDisplayName(thought.authorName, thought.authorEmail).charAt(0).toUpperCase() }}
+            </span>
           </div>
           <div class="text-sm">
             <div class="flex items-center gap-2">
@@ -128,9 +137,18 @@
     <div class="space-y-4 px-6">
       <div v-for="c in comments" :key="c.id" class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700">
         <div class="flex items-center gap-3 mb-3">
-          <!-- Avatar (first letter) -->
-          <div class="h-8 w-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold text-sm">
-            {{ getDisplayName(c.authorName, c.authorEmail).charAt(0).toUpperCase() }}
+          <!-- Avatar image (fallback to initial) -->
+          <div class="h-8 w-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold text-sm overflow-hidden">
+            <img
+              v-if="avatarSrcFor(c)"
+              :src="avatarSrcFor(c)"
+              alt=""
+              class="h-full w-full object-cover"
+              loading="lazy"
+            />
+            <span v-else>
+              {{ getDisplayName(c.authorName, c.authorEmail).charAt(0).toUpperCase() }}
+            </span>
           </div>
           <div class="text-sm">
             <div class="font-medium text-gray-900 dark:text-white">
@@ -218,6 +236,7 @@ import {
   fetchThought, fetchComments, addCommentApi, voteThought, voteComment as voteCommentApi, fetchCommunities
 } from '@/utils/api';
 import { isAuthenticated as checkAuth } from '@/utils/api';
+import { API_BASE } from '@/utils/env';
 
 const route = useRoute();
 const thoughtId = route.params.id;
@@ -265,6 +284,12 @@ function formatDate(iso) {
   } catch {
     return '';
   }
+}
+
+// Get avatar image URL
+function avatarSrcFor(item) {
+  if (!item?.authorAvatar) return null;
+  return `${API_BASE}/api/cards/images/avatar/${item.authorAvatar}`;
 }
 
 // Check if URL is video

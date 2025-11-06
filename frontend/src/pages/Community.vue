@@ -734,6 +734,7 @@ async function loadPage(cursor = null) {
     t.currentSlide = 0; // Initialize carousel slide
   }
   if (!cursor) thoughts.value = items; else thoughts.value.push(...items);
+  console.log(`thoughts ${thoughts.value.authorAvatar}`);
   nextCursor.value = nxt;
 }
 
@@ -983,7 +984,8 @@ function avatarSrcFor(thought) {
   // If no avatar set, return null and we’ll fall back to the initial.
   
   if (!thought?.authorAvatar) return null;
-  return `/api/cards/images/avatar/${encodeURIComponent(thought.authorAvatar)}`;
+  console.log(`avatarSrcFor: ${thought.authorAvatar}`);
+  return `${API_BASE}/api/cards/images/avatar/${thought.authorAvatar}`;
 }
 
 
