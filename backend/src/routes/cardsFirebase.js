@@ -145,6 +145,14 @@ router.get('/ownedCards', async (req, res) => {
       return res.status(400).json({ error: 'email query param is required' })
     }
 
+    const cacheKey = `ownedCards:${email}`; // User-specific key
+    // Cache for 10 minutes (600s). Good for personal data.
+    const cached = await getCache(cacheKey, 600); 
+    if (cached) {
+      console.log(`[cards] returning ${cached.length} cached owned cards for ${email}`);
+      return res.json(cached);
+    }
+
     // 1) Find the current user by email
     const users = await getAllUsers()
     const me = users.find(u => (u.email || u.userEmail) === email)
@@ -170,7 +178,7 @@ router.get('/ownedCards', async (req, res) => {
         cert_number: String(l.cert_number),
         sellerId: l.sellerId || me.id,
         sellerEmail: l.sellerEmail || email,
-        sellerName: l.sellerName || userId,
+        sellerName: l.sellerName || me.name || me.id,
         listing_price: typeof l.listing_price === 'number' ? l.listing_price : null,
         status: l.status || 'display'
       })
@@ -233,13 +241,14 @@ router.get('/ownedCards', async (req, res) => {
   }
 })
 
+await setCache(cacheKey, owned);
+
 return res.json(owned)
   } catch (error) {
     console.error('ownedCards error:', error?.message || error)
     return res.status(500).json({ error: 'Failed to load owned cards' })
   }
 })
-
 
 // GET /api/cards/:cert - get card details with caching
 router.get('/:cert', async (req, res) => {
