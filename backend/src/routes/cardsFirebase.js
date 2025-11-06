@@ -15,7 +15,15 @@ router.get('/', async (req, res) => {
   console.log('\n📚 Listing cards (users → listings → cards)…');
 
   try {
-    // 1) Load all users and all cards once
+    // 1) Check cache first
+    const cacheKey = 'marketplace:all-listed';
+    const cached = await getCache(cacheKey, 60); // Cache for 60 seconds
+    if (cached) {
+      console.log(`[cards] returning ${cached.length} cached listed cards`);
+      return res.json(cached);
+    }
+
+    // 2) Load all users and all cards once (Original slow logic)
     const [users, cards] = await Promise.all([
       getAllUsers(500),   
       getAllCards(5000)
@@ -95,7 +103,6 @@ router.get('/', async (req, res) => {
           year: card.year ?? null,
           
 
-
           // optional convenience sub-object (unchanged UI can still read .psa?.grade)
           psa: {
             cardName: card.card_name ?? null,
@@ -116,12 +123,12 @@ router.get('/', async (req, res) => {
 
     // 5) Flatten
     const allListed = (await Promise.all(perUserPromises)).flat();
-
-    // Optional: honor ?only=listed though we already filtered above
     const only = (req.query.only || '').toLowerCase();
     const result = only === 'listed' ? allListed : allListed;
+// 3) Save the final result to the cache
+    await setCache(cacheKey, result);
 
-    console.log(`[cards] returning ${result.length} listed cards`);
+    console.log(`[cards] returning ${result.length} listed cards (from live query)`);
     return res.json(result);
   } catch (error) {
     console.error('❌ Marketplace list error:', error?.stack || error?.message || error);
@@ -242,7 +249,7 @@ router.get('/:cert', async (req, res) => {
   try {
     // Check cache first
     const cacheKey = `card:${cert}`;
-    const cached = await getCache(cacheKey, 300);
+    const cached = await getCache(cacheKey, 3600);
     
     if (cached) {
       console.log(`✅ Returning cached data for cert: ${cert}`);
