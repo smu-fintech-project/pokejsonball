@@ -11,7 +11,7 @@
       upsertCard, 
       getCache, 
       setCache, 
-      clearCache, // <-- ADDED THIS
+      clearCache, 
       getMarketplaceCards, 
       getAllUsers, 
       getAllCards, 
@@ -157,14 +157,6 @@
           return res.status(400).json({ error: 'email query param is required' })
         }
     
-        const cacheKey = `ownedCards:${email}`; // User-specific key
-        // Cache for 10 minutes (600s). Good for personal data.
-        const cached = await getCache(cacheKey, 600); 
-        if (cached) {
-          console.log(`[cards] returning ${cached.length} cached owned cards for ${email}`);
-          return res.json(cached);
-        }
-    
         // 1) Find the current user by email
         const users = await getAllUsers()
         const me = users.find(u => (u.email || u.userEmail) === email)
@@ -252,9 +244,7 @@
         psa: psaObj
       }
     })
-    
-    await setCache(cacheKey, owned);
-    
+        
     return res.json(owned)
       } catch (error) {
         console.error('ownedCards error:', error?.message || error)
@@ -394,138 +384,101 @@
     
     
     // POST /api/cards/:cert/list  -> directed from Profile.vue once user click submit and update status as "listed"
-    router.post('/:cert/list', async (req, res) => {
-      const cert = String(req.params.cert);
-      const { sellerEmail, sellerId, price, description = '', delivery = 'meetup' } = req.body || {};
-    
-      if (!sellerEmail || !sellerId || !price) {
-        return res.status(400).json({ error: 'sellerEmail, sellerId, and price are required' });
-      }
-    
-      try {
-        const { getFirestore } = await import('../services/firebase.js');
-        const db = getFirestore();
-    
-        // write to users/{sellerId}/listings/{cert}
-        const ref = db.collection('users').doc(sellerId).collection('listings').doc(cert);
-        await ref.set({
-          cert_number: cert,
-          sellerEmail,
-          sellerId,
-          listing_price: Number(price),
-          description,
-          delivery,
-          status: 'listed',
-          updated_at: new Date().toISOString(),
-        }, { merge: true });
-    
-    
-        // --- ADDED: CACHE INVALIDATION ---
-        // This is a 'write' operation, so we clear all related caches.
-        try {
-          const ownedKey = `ownedCards:${sellerEmail}`;
-          const cardKey = `card:${cert}`;
-          const marketplaceKey = 'marketplace:all-listed';
-    
-          // Clear all three caches in parallel
-          await Promise.all([
-            clearCache(ownedKey),        // Clears the user's "Owned Cards" list
-            clearCache(cardKey),         // Clears the specific card's cache
-            clearCache(marketplaceKey)   // Clears the main marketplace list
-          ]);
-          
-          console.log(`[cards] Cleared caches for list: ${sellerEmail}, ${cert}`);
-        } catch (cacheError) {
-          console.warn(`[cards] Failed to clear caches for ${sellerEmail}:`, cacheError.message);
-        }
-        // --- END ADDED ---
-    
-    
-        // (optional) warm cache: card:cert already handled by GET/:cert
-        return res.json({ ok: true });
-      } catch (e) {
-        console.error('Failed to list card', cert, e.message || e);
-        return res.status(500).json({ error: 'Failed to list card' });
-      }
-    });
+router.post('/:cert/list', async (req, res) => {
+  const cert = String(req.params.cert);
+  const { sellerEmail, sellerId, price, description = '', delivery = 'meetup' } = req.body || {};
+
+  if (!sellerEmail || !sellerId || !price) {
+    return res.status(400).json({ error: 'sellerEmail, sellerId, and price are required' });
+  }
+
+  try {
+    const { getFirestore } = await import('../services/firebase.js');
+    const db = getFirestore();
+
+    // write to users/{sellerId}/listings/{cert}
+    const ref = db.collection('users').doc(sellerId).collection('listings').doc(cert);
+    await ref.set({
+      cert_number: cert,
+      sellerEmail,
+      sellerId,
+      listing_price: Number(price),
+      description,
+      delivery,
+      status: 'listed',
+      updated_at: new Date().toISOString(),
+    }, { merge: true });
+
+  try {
+      const cardKey = `card:${cert}`;
+      const marketplaceKey = 'marketplace:all-listed';
+
+      await Promise.all([
+        // The ownedCards cache is gone, so we don't clear it
+        clearCache(cardKey),         
+        clearCache(marketplaceKey)   
+      ]);
+      
+      console.log(`[Cache] Cleared caches for LIST: ${cardKey}, ${marketplaceKey}`);
+    } catch (cacheError) {
+      console.warn(`[cards] Failed to clear caches for ${sellerEmail}:`, cacheError.message);
+    }
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('Failed to list card', cert, e.message || e);
+    return res.status(500).json({ error: 'Failed to list card' });
+  }
+});
     
     
     // POST /api/cards/:cert/undo -> mark listing as "display"
-    router.post('/:cert/undo', async (req, res) => {
-        const cert = String(req.params.cert);
-        const { sellerEmail, sellerId } = req.body || {};
-        if (!sellerId) {
-        return res.status(400).json({ error: 'sellerId is required' });
-        }
-    
-        try {
-        const { getFirestore } = await import('../services/firebase.js');
-        const db = getFirestore();
-    
-        const ref = db.collection('users').doc(sellerId).collection('listings').doc(cert);
-        const snap = await ref.get();
-        if (!snap.exists) {
-          return res.status(404).json({ error: 'Listing not found' });
-        }
-        // (optional) soft ownership check
-        const l = snap.data();
-        if (sellerEmail && l?.sellerEmail && l.sellerEmail !== sellerEmail) {
-          return res.status(403).json({ error: 'Not owner of listing' });
-        }
-    
-        await ref.set({
-          status: 'display',
-          updated_at: new Date().toISOString(),
-        }, { merge: true });
-    
-    
-        // --- ADDED: CACHE INVALIDATION ---
-        // This is also a 'write' operation.
-        try {
-          const cardKey = `card:${cert}`;
-          const marketplaceKey = 'marketplace:all-listed';
-          
-          const clearPromises = [
-            clearCache(cardKey),
-            clearCache(marketplaceKey)
-          ];
-    
-          // Only clear 'ownedCards' if we know the email
-          if (sellerEmail) {
-            const ownedKey = `ownedCards:${sellerEmail}`;
-            clearPromises.push(clearCache(ownedKey));
-          } else {
-             console.warn(`[cards] Undo for ${cert} missing sellerEmail, can't clear ownedCards cache.`);
-          }
-          
-          await Promise.all(clearPromises);
-          console.log(`[cards] Cleared caches for undo: ${sellerEmail}, ${cert}`);
-    
-        } catch (cacheError) {
-          console.warn(`[cards] Failed to clear caches for undo:`, cacheError.message);
-        }
-        // --- END ADDED ---
-    
-    
-        return res.json({ ok: true });
-      } catch (e) {
-        console.error('Failed to undo listing', cert, e.message || e);
-        return res.status(500).json({ error: 'Failed to undo listing' });
+router.post('/:cert/undo', async (req, res) => {
+    const cert = String(req.params.cert);
+    const { sellerEmail, sellerId } = req.body || {};
+    if (!sellerId) {
+      return res.status(400).json({ error: 'sellerId is required' });
+    }
+
+    try {
+      const { getFirestore } = await import('../services/firebase.js');
+      const db = getFirestore();
+
+      const ref = db.collection('users').doc(sellerId).collection('listings').doc(cert);
+      const snap = await ref.get();
+      if (!snap.exists) {
+        return res.status(404).json({ error: 'Listing not found' });
       }
-    });
-    
-    
-    // GET /api/cards/images/:folder/:filename -> redirects to signed URL
-    router.get('/images/:folder/:filename', async (req, res) => {
-      try {
-        const { folder, filename } = req.params;
-        const url = await getImageSignedUrl(folder, filename);
-        // Redirect keeps it super simple for the frontend
-        return res.redirect(url);
-      } catch (e) {
-        const code = e.message === 'IMAGE_NOT_FOUND' ? 404 : 500;
-        return res.status(code).json({ error: e.message || 'FAILED_IMAGE' });
+      // (optional) soft ownership check
+      const l = snap.data();
+      if (sellerEmail && l?.sellerEmail && l.sellerEmail !== sellerEmail) {
+        return res.status(403).json({ error: 'Not owner of listing' });
       }
-    });
+
+      await ref.set({
+        status: 'display',
+        updated_at: new Date().toISOString(),
+      }, { merge: true });
+
+
+  try {
+        const clearPromises = [
+          clearCache(`card:${cert}`),
+          clearCache('marketplace:all-listed')
+        ];
+        
+        await Promise.all(clearPromises);
+        console.log(`[cards] Cleared caches for undo: ${sellerEmail}, ${cert}`);
+  
+      } catch (cacheError) {
+        console.warn(`[cards] Failed to clear caches for undo:`, cacheError.message);
+      }
+
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error('Failed to undo listing', cert, e.message || e);
+      return res.status(500).json({ error: 'Failed to undo listing' });
+    }
+});
     
     export default router;
