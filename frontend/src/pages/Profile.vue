@@ -172,6 +172,12 @@ class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:
   </p>
 </div>
 <p class="text-sm text-gray-500" :class="card.status === 'listed' ? '' : 'mt-2'">Cert: {{ card.cert }}</p>
+
+<p v-if="card.marketPrice > 0" class="text-xs text-gray-500 dark:text-slate-400 mt-1">
+  Market Price: 
+  <span class="font-semibold text-green-600 dark:text-green-500">${{ card.marketPrice.toFixed(2) }}</span>
+</p>
+
 </div>
 
 
@@ -1136,7 +1142,8 @@ async function loadOwnedCards() {
       set: c.set_name || c.psa?.setName || '—',
       grade: c.psa_grade ? `PSA ${c.psa_grade}` : 'PSA —',
       price: Number(c.listing_price || 0),
-      quantity: 1, // You'll need to adjust this if you track quantities
+      marketPrice: Number(c.average_sell_price || 0), 
+      quantity: 1, 
       status: c.status || 'display',
       dateAdded: c.created_at || ''
     }));

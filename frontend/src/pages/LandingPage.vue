@@ -232,9 +232,9 @@
                     <img :src="jsbImg" alt="JSB" class="inline h-[32px] w-[32px] align-[-8px]" />
                     {{ card.price }}
                   </p>
-                  <p class="text-sm font-bold">
-                    <span class="text-gray-500">Last Sold: </span>
-                    <span class="text-green-700">{{ card.lastSold }}</span>
+                  <p class="text-xs font-bold">
+                    <span class="text-gray-500 dark:text-slate-400 mt-1">Market Price: </span>
+                    <span class="font-semibold text-green-600 dark:text-green-500">{{ card.lastSold }}</span>
                   </p>
                 </div>
                 <button @click="openCardModal(card)"

@@ -235,7 +235,7 @@ router.get('/ownedCards', async (req, res) => {
 
     // Keep helpful extras if you had them elsewhere
     last_known_price: c.last_known_price ?? null,
-
+    average_sell_price: c.average_sell_price ?? null,
     // Normalized psa object for UI convenience
     psa: psaObj
   }
