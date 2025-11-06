@@ -432,59 +432,65 @@ class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:
       </div>
 
       <div v-else class="space-y-4">
-        <div v-for="offer in receivedOffers" :key="offer.id"
-          class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2 border-gray-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                  <User class="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p class="font-bold">{{ offer.buyer_name || 'Unknown Buyer' }}</p>
-                  <p class="text-xs text-gray-500">{{ formatOfferDate(offer.created_at) }}</p>
-                </div>
-              </div>
-
-              <div class="ml-13">
-                <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">
-                  Offered for: <span class="font-semibold">{{ offer.card_name || 'Unknown Card' }}</span>
-                </p>
-                <p class="text-sm text-gray-500">
-                  Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
-                </p>
-                
-                <div class="mt-3 flex items-center gap-2">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">Offer Amount:</span>
-                  <span class="text-2xl font-black text-green-600">
-                    <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />
-                    {{ Number(offer.offer_amount || 0).toFixed(2) }}
-                  </span>
-                  <span v-if="offer.offer_amount < offer.listing_price" 
-                    class="text-sm text-orange-600 font-semibold">
-                    ({{ ((offer.offer_amount / offer.listing_price) * 100).toFixed(0) }}% of listing)
-                  </span>
-                </div>
-
-                <p v-if="offer.message" class="mt-3 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                  "{{ offer.message }}"
-                </p>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <button @click="acceptOffer(offer.id)"
-                class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all whitespace-nowrap">
-                ✓ Accept
-              </button>
-              <button @click="rejectOffer(offer.id)"
-                class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all whitespace-nowrap">
-                ✕ Reject
-              </button>
-            </div>
+  <div v-for="offer in receivedOffers" :key="offer.id"
+    class="bg-white dark:bg-slate-700 rounded-2xl p-6 border-2 border-gray-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all hover:border-red-400 dark:hover:border-red-700"
+  >
+    <div class="flex items-start justify-between gap-4">
+      
+      <div class="flex-1 space-y-3">
+        
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+            <User class="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p class="font-black text-lg text-gray-900 dark:text-white">{{ offer.buyer_name || 'Anonymous Buyer' }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatOfferDate(offer.created_at) }}</p>
           </div>
         </div>
+
+        <p class="text-sm text-gray-600 dark:text-gray-300 pl-13">
+          Offered for: <span class="font-extrabold text-red-600 dark:text-red-400">{{ offer.card_name || 'Unknown Card' }}</span>
+        </p>
+        
+        <p class="text-xs text-gray-500 dark:text-gray-400 pl-13">
+          Your Listing: 
+          <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-0.5" />
+          <span class="font-semibold">{{ Number(offer.listing_price || 0).toFixed(2) }}</span>
+        </p>
+        
+        <div class="mt-3 flex items-center gap-3 pl-13 border-t border-gray-100 dark:border-slate-600 pt-3">
+          <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Offer Amount:</span>
+          
+          <span class="text-3xl font-black text-green-600 dark:text-green-400">
+            <img :src="jsbImg" alt="JSB" class="inline h-[24px] w-[24px] align-[-4px] mr-1" />
+            {{ Number(offer.offer_amount || 0).toFixed(2) }}
+          </span>
+          
+          <span v-if="offer.offer_amount < offer.listing_price" 
+            class="text-sm text-orange-600 font-bold bg-orange-50 dark:bg-orange-900/40 px-2 py-0.5 rounded-full">
+            {{ (((offer.offer_amount / offer.listing_price) * 100) || 0).toFixed(0) }}% of listing
+          </span>
+        </div>
+
+        <p v-if="offer.message" class="mt-3 text-sm text-gray-700 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-xl border border-gray-100 dark:border-slate-600">
+          "{{ offer.message }}"
+        </p>
       </div>
+
+      <div class="flex flex-col gap-2 flex-shrink-0 w-28 mt-2">
+        <button @click="acceptOffer(offer.id)"
+          class="px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all shadow-md">
+          ✓ Accept
+        </button>
+        <button @click="rejectOffer(offer.id)"
+          class="px-4 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-md">
+          ✕ Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
     </div>
 
     <div class="border-t-2 border-gray-200 dark:border-slate-700"></div>
@@ -502,59 +508,61 @@ class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:
       </div>
 
       <div v-else class="space-y-4">
-        <div v-for="offer in sentOffers" :key="offer.id"
-          class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2"
-          :class="{
-            'border-yellow-300 dark:border-yellow-700': offer.status === 'pending',
-            'border-green-300 dark:border-green-700': offer.status === 'accepted',
-            'border-red-300 dark:border-red-700': offer.status === 'rejected',
-            'border-gray-200 dark:border-slate-600': !offer.status
-          }">
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <p class="font-bold">{{ offer.card_name || 'Unknown Card' }}</p>
-                <span class="px-2 py-1 rounded text-xs font-bold"
-                  :class="{
-                    'bg-yellow-100 text-yellow-700': offer.status === 'pending',
-                    'bg-green-100 text-green-700': offer.status === 'accepted',
-                    'bg-red-100 text-red-700': offer.status === 'rejected'
-                  }">
-                  {{ (offer.status || 'pending').toUpperCase() }}
-                </span>
-              </div>
-
-              <p class="text-xs text-gray-500 mb-3">{{ formatOfferDate(offer.created_at) }}</p>
-
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Your Offer:</span>
-                <span class="text-xl font-black text-indigo-600">
-                  <img :src="jsbImg" alt="JSB" class="inline h-[18px] w-[18px] align-[-2px] mr-1" />
-                  {{ Number(offer.offer_amount || 0).toFixed(2) }}
-                </span>
-              </div>
-
-              <p class="text-sm text-gray-500">
-                Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
-              </p>
-
-              <p v-if="offer.message" class="mt-2 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                "{{ offer.message }}"
-              </p>
-
-              <p v-if="offer.status === 'accepted' && offer.accepted_at" class="mt-3 text-sm text-green-600 font-semibold">
-                ✅ Accepted on {{ formatOfferDate(offer.accepted_at) }}
-              </p>
-              <p v-else-if="offer.status === 'rejected' && offer.rejected_at" class="mt-3 text-sm text-red-600 font-semibold">
-                ❌ Rejected on {{ formatOfferDate(offer.rejected_at) }}
-              </p>
-              <p v-else-if="offer.status === 'pending'" class="mt-3 text-sm text-yellow-600 font-semibold">
-                ⏳ Waiting for seller's response
-              </p>
-            </div>
-          </div>
+  <div v-for="offer in sentOffers" :key="offer.id"
+    class="bg-white dark:bg-slate-700 rounded-2xl p-6 border-2 shadow-lg transition-all"
+    :class="{
+      'border-yellow-300 dark:border-yellow-700': offer.status === 'pending',
+      'border-green-300 dark:border-green-700': offer.status === 'accepted',
+      'border-red-300 dark:border-red-700': offer.status === 'rejected',
+      'border-gray-200 dark:border-slate-600': !offer.status
+    }">
+    
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex-1 space-y-2">
+        
+        <div class="flex items-center gap-3 mb-1">
+          <p class="font-black text-xl text-gray-900 dark:text-white">{{ offer.card_name || 'Unknown Card' }}</p>
+          <span class="px-3 py-1 rounded-full text-xs font-bold shadow-sm"
+            :class="{
+              'bg-yellow-100 text-yellow-700': offer.status === 'pending',
+              'bg-green-100 text-green-700': offer.status === 'accepted',
+              'bg-red-100 text-red-700': offer.status === 'rejected'
+            }">
+            {{ (offer.status || 'pending').toUpperCase() }}
+          </span>
         </div>
+
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">{{ formatOfferDate(offer.created_at) }}</p>
+
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-600 dark:text-gray-400">Your Offer:</span>
+          <span class="text-2xl font-black text-yellow-600 dark:text-indigo-400">
+            <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
+            {{ Number(offer.offer_amount || 0).toFixed(2) }}
+          </span>
+        </div>
+
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
+        </p>
+
+        <p v-if="offer.message" class="mt-3 text-sm text-gray-700 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-xl border border-gray-100 dark:border-slate-600">
+          "{{ offer.message }}"
+        </p>
+
+        <p v-if="offer.status === 'accepted' && offer.accepted_at" class="mt-3 text-sm text-green-600 dark:text-green-400 font-extrabold flex items-center gap-2">
+          <BadgeCheck class="w-5 h-5" /> Accepted on {{ formatOfferDate(offer.accepted_at) }}
+        </p>
+        <p v-else-if="offer.status === 'rejected' && offer.rejected_at" class="mt-3 text-sm text-red-600 dark:text-red-400 font-extrabold flex items-center gap-2">
+          <X class="w-5 h-5" /> Rejected on {{ formatOfferDate(offer.rejected_at) }}
+        </p>
+        <p v-else-if="offer.status === 'pending'" class="mt-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold">
+          ⏳ Waiting for seller's response
+        </p>
       </div>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 </div>
