@@ -1217,7 +1217,7 @@ async function loadOwnedCards() {
     }
   }
 
-  // Watch for tab changes
+  // Watch for tab changess
   watch(activeTab, (newTab) => {
     if (newTab === 'portfolio' && portfolioHistory.value.length === 0) {
       loadPortfolioHistory()
