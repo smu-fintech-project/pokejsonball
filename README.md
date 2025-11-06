@@ -646,7 +646,11 @@ pokejsonball/
 │   │   │   ├── cardsV2.js     # Alternative card routes
 │   │   │   ├── certs.js       # Admin cert routes
 │   │   │   ├── chat.js        # Chat/messaging routes
+│   │   │   ├── offers.js        # card offer routes
+│   │   │   ├── transactions.js  # jsb transaction route
 │   │   │   └── users.js       # User routes
+│   │   │   ├── thoughts.js        # comm page routes
+│   │   │   ├── wallet.js        # wallet
 │   │   ├── models/            # Database models
 │   │   │   ├── Conversation.js  # Conversation Firestore operations
 │   │   │   └── Message.js     # Message Firestore operations
@@ -672,6 +676,7 @@ pokejsonball/
 │   │   │   └── seedUsers.js   # Sync cards to Firebase
 │   │   ├── scripts/           # Utility scripts
 │   │   │   └── updateCardPrices.js  # Update card prices from TCG API
+│   │   │   └── seedPortfolioHistory.js  # Seed user's portfolio
 │   │   ├── socketRefactored.js  # Socket.IO real-time chat server
 │   │   ├── app.js             # Express app setup
 │   │   └── db.js              # Database connection
