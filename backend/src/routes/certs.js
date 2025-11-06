@@ -383,7 +383,7 @@ router.post('/ingest', async (req, res) => {
       cert_number: certNumber,
       sellerEmail: listingEmail,
       sellerId: userRef.id,
-      status: 'display',
+      status: 'listed',
       updated_at: now,
     };
 
