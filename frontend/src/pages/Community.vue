@@ -1,83 +1,99 @@
 <template>
 <section class="space-y-6">
-    <!-- Header (centered button) -->
-  <div class="flex items-center justify-center">
-    <button
-      v-if="isAuthenticated"
-      @click="showComposer = true"
-      class="px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-600 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-2"
-      aria-label="Create a new thought"
+    <!-- Header with Pokémon-styled button -->
+  <div class="space-y-6 ">
+    <div 
+        v-if="isAuthenticated"
+    class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-3 flex items-center justify-between px-4 mx-8"
+        :class="loading || !thoughts.length ? 'w-full' : 'max-w-full'"
     >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
-      <span>Create New Thought</span>
-    </button>
-  </div>
+        <div class="text-gray-500 dark:text-slate-400 pl-3 font-semibold text-base">
+            Add a new thread
+        </div>
+        <button 
+            @click="showComposer = true"
+            class="bg-red-600 hover:bg-red-700 
+                   text-white 
+                   w-10 h-10 rounded-xl 
+                   flex items-center justify-center 
+                   text-xl font-bold 
+                   shadow-md transition-all duration-200
+                   focus:outline-none focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-700"
+            aria-label="Create a new thread"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+    </div>
+</div>
   
   <!-- Collapsible sidebar toggle (mobile/tablet) -->
   <button
     v-if="!sidebarOpen"
     @click="sidebarOpen = true"
-    class="fixed left-4 top-24 z-40 lg:hidden bg-white dark:bg-slate-800 p-3 rounded-full shadow-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+    class="fixed left-4 top-24 z-40 lg:hidden bg-white dark:bg-slate-800 p-3 rounded-xl shadow-xl border-2 border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-slate-700 transition-all hover:scale-110"
     aria-label="Open communities sidebar"
   >
-    <svg class="w-6 h-6 text-gray-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
     </svg>
   </button>
   
-  <!-- 2-column responsive layout (sidebar + feed) -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
+   <!-- 2-column responsive layout (sidebar + feed) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 relative max-w-full overflow-hidden px-4 lg:px-8">
       <!-- Backdrop overlay for mobile -->
       <div
         v-if="sidebarOpen"
         @click="sidebarOpen = false"
-        class="fixed inset-0 bg-black/50 z-30 lg:hidden"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
       ></div>
       
-      <!-- Left: Communities sidebar -->
+      <!-- Left: Communities sidebar with Pokémon card style -->
       <aside
         :class="[
-          'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4',
+          'bg-gradient-to-b from-white to-red-50 dark:from-slate-800 dark:to-slate-900 border-2 border-red-200 dark:border-red-900 rounded-3xl p-5 shadow-2xl',
           'transition-transform duration-300 ease-in-out',
-          'lg:col-span-2 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:translate-x-0',
-          'fixed top-0 left-0 h-full z-40 overflow-y-auto',
-          sidebarOpen ? 'translate-x-0 w-[250px]' : '-translate-x-full w-[250px] lg:translate-x-0'
+          'lg:col-span-3 lg:sticky lg:top-1 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:translate-x-0 lg:z-0',
+          'fixed top-0 left-0 h-full z-40 overflow-y-auto lg:relative lg:w-auto pt-16 lg:pt-5',
+          sidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full w-[280px] lg:translate-x-0 lg:w-auto'
         ]"
         aria-label="Communities sidebar"
       >
         <!-- Close button for mobile -->
         <button
           @click="sidebarOpen = false"
-          class="lg:hidden absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+          class="lg:hidden absolute top-4 right-4 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 bg-white dark:bg-slate-700 rounded-full p-2 shadow-lg hover:scale-110 transition-transform"
           aria-label="Close sidebar"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
         
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-200">Communities</h2>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-black text-red-700 dark:text-red-400 uppercase tracking-wider flex items-center justify-center gap-2 w-full">
+            <span class="text-2xl">🌐</span> 
+            <span class="text-center">Communities</span>
+          </h2>
         </div>
-        <ul class="space-y-1 text-sm mb-4" role="listbox" aria-label="Communities list">
-    <!-- All thoughts option -->
+        <ul class="space-y-2 text-sm mb-6" role="listbox" aria-label="Communities list">
+        <!-- All thoughts option -->
     <li
       role="option"
       :aria-selected="activeCommunityId === null"
       tabindex="0"
-      class="flex items-center gap-2 px-2 py-2 rounded cursor-pointer
-             hover:bg-gray-50 dark:hover:bg-slate-700
-             outline-none focus:ring-2 focus:ring-red-400"
-      :class="activeCommunityId === null ? 'bg-red-50 dark:bg-slate-700/60' : ''"
+      class="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all
+             hover:bg-white dark:hover:bg-slate-700 hover:shadow-md hover:scale-105
+             outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 border-2"
+      :class="activeCommunityId === null ? 'bg-white dark:bg-slate-700 shadow-lg scale-105 border-red-500' : 'bg-red-50/50 dark:bg-slate-800/50 border-transparent'"
       @click="selectCommunity(null)"
       @keydown.enter.prevent="selectCommunity(null)"
       @keydown.space.prevent="selectCommunity(null)"
     >
-      <div class="w-6 h-6 rounded bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-xs">🌐</div>
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-lg shadow-md">🌐</div>
       <div class="flex-1 truncate">
-        <span class="font-medium text-gray-800 dark:text-slate-100 truncate">All Communities</span>
+        <span class="font-bold text-gray-900 dark:text-slate-100 truncate">Show All Communities</span>
       </div>
     </li>
     
@@ -87,97 +103,102 @@
       role="option"
       :aria-selected="c.id === activeCommunityId"
       tabindex="0"
-      class="flex items-center gap-2 px-2 py-2 rounded cursor-pointer
-             hover:bg-gray-50 dark:hover:bg-slate-700
-             outline-none focus:ring-2 focus:ring-red-400"
-      :class="c.id === activeCommunityId ? 'bg-red-50 dark:bg-slate-700/60' : ''"
+      class="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all
+             hover:bg-white dark:hover:bg-slate-700 hover:shadow-md hover:scale-105
+             outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+      :class="c.id === activeCommunityId ? 'bg-white dark:bg-slate-700 shadow-lg scale-105 border-2 border-red-500' : 'bg-red-50/50 dark:bg-slate-800/50'"
       @click="selectCommunity(c.id)"
       @keydown.enter.prevent="selectCommunity(c.id)"
       @keydown.space.prevent="selectCommunity(c.id)"
     >
-      <div class="w-6 h-6 rounded bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-bold text-xs">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center text-white font-black text-sm shadow-md">
         {{ c.name.charAt(0).toUpperCase() }}
       </div>
       <div class="flex-1 truncate">
-        <span class="font-medium text-gray-800 dark:text-slate-100 truncate">{{ c.name }}</span>
+        <span class="font-bold text-gray-900 dark:text-slate-100 truncate">{{ c.name }}</span>
       </div>
       <button
         v-if="isAuthenticated"
         @click.stop="toggleFavourite(c)"
-        class="ml-2 hover:scale-110 transition-transform"
+        class="ml-auto hover:scale-125 transition-transform"
         :aria-label="c.favourited ? 'Unpin community' : 'Pin community'"
         :title="c.favourited ? 'Unpin from top' : 'Pin to top'"
       >
         <img 
           src="@/assets/psyduck_coin.png" 
-          :class="c.favourited ? 'opacity-100' : 'opacity-30 grayscale'"
-          class="w-6 h-6 transition-all"
+          :class="c.favourited ? 'opacity-100 drop-shadow-lg' : 'opacity-40 grayscale'"
+          class="w-7 h-7 transition-all"
           alt="Pin"
         />
       </button>
     </li>
-    <li v-if="!communities.length" class="text-gray-500 dark:text-slate-400 px-2 py-1">
+    <li v-if="!communities.length" class="text-gray-500 dark:text-slate-400 px-3 py-2 text-center italic">
       No communities yet.
     </li>
   </ul>
   
-  <!-- Add Community button at bottom -->
+  <!-- Add Community button at bottom with Pokéball style -->
   <button
     v-if="isAuthenticated"
     @click="openAddCommunity()"
-    class="w-full mt-auto py-2 px-3 text-sm rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 font-semibold transition-all shadow-sm flex items-center justify-center gap-2"
+    class="w-full mt-auto py-3 px-4 text-sm rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 font-bold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 border-b-4 border-red-800 hover:border-b-2 active:translate-y-0.5"
     aria-label="Add community"
   >
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
     </svg>
-    <span>Add Community</span>
+    <span class="tracking-wide">Add Community</span>
   </button>
      </aside>
     
-    <!-- Center: Thoughts feed (expanded to fill remaining width) -->
-    <main class="lg:col-span-10 space-y-6" aria-label="Thoughts feed">
+        <!-- Center: Thoughts feed (expanded to fill remaining width) -->
+    <main class="lg:col-span-9 space-y-6 w-full" aria-label="Thoughts feed">
 
-    <!-- Loading state -->
-    <div v-if="loading" class="space-y-4">
-      <div v-for="n in 4" :key="n" class="animate-pulse bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-5">
-        <div class="flex items-center gap-3">
-          <div class="h-9 w-9 rounded-full bg-gray-200 dark:bg-slate-700"></div>
-          <div class="h-3 w-40 rounded bg-gray-200 dark:bg-slate-700"></div>
+    <!-- Loading state with Pokéball animation -->
+    <div v-if="loading" class="space-y-5">
+      <div v-for="n in 4" :key="n" class="animate-pulse bg-gradient-to-br from-white to-red-50 dark:from-slate-800 dark:to-slate-900 border-2 border-red-200 dark:border-red-900 rounded-3xl p-6 shadow-xl">
+        <div class="flex items-center gap-4">
+          <div class="h-12 w-12 rounded-full bg-gradient-to-br from-red-300 to-red-400 dark:from-red-700 dark:to-red-800"></div>
+          <div class="h-4 w-48 rounded-full bg-red-200 dark:bg-slate-700"></div>
         </div>
-        <div class="mt-4 h-4 w-3/4 rounded bg-gray-200 dark:bg-slate-700"></div>
-        <div class="mt-2 h-4 w-2/3 rounded bg-gray-200 dark:bg-slate-700"></div>
+        <div class="mt-5 h-5 w-3/4 rounded-full bg-red-200 dark:bg-slate-700"></div>
+        <div class="mt-3 h-5 w-2/3 rounded-full bg-red-200 dark:bg-slate-700"></div>
       </div>
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="!thoughts.length" class="text-center py-16 border border-dashed rounded-2xl dark:border-slate-700">
-      <p class="text-gray-500 dark:text-slate-400">No thoughts yet. Be the first to share!</p>
+    <div v-else-if="!thoughts.length" class="text-center py-20 border-2 border-dashed border-red-300 dark:border-red-900 rounded-3xl bg-gradient-to-br from-white to-red-50 dark:from-slate-800 dark:to-slate-900">
+      <div class="text-6xl mb-4">📝</div>
+      <p class="text-gray-600 dark:text-slate-400 font-semibold text-lg">No thoughts yet. Be the first to share!</p>
     </div>
 
-        <!-- Composer Modal (existing) -->
-    <div v-if="showComposer" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-xl">
-        <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Create Thought</h2>
-        <div class="space-y-3">
+        <!-- Composer Modal (Pokémon card style) -->
+    <div v-if="showComposer" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-gradient-to-br from-white via-red-50 to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 rounded-3xl w-full max-w-2xl p-8 shadow-2xl border-4 border-red-500 dark:border-red-700">
+        <h2 class="text-2xl font-black mb-6 text-red-700 dark:text-red-400 uppercase tracking-wide flex items-center gap-3">
+          <span class="text-3xl">✨</span>
+          Create Thought
+        </h2>
+        <div class="space-y-4">
         <!-- Title -->
         <input
           v-model="form.title"
           @blur="touched.title = true"
-          placeholder="Title"
-          class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
+          placeholder="Enter your title..."
+          class="w-full p-4 rounded-xl border-2 dark:bg-slate-700 dark:text-white font-semibold text-lg transition-all focus:ring-4 focus:ring-red-300 focus:border-red-500"
           :class="{
-            'border-red-500 focus:ring-red-500': touched.title && !form.title?.trim()
+            'border-red-500 ring-4 ring-red-300': touched.title && !form.title?.trim(),
+            'border-red-200 dark:border-slate-600': !(touched.title && !form.title?.trim())
           }"
         />
-        <p v-if="touched.title && !form.title?.trim()" class="text-xs text-red-600 mt-1">
-          Title is required.
+        <p v-if="touched.title && !form.title?.trim()" class="text-sm text-red-600 font-semibold mt-1 flex items-center gap-1">
+          <span>⚠️</span> Title is required.
         </p>
 
         <!-- Community Selector -->
         <div class="relative">
-          <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-            Post to Community <span class="text-gray-400">(optional)</span>
+          <label class="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 uppercase tracking-wide">
+            Post to Community <span class="text-gray-400 normal-case">(optional)</span>
           </label>
           <div class="relative">
             <input
@@ -187,28 +208,28 @@
               @blur="handleCommunityBlur"
               type="text"
               placeholder="Search or select a community..."
-              class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white pr-10"
+              class="w-full p-4 rounded-xl border-2 border-red-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white pr-12 focus:ring-4 focus:ring-red-300 focus:border-red-500 transition-all"
             />
-            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-red-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
             </svg>
             
             <!-- Dropdown -->
             <div 
               v-if="showCommunityDropdown && filteredCommunities.length > 0"
-              class="absolute z-10 w-full mt-1 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+              class="absolute z-10 w-full mt-2 bg-white dark:bg-slate-700 border-2 border-red-300 dark:border-red-800 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
             >
               <button
                 v-for="community in filteredCommunities"
                 :key="community.id"
                 @mousedown.prevent="selectCommunityForThought(community)"
-                class="w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-slate-600 flex items-center gap-2 border-b border-gray-100 dark:border-slate-600 last:border-b-0"
+                class="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-slate-600 flex items-center gap-3 border-b border-red-100 dark:border-slate-600 last:border-b-0 transition-colors"
               >
-                <div class="w-6 h-6 rounded bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-md">
                   {{ community.name.charAt(0).toUpperCase() }}
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="font-medium text-gray-900 dark:text-white truncate">{{ community.name }}</div>
+                  <div class="font-bold text-gray-900 dark:text-white truncate">{{ community.name }}</div>
                   <div class="text-xs text-gray-500 dark:text-slate-400 truncate">{{ community.description || 'No description' }}</div>
                 </div>
               </button>
@@ -216,18 +237,18 @@
           </div>
           
           <!-- Selected community badge -->
-          <div v-if="form.selectedCommunity" class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm">
-            <div class="w-5 h-5 rounded bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-bold text-xs">
+          <div v-if="form.selectedCommunity" class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-700 dark:text-blue-300 rounded-full text-sm font-bold border-2 border-blue-300 dark:border-blue-700 shadow-md">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-black text-xs">
               {{ form.selectedCommunity.name.charAt(0).toUpperCase() }}
             </div>
-            <span class="font-medium">{{ form.selectedCommunity.name }}</span>
+            <span>{{ form.selectedCommunity.name }}</span>
             <button 
               @click="clearSelectedCommunity"
-              class="hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full p-0.5"
+              class="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-1 transition-colors"
               title="Remove community"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -241,67 +262,68 @@
             @blur="touched.body = true"
             @paste="handlePaste"
             placeholder="What's on your mind? (You can paste images/videos here)"
-            class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
+            class="w-full p-4 rounded-xl border-2 dark:bg-slate-700 dark:text-white transition-all focus:ring-4 focus:ring-red-300 focus:border-red-500 resize-none"
             :class="{
-              'border-red-500 focus:ring-red-500': touched.body && !form.body?.trim(),
-              'h-28': form.mediaPreviews.length === 0,
-              'h-auto min-h-[7rem]': form.mediaPreviews.length > 0
+              'border-red-500 ring-4 ring-red-300': touched.body && !form.body?.trim(),
+              'border-red-200 dark:border-slate-600': !(touched.body && !form.body?.trim()),
+              'h-32': form.mediaPreviews.length === 0,
+              'h-auto min-h-[8rem]': form.mediaPreviews.length > 0
             }"
           ></textarea>
           
           <!-- Media preview - Video -->
-          <div v-if="form.mediaType === 'video' && form.mediaPreviews[0]" class="mt-2 relative">
-            <video :src="form.mediaPreviews[0]" controls class="w-full rounded-lg max-h-[24rem] object-contain bg-black" />
+          <div v-if="form.mediaType === 'video' && form.mediaPreviews[0]" class="mt-3 relative">
+            <video :src="form.mediaPreviews[0]" controls class="w-full rounded-2xl max-h-96 object-contain bg-black shadow-xl border-2 border-red-200" />
             <button
               @click="removeImage"
-              class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
+              class="absolute top-3 right-3 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 shadow-lg font-bold text-xl hover:scale-110 transition-transform"
               title="Remove video"
             >×</button>
           </div>
           
           <!-- Media preview - Image Carousel -->
-          <div v-else-if="form.mediaType === 'image' && form.mediaPreviews.length > 0" class="mt-2 relative">
+          <div v-else-if="form.mediaType === 'image' && form.mediaPreviews.length > 0" class="mt-3 relative">
             <div class="relative">
-              <img :src="form.mediaPreviews[form.currentSlide]" class="w-full rounded-lg max-h-[24rem] object-contain bg-gray-50 dark:bg-slate-900" />
+              <img :src="form.mediaPreviews[form.currentSlide]" class="w-full rounded-2xl max-h-96 object-contain bg-gray-50 dark:bg-slate-900 shadow-xl border-2 border-red-200" />
               
               <!-- Carousel controls -->
               <button
                 v-if="form.mediaPreviews.length > 1"
                 @click="form.currentSlide = (form.currentSlide - 1 + form.mediaPreviews.length) % form.mediaPreviews.length"
-                class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+                class="absolute left-3 top-1/2 -translate-y-1/2 bg-red-600/90 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-700 shadow-xl font-bold text-2xl hover:scale-110 transition-all"
               >‹</button>
               
               <button
                 v-if="form.mediaPreviews.length > 1"
                 @click="form.currentSlide = (form.currentSlide + 1) % form.mediaPreviews.length"
-                class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+                class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-600/90 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-700 shadow-xl font-bold text-2xl hover:scale-110 transition-all"
               >›</button>
               
               <!-- Slide indicators -->
-              <div v-if="form.mediaPreviews.length > 1" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+              <div v-if="form.mediaPreviews.length > 1" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 px-3 py-2 rounded-full">
                 <div
                   v-for="(_, i) in form.mediaPreviews"
                   :key="i"
                   @click="form.currentSlide = i"
-                  class="w-2 h-2 rounded-full cursor-pointer"
-                  :class="i === form.currentSlide ? 'bg-white' : 'bg-white/50'"
+                  class="w-2.5 h-2.5 rounded-full cursor-pointer transition-all hover:scale-125"
+                  :class="i === form.currentSlide ? 'bg-white scale-125' : 'bg-white/60'"
                 ></div>
               </div>
             </div>
             
             <button
               @click="removeImage"
-              class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 z-10"
+              class="absolute top-3 right-3 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700 z-10 shadow-lg font-bold text-xl hover:scale-110 transition-transform"
               title="Remove all media"
             >×</button>
           </div>
         </div>
-        <p v-if="touched.body && !form.body?.trim()" class="text-xs text-red-600 mt-1">
-          Description is required.
+        <p v-if="touched.body && !form.body?.trim()" class="text-sm text-red-600 font-semibold mt-1 flex items-center gap-1">
+          <span>⚠️</span> Description is required.
         </p>
 
         <!-- Upload button -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <input
             ref="fileInput"
             type="file"
@@ -313,23 +335,23 @@
           <button
             @click="$refs.fileInput.click()"
             type="button"
-            class="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700"
+            class="px-5 py-3 text-sm rounded-xl border-2 border-red-300 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-slate-700 font-semibold transition-all flex items-center gap-2 hover:scale-105 shadow-md"
           >
-            📎 Upload Media
+            <span class="text-xl">📎</span> Upload Media
           </button>
-          <span v-if="uploading" class="text-sm text-gray-500">Uploading...</span>
+          <span v-if="uploading" class="text-sm text-red-600 dark:text-red-400 font-semibold animate-pulse">Uploading...</span>
         </div>
         </div>
-        <div class="mt-4 flex gap-2 justify-end">
-          <button @click="showComposer = false" class="px-3 py-2 rounded-lg border">Cancel</button>
+        <div class="mt-6 flex gap-3 justify-end">
+          <button @click="showComposer = false" class="px-6 py-3 rounded-xl border-2 border-red-300 dark:border-slate-600 font-bold hover:bg-red-50 dark:hover:bg-slate-700 transition-all">Cancel</button>
           <button
             @click="createThought"
             :disabled="!isValid || submitting"
-            class="px-4 py-2 rounded-lg font-semibold text-white transition
+            class="px-8 py-3 rounded-xl font-bold text-white transition-all shadow-lg hover:shadow-xl
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  bg-red-600 hover:bg-red-700"
+                  bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 border-b-4 border-red-800 active:border-b-2 active:translate-y-0.5 disabled:border-b-2"
           >
-            {{ submitting ? 'Posting…' : 'Post' }}
+            {{ submitting ? 'Posting…' : 'Post Thought' }}
           </button>
         </div>
       </div>
@@ -337,60 +359,63 @@
 
 
     <!-- Add Community Modal -->
-    <div v-if="showAddCommunity" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-xl">
-        <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Create New Community</h2>
+    <div v-if="showAddCommunity" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-gradient-to-br from-white via-red-50 to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 rounded-3xl w-full max-w-3xl p-8 shadow-2xl border-4 border-red-500 dark:border-red-700">
+        <h2 class="text-2xl font-black mb-6 text-red-700 dark:text-red-400 uppercase tracking-wide flex items-center gap-3">
+          <span class="text-3xl">🏆</span>
+          Create New Community
+        </h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <!-- Left: Form inputs -->
-          <div class="space-y-3">
+          <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Community Name</label>
+              <label class="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 uppercase tracking-wide">Community Name</label>
               <input
                 v-model="communityForm.name"
                 @blur="communityTouched.name = true"
                 placeholder="e.g., Pokémon TCG Collectors"
-                class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white"
-                :class="{'border-red-500': communityTouched.name && !communityForm.name?.trim()}"
+                class="w-full p-4 rounded-xl border-2 dark:bg-slate-700 dark:text-white font-semibold transition-all focus:ring-4 focus:ring-red-300 focus:border-red-500"
+                :class="{'border-red-500 ring-4 ring-red-300': communityTouched.name && !communityForm.name?.trim(), 'border-red-200 dark:border-slate-600': !(communityTouched.name && !communityForm.name?.trim())}"
                 aria-label="Community name"
                 maxlength="50"
               />
-              <p v-if="communityTouched.name && !communityForm.name?.trim()" class="text-xs text-red-600 mt-1">
-                Name is required.
+              <p v-if="communityTouched.name && !communityForm.name?.trim()" class="text-sm text-red-600 font-semibold mt-1 flex items-center gap-1">
+                <span>⚠️</span> Name is required.
               </p>
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Description</label>
+              <label class="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 uppercase tracking-wide">Description</label>
               <textarea
                 v-model="communityForm.description"
                 placeholder="What's this community about?"
-                class="w-full p-3 rounded-lg border h-32 dark:bg-slate-700 dark:text-white resize-none"
+                class="w-full p-4 rounded-xl border-2 border-red-200 dark:border-slate-600 h-36 dark:bg-slate-700 dark:text-white resize-none transition-all focus:ring-4 focus:ring-red-300 focus:border-red-500"
                 aria-label="Community description"
                 maxlength="200"
               ></textarea>
-              <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                {{ communityForm.description?.length || 0 }}/200
+              <p class="text-xs text-gray-500 dark:text-slate-400 mt-2 font-semibold">
+                {{ communityForm.description?.length || 0 }}/200 characters
               </p>
             </div>
           </div>
           
           <!-- Right: Live preview -->
           <div class="flex flex-col">
-            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Preview</label>
-            <div class="flex-1 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-4 bg-gray-50 dark:bg-slate-900/50">
-              <div class="bg-white dark:bg-slate-800 rounded-lg p-3 border border-gray-200 dark:border-slate-700 shadow-sm">
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="w-8 h-8 rounded bg-gradient-to-br from-red-400 to-yellow-400 flex items-center justify-center text-white font-bold text-sm">
+            <label class="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-3 uppercase tracking-wide">Live Preview</label>
+            <div class="flex-1 border-2 border-dashed border-red-300 dark:border-red-800 rounded-2xl p-5 bg-gradient-to-br from-red-50 to-white dark:from-slate-900/50 dark:to-slate-800/30">
+              <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border-2 border-red-200 dark:border-slate-700 shadow-lg">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-yellow-500 flex items-center justify-center text-white font-black shadow-md">
                     {{ communityForm.name?.charAt(0).toUpperCase() || '?' }}
                   </div>
                   <div class="flex-1 min-w-0">
-                    <h3 class="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                    <h3 class="font-black text-gray-900 dark:text-white truncate">
                       {{ communityForm.name || 'Community Name' }}
                     </h3>
                   </div>
                 </div>
-                <p class="text-xs text-gray-600 dark:text-slate-400 line-clamp-3">
+                <p class="text-sm text-gray-600 dark:text-slate-400 line-clamp-4">
                   {{ communityForm.description || 'Your community description will appear here...' }}
                 </p>
               </div>
@@ -398,17 +423,17 @@
           </div>
         </div>
         
-        <div class="mt-6 flex gap-2 justify-end">
+        <div class="mt-8 flex gap-3 justify-end">
           <button 
             @click="closeAddCommunity()" 
-            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            class="px-6 py-3 rounded-xl border-2 border-red-300 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-slate-700 transition-all font-bold"
           >
             Cancel
           </button>
           <button
             @click="submitAddCommunity"
             :disabled="!communityForm.name?.trim() || addingCommunity"
-            class="px-4 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+            class="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl border-b-4 border-red-800 active:border-b-2 active:translate-y-0.5 disabled:border-b-2"
           >
             {{ addingCommunity ? 'Creating…' : 'Create Community' }}
           </button>
@@ -417,18 +442,18 @@
     </div>
 
 
-    <!-- One column feed -->
+ <!-- One column feed - Pokémon Card styled thoughts -->
     <div v-else class="grid grid-cols-1 gap-6">
     <article
       v-for="t in thoughts"
       :key="t.id"
-      class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700 shadow-sm"
+      class="bg-gradient-to-br from-white via-red-50 to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 rounded-3xl p-6 border-2 border-red-200 dark:border-red-900 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1"
     >
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <!-- Avatar image (fallback to initial) -->
-          <div class="h-9 w-9 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-semibold overflow-hidden">
+          <div class="h-12 w-12 rounded-full bg-gradient-to-br from-red-400 to-yellow-400 text-white flex items-center justify-center font-black text-lg overflow-hidden ring-4 ring-red-200 dark:ring-red-900 shadow-lg">
             <img
               v-if="avatarSrcFor(t)"
               :src="avatarSrcFor(t)"
@@ -441,15 +466,15 @@
             </span>
           </div>
           <div class="text-sm">
-            <div class="flex items-center gap-2">
-              <span class="font-medium text-gray-900 dark:text-white">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-black text-gray-900 dark:text-white text-base">
                 {{ getDisplayName(t.authorName, t.authorEmail) }}
               </span>
-              <span v-if="getCommunityName(t.communityId)" class="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+              <span v-if="getCommunityName(t.communityId)" class="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900/40 dark:to-blue-800/20 text-blue-700 dark:text-blue-300 border-2 border-blue-300 dark:border-blue-800 font-bold shadow-sm">
                 {{ getCommunityName(t.communityId) }}
               </span>
             </div>
-            <div class="text-gray-500 dark:text-slate-400">{{ formatDate(t.createdAt) }}</div>
+            <div class="text-gray-500 dark:text-slate-400 font-semibold">{{ formatDate(t.createdAt) }}</div>
           </div>
         </div>
       </div>
@@ -457,13 +482,13 @@
       <!-- Content -->
       <router-link
         :to="`/community/${t.id}`"
-        class="block mt-3 group focus:outline-none focus:ring-2 focus:ring-red-500 rounded-lg"
+        class="block group focus:outline-none focus:ring-4 focus:ring-red-500 rounded-2xl p-1 -m-1"
         aria-label="Open thought"
       >
-        <h2 class="font-bold text-lg text-gray-900 dark:text-white group-hover:underline">
+        <h2 class="font-black text-xl text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
           {{ t.title }}
         </h2>
-        <p class="mt-2 text-gray-700 dark:text-slate-300">
+        <p class="mt-3 text-gray-700 dark:text-slate-300 leading-relaxed">
           {{ t.body }}
         </p>
         
@@ -472,16 +497,16 @@
           v-if="t.imageUrl && isVideo(t.imageUrl)"
           :src="t.imageUrl"
           controls
-          class="mt-3 rounded-xl w-full max-h-[24rem] object-contain bg-black"
+          class="mt-4 rounded-2xl w-full max-h-[28rem] object-contain bg-black shadow-xl border-2 border-red-200 dark:border-red-900"
           loading="lazy"
         ></video>
         
         <!-- Single Image or Carousel -->
-        <div v-else-if="t.imageUrl" class="mt-3 relative">
+        <div v-else-if="t.imageUrl" class="mt-4 relative">
           <img
             :src="Array.isArray(t.imageUrl) ? t.imageUrl[t.currentSlide || 0] : t.imageUrl"
             alt="Thought media"
-            class="rounded-xl w-full max-h-[24rem] object-contain bg-gray-50 dark:bg-slate-900"
+            class="rounded-2xl w-full max-h-[28rem] object-contain bg-gray-50 dark:bg-slate-900 shadow-xl border-2 border-red-200 dark:border-red-900"
             loading="lazy"
           />
           
@@ -489,21 +514,21 @@
           <template v-if="Array.isArray(t.imageUrl) && t.imageUrl.length > 1">
             <button
               @click.prevent="t.currentSlide = ((t.currentSlide || 0) - 1 + t.imageUrl.length) % t.imageUrl.length"
-              class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+              class="absolute left-3 top-1/2 -translate-y-1/2 bg-red-600/90 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-700 shadow-xl font-bold text-2xl hover:scale-110 transition-all"
             >‹</button>
             
             <button
               @click.prevent="t.currentSlide = ((t.currentSlide || 0) + 1) % t.imageUrl.length"
-              class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+              class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-600/90 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-700 shadow-xl font-bold text-2xl hover:scale-110 transition-all"
             >›</button>
             
-            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 px-3 py-2 rounded-full">
               <div
                 v-for="(_, i) in t.imageUrl"
                 :key="i"
                 @click.prevent="t.currentSlide = i"
-                class="w-2 h-2 rounded-full cursor-pointer"
-                :class="i === (t.currentSlide || 0) ? 'bg-white' : 'bg-white/50'"
+                class="w-2.5 h-2.5 rounded-full cursor-pointer transition-all hover:scale-125"
+                :class="i === (t.currentSlide || 0) ? 'bg-white scale-125' : 'bg-white/60'"
               ></div>
             </div>
           </template>
@@ -511,23 +536,23 @@
       </router-link>
 
       <!-- Actions -->
-      <div class="mt-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
+      <div class="mt-5 pt-5 border-t-2 border-red-100 dark:border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-3">
           <!-- Upvote -->
           <button
             :disabled="t.voteBusy"
             @click="onVoteFeed(t, 1)"
-            class="px-3 py-1 rounded-lg border"
+            class="px-4 py-2 rounded-xl border-2 font-bold transition-all shadow-md hover:shadow-lg hover:scale-110"
             :class="{
-              'bg-red-600 text-white border-red-600': (t.userVote || 0) === 1,
-              'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600': (t.userVote || 0) !== 1
+              'bg-red-600 text-white border-red-700 shadow-lg scale-105': (t.userVote || 0) === 1,
+              'text-gray-700 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-slate-700 border-red-300 dark:border-slate-600': (t.userVote || 0) !== 1
             }"
             aria-label="Upvote"
             title="Upvote"
           >▲</button>
 
           <!-- score -->
-          <span class="min-w-[2ch] text-center font-semibold">
+          <span class="min-w-[3ch] text-center font-black text-lg text-gray-900 dark:text-white">
             {{ (t.upvotes || 0) - (t.downvotes || 0) }}
           </span>
 
@@ -535,45 +560,49 @@
           <button
             :disabled="t.voteBusy"
             @click="onVoteFeed(t, -1)"
-            class="px-3 py-1 rounded-lg border"
+            class="px-4 py-2 rounded-xl border-2 font-bold transition-all shadow-md hover:shadow-lg hover:scale-110"
             :class="{
-              'bg-slate-700 text-white border-slate-700': (t.userVote || 0) === -1,
-              'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600': (t.userVote || 0) !== -1
+              'bg-slate-700 text-white border-slate-800 shadow-lg scale-105': (t.userVote || 0) === -1,
+              'text-gray-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border-red-300 dark:border-slate-600': (t.userVote || 0) !== -1
             }"
             aria-label="Downvote"
             title="Downvote"
           >▼</button>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
           <router-link 
             :to="`/community/${t.id}`" 
-            class="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            class="flex items-center gap-2 text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-bold hover:scale-110"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <span class="text-sm font-medium">{{ t.commentsCount || 0 }}</span>
+            <span class="text-base">{{ t.commentsCount || 0 }}</span>
           </router-link>
           <button 
             @click="share(t)" 
-            class="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors" 
+            class="flex items-center gap-2 text-gray-600 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-all font-bold hover:scale-110" 
             aria-label="Share"
             title="Share thought"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
-            <span class="text-sm">Share</span>
+            <span>Share</span>
           </button>
         </div>
       </div>
     </article>
     </div>
 
+    <!-- Load More button styled as Pokéball -->
     <div class="text-center" v-if="nextCursor">
-          <button @click="loadMore" class="mt-4 px-5 py-2 rounded-lg border font-medium">
-            Load more
+          <button 
+            @click="loadMore" 
+            class="mt-6 px-8 py-4 rounded-2xl border-2 border-red-300 dark:border-red-800 font-bold text-lg bg-gradient-to-r from-white to-red-50 dark:from-slate-800 dark:to-slate-900 hover:from-red-50 hover:to-red-100 dark:hover:from-slate-700 dark:hover:to-slate-800 shadow-xl hover:shadow-2xl transition-all hover:scale-105 text-red-700 dark:text-red-400"
+          >
+            ⬇️ Load More Thoughts
           </button>
         </div>
       </main>
