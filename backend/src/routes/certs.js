@@ -1,5 +1,6 @@
 import express from 'express';
 import OpenAI from 'openai';
+import admin from 'firebase-admin';
 import { authenticateToken } from '../middleware/auth.js';
 import { getCert, getPSACardDetails } from '../services/psaService.js';
 import { getCardByCert, upsertCard } from '../services/firebaseDb.js';
@@ -315,6 +316,7 @@ router.post('/ingest', async (req, res) => {
 
     // Prioritize userId from JWT for lookup; fallback to email query
     const userId = req.user?.userId || null;
+    let resolvedEmail = ownerEmail || req.user?.email || null;
     
     // Declare userRef here, initialized to null
     let userRef = null; 
@@ -341,11 +343,29 @@ router.post('/ingest', async (req, res) => {
     }
 
     if (!userRef) {
-      return res.status(404).json({
-        success: false,
-        error: 'OWNER_NOT_FOUND',
-        message: 'Could not find a user record for the provided email.',
+      resolvedEmail = ownerEmail || req.user?.email || null;
+      if (!resolvedEmail) {
+        return res.status(404).json({
+          success: false,
+          error: 'OWNER_NOT_FOUND',
+          message: 'Could not find a user record for the provided email.',
+        });
+      }
+
+      const fallbackName =
+        req.user?.username ||
+        resolvedEmail.split('@')[0]?.replace(/[^a-zA-Z0-9]+/g, ' ') ||
+        'Collector';
+
+      const newUserRef = await db.collection('users').add({
+        email: resolvedEmail,
+        name: fallbackName,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        cards: []
       });
+
+      console.log(`🔧 Created user placeholder for ${resolvedEmail} (id=${newUserRef.id})`);
+      userRef = newUserRef;
     }
 
     const userDocSnap = await userRef.get();
@@ -357,9 +377,11 @@ router.post('/ingest', async (req, res) => {
     const listingsRef = userRef.collection('listings').doc(certNumber);
     const existingListing = await listingsRef.get();
 
+    const listingEmail = resolvedEmail || ownerEmail || req.user?.email || null;
+
     const listingPayload = {
       cert_number: certNumber,
-      sellerEmail: ownerEmail,
+      sellerEmail: listingEmail,
       sellerId: userRef.id,
       status: 'display',
       updated_at: now,
