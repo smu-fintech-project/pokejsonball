@@ -269,24 +269,26 @@ router.put('/:id/accept', authenticateToken, async (req, res) => {
         'wallet.balance': newSellerBalance
       });
 
-      // Transfer card ownership
-      // Use Firestore FieldValue.arrayUnion and arrayRemove for atomicity
-      transaction.update(buyerRef, {
-        cards: admin.firestore.FieldValue.arrayUnion(offer.cert_number)
-      });
-
-      transaction.update(sellerRef, {
-        cards: admin.firestore.FieldValue.arrayRemove(offer.cert_number)
-      });
-      
-
-      // Update listing status to sold
-      const listingRef = sellerRef.collection('listings').doc(offer.cert_number);
-      transaction.update(listingRef, {
+// Update listing status to sold (for seller)
+      const sellerListingRef = sellerRef.collection('listings').doc(offer.cert_number);
+      transaction.update(sellerListingRef, {
         status: 'sold',
         sold_to: offer.buyer_id,
         sold_at: new Date().toISOString(),
         sold_price: amount
+      });
+
+      // --- ADD THIS BLOCK ---
+      // Create a *new* listing document for the buyer
+      const buyerListingRef = buyerRef.collection('listings').doc(offer.cert_number);
+      transaction.set(buyerListingRef, {
+        cert_number: offer.cert_number,
+        sellerEmail: buyerData.email, // Buyer is the new "seller"
+        sellerId: offer.buyer_id,
+        status: 'display', // 'display' means "owned but not for sale"
+        listing_price: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       });
 
       // Create buyer transaction record
