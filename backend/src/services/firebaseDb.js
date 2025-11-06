@@ -347,6 +347,15 @@ export async function setCache(key, payload) {
   console.log(`Cache stored: ${key}`);
 }
 
+  export async function clearCache(key) {
+    if (cache.has(key)) {
+      cache.delete(key);
+      console.log(`[Cache] CLEARED: ${key}`);
+    } else {
+      console.log(`[Cache] CLEAR-MISS: ${key} (was not in cache)`);
+    }
+  }
+
 /**
  * Clear all data (for testing)
  */
