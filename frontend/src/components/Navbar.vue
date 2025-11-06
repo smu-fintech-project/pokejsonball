@@ -45,11 +45,12 @@
         </router-link>
 
         <router-link
-          to="/about"
-          class="px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
-          :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/about') }"
+          v-if="isAuthed"
+          to="/profile"
+          class="px-3 py-2 ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+          :class="{ 'bg-gray-100 dark:bg-slate-800': isActive('/profile') }"
         >
-          About
+          Profile
         </router-link>
       </div>
 
@@ -102,15 +103,6 @@
                 class="absolute right-0 mt-2 w-56 bg-stone-200 dark:bg-slate-800 rounded-lg shadow-xl border dark:border-slate-700 py-2 z-40"
               >
                 <div class="px-2 py-1 space-y-1">
-                  <router-link
-                    @click="closeProfileMenu"
-                    to="/profile"
-                    class="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700"
-                    :class="{ 'bg-gray-100 dark:bg-slate-700': isActive('/profile') }"
-                  >
-                    Profile
-                  </router-link>
-
                   <router-link
                     @click="closeProfileMenu"
                     to="/upload"
@@ -283,15 +275,6 @@
           :class="{ 'bg-gray-100 dark:bg-slate-700 font-semibold': isActive('/community') }"
         >
           Community
-        </router-link>
-
-        <router-link
-          @click="closeMobileMenu"
-          to="/about"
-          class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-          :class="{ 'bg-gray-100 dark:bg-slate-700 font-semibold': isActive('/about') }"
-        >
-          About
         </router-link>
 
         <template v-if="isAuthed">

@@ -29,8 +29,15 @@
       <div class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 rounded-3xl p-8 shadow-2xl">
 <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
   <div class="flex items-center gap-6 w-full lg:w-auto">
-    <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
-      <User class="w-12 h-12 text-white" />
+    <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+      <img 
+        v-if="avatarSrcFor()" 
+        :src="avatarSrcFor()" 
+        alt="User avatar" 
+        class="w-full h-full object-cover"
+        loading="lazy"
+      />
+      <User v-else class="w-12 h-12 text-white" />
     </div>
     <div class="text-white">
       <h1 class="text-3xl font-black mb-2">{{ userProfile.name || derivedName }}</h1>
@@ -841,7 +848,7 @@ function formatJoinDate(timestamp) {
 
   // --- Auth / state ---
   const isAuthed = ref(false)
-  const userProfile = ref({ name: '', email: '', joinDate: '', walletBalance: 0 }) // <-- Add walletBalance
+  const userProfile = ref({ name: '', email: '', joinDate: '', walletBalance: 0, avatar: null })
   const ownedCards = ref([])         // fetched from backend
   const loading = ref(false)
   const activeTab = ref('collection')
@@ -991,6 +998,12 @@ function formatJoinDate(timestamp) {
     return email ? email.split('@')[0] : 'Your Profile'
   })
 
+  // Helper: Build avatar URL from filename
+  function avatarSrcFor() {
+    if (!userProfile.value?.avatar) return null;
+    return `${API_BASE}/api/cards/images/avatar/${userProfile.value.avatar}`;
+  }
+
   // Stats
   const totalCards = computed(() =>
     ownedCards.value.reduce((t, c) => t + (c.quantity ?? 1), 0)  //what is this???
@@ -1091,6 +1104,7 @@ function formatJoinDate(timestamp) {
         }
         if (data.name) userProfile.value.name = data.name
         if (data.joinDate) userProfile.value.joinDate = data.joinDate
+        if (data.avatar) userProfile.value.avatar = data.avatar
       } else if (resp.status === 401) {
         isAuthed.value = false
       }
@@ -1217,7 +1231,7 @@ async function loadOwnedCards() {
     }
   }
 
-  // Watch for tab changes
+  // Watch for tab changess
   watch(activeTab, (newTab) => {
     if (newTab === 'portfolio' && portfolioHistory.value.length === 0) {
       loadPortfolioHistory()

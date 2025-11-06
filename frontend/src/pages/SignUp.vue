@@ -5,7 +5,7 @@
       <!-- Header -->
       <div class="text-center">
       <div class="mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4">
-        <img src="../assets/logo.png" alt="App Logo" class="w-20 h-20 object-contain" />
+        <img src="../assets/JS.png" alt="App Logo" class="w-20 h-20 object-contain" />
       </div>
       <h2 class="text-3xl font-black text-gray-900">Create your account</h2>
         <p class="mt-2 text-sm text-gray-600">Join our pokemon trading community!</p>
@@ -48,6 +48,63 @@
             placeholder="Ash Ketchum"
             class="appearance-none block w-full px-3 py-3 border-2 border-red-200 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
+        </div>
+
+        <!-- Avatar Selection -->
+        <div>
+          <label class="block text-sm font-bold text-red-600 mb-2">
+            Choose Your Avatar
+          </label>
+          
+          <!-- Loading State -->
+          <div v-if="loadingAvatars" class="text-center py-4">
+            <svg class="animate-spin h-6 w-6 text-red-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-xs text-gray-500 mt-2">Loading avatars...</p>
+          </div>
+
+          <!-- No Avatars Message -->
+          <div v-else-if="!avatars || avatars.length === 0" class="text-center py-4 bg-red-50 rounded-lg border-2 border-red-200">
+            <p class="text-sm text-gray-500">No avatars available</p>
+          </div>
+
+          <!-- Avatar Grid -->
+          <div v-else class="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-60 overflow-y-auto p-2 bg-red-50 rounded-lg border-2 border-red-200">
+            <button
+              v-for="avatar in avatars"
+              :key="avatar"
+              type="button"
+              @click="selectedAvatar = avatar"
+              :class="[
+                'relative aspect-square rounded-lg overflow-hidden border-2 transition-all transform hover:scale-110',
+                selectedAvatar === avatar 
+                  ? 'border-red-600 ring-4 ring-red-300 scale-105' 
+                  : 'border-gray-300 hover:border-red-400'
+              ]"
+              :disabled="loading"
+            >
+              <img 
+                :src="`${API_BASE}/api/cards/images/avatar/${avatar}`" 
+                :alt="avatar"
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <!-- Selected Checkmark -->
+              <div 
+                v-if="selectedAvatar === avatar"
+                class="absolute inset-0 bg-red-600/20 flex items-center justify-center"
+              >
+                <svg class="w-8 h-8 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </button>
+          </div>
+          <p class="mt-1 text-xs text-gray-500">
+            {{ selectedAvatar ? `Selected: ${selectedAvatar}` : 'Click an avatar to select' }}
+          </p>
         </div>
 
         <!-- Email Field -->
@@ -133,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
@@ -144,9 +201,31 @@ const name = ref('');
 const email = ref('');
 const password = ref('');
 const confirmPassword = ref('');
+
+// Avatar Selection
+const avatars = ref([]);
+const selectedAvatar = ref(null);
+const loadingAvatars = ref(false);
+
 const error = ref('');
 const success = ref('');
 const loading = ref(false);
+
+// Load available avatars on mount
+onMounted(async () => {
+  try {
+    loadingAvatars.value = true;
+    console.log('🎨 Fetching avatars from:', `${API_BASE}/api/auth/avatars`);
+    const response = await axios.get(`${API_BASE}/api/auth/avatars`);
+    avatars.value = response.data.avatars || [];
+    console.log('✅ Loaded avatars:', avatars.value.length, avatars.value);
+  } catch (err) {
+    console.error('❌ Failed to load avatars:', err);
+    // Don't block signup if avatars fail to load
+  } finally {
+    loadingAvatars.value = false;
+  }
+});
 
 async function handleSignup() {
   try {
@@ -178,7 +257,8 @@ async function handleSignup() {
     const response = await axios.post(`${API_BASE}/api/auth/signup`, {
       name: name.value.trim(),
       email: email.value,
-      password: password.value
+      password: password.value,
+      avatar: selectedAvatar.value // Include selected avatar
     });
 
     console.log('Signup successful:', response.data);
