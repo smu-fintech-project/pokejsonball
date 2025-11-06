@@ -1,6 +1,5 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+  <div>
     <div class="max-w-6xl mx-auto px-6 py-12 space-y-8">
       <div class="bg-white/80 dark:bg-slate-900/70 backdrop-blur rounded-3xl shadow-xl p-8">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">

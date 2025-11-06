@@ -1,800 +1,787 @@
-  <template>
-    <div
-      >
+<template>
+  <div
+    >
 
-      <!-- Not authenticated: CTA -->
-      <div v-if="!isAuthed" class="max-w-md mx-auto py-24 px-6">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-10 text-center">
-          <User class="w-14 h-14 mx-auto mb-4 text-red-600" />
-          <h2 class="text-2xl font-black mb-2">Welcome, Trainer!</h2>
-          <p class="text-slate-600 dark:text-slate-300 mb-6">
-            Sign in to view your profile and card portfolio.
-          </p>
-          <div class="flex gap-3 justify-center">
-            <router-link
-            to="/login"
-            class="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700">
-            Login
-          </router-link>
+    <div v-if="!isAuthed" class="max-w-md mx-auto py-24 px-6">
+      <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-10 text-center">
+        <User class="w-14 h-14 mx-auto mb-4 text-red-600" />
+        <h2 class="text-2xl font-black mb-2">Welcome, Trainer!</h2>
+        <p class="text-slate-600 dark:text-slate-300 mb-6">
+          Sign in to view your profile and card portfolio.
+        </p>
+        <div class="flex gap-3 justify-center">
           <router-link
-            to="/login"
-            class="px-6 py-3 bg-white dark:bg-slate-700 border-2 border-red-600 text-red-600 dark:text-red-300 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-slate-600">
-            Sign Up
-          </router-link>
-          </div>
-        </div>
-      </div>
-
-      <!-- Authenticated content -->
-      <div v-else class="max-w-7xl mx-auto px-4 py-8 space-y-6">
-
-        <!-- Profile Header -->
-        <div class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 rounded-3xl p-8 shadow-2xl">
-  <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-    <div class="flex items-center gap-6 w-full lg:w-auto">
-      <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
-        <User class="w-12 h-12 text-white" />
-      </div>
-      <div class="text-white">
-        <h1 class="text-3xl font-black mb-2">{{ userProfile.name || derivedName }}</h1>
-        <div class="flex items-center gap-2 text-white/80 mb-1">
-          <Mail class="w-4 h-4" />
-          <span>{{ userProfile.email }}</span>
-        </div>
-        <div class="flex items-center gap-2 text-white/80">
-          <Clock class="w-4 h-4" />
-          <span>Member since {{ formatJoinDate(userProfile.joinDate) }}</span>
+          to="/login"
+          class="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700">
+          Login
+        </router-link>
+        <router-link
+          to="/login"
+          class="px-6 py-3 bg-white dark:bg-slate-700 border-2 border-red-600 text-red-600 dark:text-red-300 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-slate-600">
+          Sign Up
+        </router-link>
         </div>
       </div>
     </div>
 
-    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-              <!-- Total Cards -->
-              <div 
-                @click="activeTab = 'collection'"
-                class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4 hover:bg-white/20 hover:border-white/50 transition-all cursor-pointer transform hover:scale-105">
-                <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
-                  <Package class="w-6 h-6" />
-                  <div class="text-base font-black text-white">Total Cards</div>
-                </div>
-                <div class="flex items-center justify-center">
-                  <div class="text-3xl font-black text-white">{{ totalCards }}</div>
-                </div>
+    <div v-else class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+
+      <div class="bg-gradient-to-r from-red-600 via-red-500 to-red-400 rounded-3xl p-8 shadow-2xl">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+  <div class="flex items-center gap-6 w-full lg:w-auto">
+    <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
+      <User class="w-12 h-12 text-white" />
+    </div>
+    <div class="text-white">
+      <h1 class="text-3xl font-black mb-2">{{ userProfile.name || derivedName }}</h1>
+      <div class="flex items-center gap-2 text-white/80 mb-1">
+        <Mail class="w-4 h-4" />
+        <span>{{ userProfile.email }}</span>
+      </div>
+      <div class="flex items-center gap-2 text-white/80">
+        <Clock class="w-4 h-4" />
+        <span>Member since {{ formatJoinDate(userProfile.joinDate) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            <div 
+              @click="activeTab = 'collection'"
+              class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4 hover:bg-white/20 hover:border-white/50 transition-all cursor-pointer transform hover:scale-105">
+              <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
+                <Package class="w-6 h-6" />
+                <div class="text-base font-black text-white">Total Cards</div>
               </div>
-              <!-- Portfolio Value - Clickable -->
-          <router-link 
-            to="/wallet"
-            class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4 hover:bg-white/20 hover:border-white/50 transition-all cursor-pointer transform hover:scale-105">
-            <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
-              <DollarSign class="w-6 h-6" />
-              <div class="text-base font-black text-white">Wallet Value</div>
-            </div>
-            <div class="flex items-center justify-center">
-              <div class="text-3xl font-black text-yellow-300">
-                <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
-                {{ walletValue.toFixed(2) }}
+              <div class="flex items-center justify-center">
+                <div class="text-3xl font-black text-white">{{ totalCards }}</div>
               </div>
             </div>
-          </router-link>    
+            <router-link 
+          to="/wallet"
+          class="bg-white/10 backdrop-blur-sm border-2 border-white/30 rounded-2xl px-6 py-4 hover:bg-white/20 hover:border-white/50 transition-all cursor-pointer transform hover:scale-105">
+          <div class="flex items-center gap-2 text-white/80 text-sm mb-1">
+            <DollarSign class="w-6 h-6" />
+            <div class="text-base font-black text-white">Wallet Value</div>
           </div>
-        </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
-          <div class="flex border-b dark:border-slate-700">
-            <button @click="activeTab = 'collection'" :class="[
-              'flex-1 px-6 py-4 font-semibold transition-all',
-              activeTab === 'collection'
-                ? 'bg-red-600 text-white'
-                : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-            ]">
-              My Card Collection
-            </button>
-            <!-- New Offers tab button -->
-            <button @click="activeTab = 'offers'" :class="[
-              'flex-1 px-6 py-4 font-semibold transition-all',
-              activeTab === 'offers'
-                ? 'bg-red-600 text-white'
-                : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-            ]">
-              Offers
-            </button>
-
-
-            <button @click="activeTab = 'portfolio'" :class="[
-              'flex-1 px-6 py-4 font-semibold transition-all',
-              activeTab === 'portfolio'
-                ? 'bg-red-600 text-white'
-                : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-            ]">
-              Portfolio
-            </button>
-
-            
-          </div>
-          
-          <!-- Collection Tab -->
-          <div v-if="activeTab === 'collection'" class="p-6">
-
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-bold">Your Cards</h2>
-              <router-link
-                to="/upload"
-                class="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all shadow-lg"
-              >
-                <Plus class="w-5 h-5" />
-                Add Card
-              </router-link>
-            </div>
-
-            <!-- Loading -->
-            <div v-if="loading" class="text-center py-12 text-gray-500 dark:text-slate-400">
-              Loading your profile...
-            </div>
-
-            <!-- Cards -->
-            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-
-              <div v-for="card in ownedCards.filter(c => c.status !== 'sold')" :key="card.id"
-                class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden">
-
-                <div class="relative p-4">
-                  <div v-if="card.quantity > 1"
-                    class="absolute top-2 right-2 z-10 px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
-                    x{{ card.quantity }}
-                  </div>
-
-                  <img :src="card.img" :alt="card.title" class="w-full h-80 object-contain" />
-                </div>
-
-                <div class="p-4">
-                  <div class="flex items-start justify-between mb-2">
-                    <div class="min-w-0">
-                      <h3 class="font-sans font-bold text-xl">{{ card.title }}</h3>
-                      <p class="font-mono text-m text-gray-500 dark:text-slate-400 truncate">{{ card.set }}</p>
-                    </div>
-
-                    <div class="flex-shrink-0 flex flex-col items-end">
-                      <span
-                        class="flex-shrink-0 px-2 py-1 bg-stone-100 dark:bg-indigo-900 text-red-700 dark:text-indigo-300 text-s font-bold rounded-lg mb-1">
-                        {{ card.grade }}
-                      </span>
-
-                      <span v-if="card.status === 'listed'"
-                        class="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-s font-bold rounded-lg">
-                        LISTED
-                      </span>
-                      <span v-else-if="card.status === 'reserved'"
-                        class="px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-s font-bold rounded-lg">
-                        RESERVED
-                      </span>
-                      <span v-else
-                        class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 text-s font-bold rounded-lg">
-                        OWNED
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="pt-3 border-t dark:border-slate-700 mb-4">
-                    <p class="text-xl font-black text-black dark:text-white">
-                      <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
-                      {{ Number(card.price).toFixed(2) }}
-                    </p>
-                    <p class="text-sm text-gray-500">Cert: {{ card.cert }}</p>
-                  </div>
-
-
-                  <div class="flex gap-2">
-                    <button @click="openEditModal(card)"
-                      class="flex items-center justify-center gap-1 p-2 bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-500 transition-all text-sm flex-1">
-                      <Edit2 class="w-4 h-4" />
-                      Edit
-                    </button>
-                    
-                    <button v-if="card.status !== 'listed'" @click="openSellModal(card)"
-                      class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all text-sm flex-1 flex items-center justify-center gap-1">
-                      <Plus class="w-4 h-4" />
-                      Sell
-                    </button>
-                    <button v-else @click="undoListing(card)"
-                      class="px-4 py-2 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all text-sm flex-1 flex items-center justify-center gap-1">
-                      Undo Listing
-                    </button>
-                    
-                    <button @click="handleDeleteCard(card.id)"
-                      class="px-4 py-2 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-900 transition-all text-sm flex-1 flex items-center justify-center gap-1">
-                      <Trash2 class="w-4 h-4" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty state -->
-            <div v-if="!loading && ownedCards.length === 0" class="text-center py-12 text-gray-500 dark:text-slate-400">
-              <Package class="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p class="text-lg font-semibold mb-2">No cards in your collection yet</p>
-              <p class="text-sm">Start building your profile by adding your first card!</p>
+          <div class="flex items-center justify-center">
+            <div class="text-3xl font-black text-yellow-300">
+              <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+              {{ walletValue.toFixed(2) }}
             </div>
           </div>
-
-
-          <!-- Portfolio Tab -->
-          <div v-if="activeTab === 'portfolio'" class="p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-bold">Portfolio Growth</h2>
-              
-              <!-- Timeframe selector -->
-              <div class="flex gap-2 bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
-                <button
-                  v-for="option in timeframeOptions"
-                  :key="option.value"
-                  @click="timeframe = option.value"
-                  :class="[
-                    'px-4 py-2 rounded-md font-semibold text-sm transition-all',
-                    timeframe === option.value
-                      ? 'bg-red-600 text-white shadow-md'
-                      : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-                  ]"
-                >
-                  {{ option.label }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Loading state -->
-            <div v-if="portfolioLoading" class="text-center py-12 text-gray-500 dark:text-slate-400">
-              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-              <p>Loading portfolio data...</p>
-            </div>
-
-            <!-- Empty state -->
-            <div v-else-if="portfolioHistory.length === 0" class="text-center py-12">
-              <TrendingUp class="w-16 h-16 mx-auto mb-4 opacity-50 text-gray-400 dark:text-slate-500" />
-              <p class="text-lg font-semibold mb-2 text-gray-600 dark:text-slate-400">No Portfolio History</p>
-              <p class="text-sm text-gray-500 dark:text-slate-500">
-                Your portfolio history will appear here once you own cards.
-              </p>
-            </div>
-
-            <!-- Chart -->
-            <div v-else class="space-y-6">
-              <!-- Stats Cards -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Current Value -->
-                <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
-                  <div class="flex items-center gap-2 text-purple-600 dark:text-purple-400 text-sm mb-1">
-                    <DollarSign class="w-4 h-4" />
-                    <span class="font-semibold">Card Portfolio Value</span>
-                  </div>
-                  <div class="text-2xl font-black text-purple-900 dark:text-purple-100">
-                    <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
-                    {{ currentPortfolioValue.toFixed(2) }}
-                  </div>
-                </div>
-
-                <!-- Change (24h) -->
-                <div :class="[
-                  'rounded-xl p-4 border',
-                  portfolioChange >= 0
-                    ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700'
-                    : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700'
-                ]">
-                  <div :class="[
-                    'flex items-center gap-2 text-sm mb-1 font-semibold',
-                    portfolioChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                  ]">
-                    <TrendingUp v-if="portfolioChange >= 0" class="w-4 h-4" />
-                    <TrendingUp v-else class="w-4 h-4 rotate-180" />
-                    <span>Change ({{ timeframe }})</span>
-                  </div>
-                  <div :class="[
-                    'text-2xl font-black',
-                    portfolioChange >= 0 ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'
-                  ]">
-                    {{ portfolioChange >= 0 ? '+' : '' }}{{ portfolioChange.toFixed(2) }}%
-                  </div>
-                </div>
-
-                <!-- All Time High -->
-                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700">
-                  <div class="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm mb-1">
-                    <TrendingUp class="w-4 h-4" />
-                    <span class="font-semibold">All Time High</span>
-                  </div>
-                  <div class="text-2xl font-black text-yellow-900 dark:text-yellow-100">
-                    <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
-                    {{ allTimeHigh.toFixed(2) }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Chart Container -->
-              <div class="bg-white dark:bg-slate-700 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-slate-600">
-                <div class="h-96">
-                  <PortfolioChart :chartData="filteredChartData" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Reviews Tab -->
-          <div v-if="activeTab === 'reviews'" class="p-6 space-y-6">
-            <div class="flex flex-col lg:flex-row gap-6">
-              <div class="lg:w-1/3 bg-gradient-to-br from-red-600 via-red-500 to-red-400 rounded-2xl p-6 text-white shadow-xl">
-                <div class="flex items-center gap-2 text-white/80 text-sm">
-                  <Star class="w-5 h-5 text-yellow-300" />
-                  <span>Average Rating</span>
-                </div>
-                <div class="mt-4 text-5xl font-black">{{ averageRating.toFixed(1) }}</div>
-                <div class="mt-2 flex items-center gap-1">
-                  <div
-                    v-for="n in starRange"
-                    :key="`avg-${n}`"
-                    class="relative w-6 h-6"
-                  >
-                    <Star class="w-6 h-6 text-white/30 dark:text-white/20" />
-                    <Star
-                      class="w-6 h-6 text-yellow-300 fill-yellow-300 absolute inset-0"
-                      :style="{ clipPath: `inset(0 ${100 - getStarFillPercentage(averageRating, n)}% 0 0)` }"
-                    />
-                  </div>
-                </div>
-                <div class="mt-4 text-white/80 text-sm">
-                  {{ totalReviews }} {{ totalReviewsLabel }}
-                </div>
-              </div>
-
-              <div class="flex-1 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-slate-700">
-                <h3 class="text-lg font-semibold flex items-center gap-2 mb-4 text-gray-800 dark:text-slate-100">
-                  <MessageCircle class="w-5 h-5 text-red-500" />
-                  Rating Breakdown
-                </h3>
-                <div class="space-y-3">
-                  <div
-                    v-for="item in ratingBreakdown"
-                    :key="`breakdown-${item.rating}`"
-                    class="flex items-center gap-3"
-                  >
-                    <div class="w-12 text-sm font-semibold text-gray-500 dark:text-slate-300">
-                      {{ item.rating }}★
-                    </div>
-                    <div class="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        class="h-full bg-red-500 rounded-full transition-all"
-                        :style="{ width: `${item.percentage}%` }"
-                      ></div>
-                    </div>
-                    <div class="w-12 text-right text-sm font-semibold text-gray-500 dark:text-slate-300">
-                      {{ item.percentage }}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Recent Reviews</h3>
-              <div
-                v-if="reviewsLoading"
-                class="text-center py-12 text-gray-500 dark:text-slate-400 border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl"
-              >
-                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600 mx-auto mb-4"></div>
-                <p>Fetching reviews...</p>
-              </div>
-              <div
-                v-else-if="totalReviews === 0"
-                class="text-center py-12 text-gray-500 dark:text-slate-400 border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl"
-              >
-                <MessageCircle class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-slate-600" />
-                <p>Reviews will appear here once other trainers share their experience.</p>
-              </div>
-              <div v-else class="space-y-4">
-                <article
-                  v-for="review in reviews"
-                  :key="review.id"
-                  class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm"
-                >
-                  <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <div class="flex items-center gap-2">
-                        <p class="text-lg font-semibold text-gray-900 dark:text-slate-100">
-                          {{ review.reviewerName || review.reviewer || review.reviewerEmail || 'Anonymous Trainer' }}
-                        </p>
-                        <span
-                          class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-200"
-                        >
-                          <BadgeCheck class="w-3.5 h-3.5" />
-                          Review from {{ review.role === 'seller' ? 'Seller' : 'Buyer' }}
-                        </span>
-                      </div>
-                      <p class="text-sm text-gray-500 dark:text-slate-400">
-                        {{ formatReviewDate(review.createdAt) }}
-                      </p>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <div
-                        v-for="n in starRange"
-                        :key="`${review.id}-${n}`"
-                        class="relative w-4 h-4"
-                      >
-                        <Star class="w-4 h-4 text-gray-300 dark:text-slate-600" />
-                        <Star
-                          class="w-4 h-4 text-yellow-400 fill-yellow-400 absolute inset-0"
-                          :style="{ clipPath: `inset(0 ${100 - getStarFillPercentage(review.rating, n)}% 0 0)` }"
-                        />
-                      </div>
-                      <span class="ml-2 text-sm font-semibold text-gray-600 dark:text-slate-300">
-                        {{ formatRatingDisplay(review.rating) }}
-                      </span>
-                    </div>
-                  </div>
-                  <p class="mt-4 text-gray-700 dark:text-slate-300 leading-relaxed">
-                    {{ review.comment || 'No comment provided.' }}
-                  </p>
-                </article>
-              </div>
-            </div>
-          </div>
-
-  <!-- ✨ COMPLETE FIXED: Offers Tab -->
-  <div v-if="activeTab === 'offers'" class="p-6">
-    <div class="space-y-6">
-      <!-- Received Offers (Offers on your cards) -->
-      <div>
-        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-          📥 Received Offers
-          <span v-if="receivedOffers.length > 0" class="text-lg font-normal text-gray-500">
-            ({{ receivedOffers.length }})
-          </span>
-        </h2>
-
-        <div v-if="loadingOffers" class="text-center py-8">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-          <p class="mt-2 text-gray-500">Loading offers...</p>
-        </div>
-
-        <div v-else-if="receivedOffers.length === 0" class="text-center py-8 text-gray-500">
-          <p>No pending offers on your cards</p>
-        </div>
-
-        <div v-else class="space-y-4">
-          <div v-for="offer in receivedOffers" :key="offer.id"
-            class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2 border-gray-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-3 mb-2">
-                  <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                    <User class="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p class="font-bold">{{ offer.buyer_name || 'Unknown Buyer' }}</p>
-                    <p class="text-xs text-gray-500">{{ formatOfferDate(offer.created_at) }}</p>
-                  </div>
-                </div>
-
-                <div class="ml-13">
-                  <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">
-                    Offered for: <span class="font-semibold">{{ offer.card_name || 'Unknown Card' }}</span>
-                  </p>
-                  <p class="text-sm text-gray-500">
-                    Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
-                  </p>
-                  
-                  <div class="mt-3 flex items-center gap-2">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">Offer Amount:</span>
-                    <span class="text-2xl font-black text-green-600">
-                      <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />
-                      {{ Number(offer.offer_amount || 0).toFixed(2) }}
-                    </span>
-                    <span v-if="offer.offer_amount < offer.listing_price" 
-                      class="text-sm text-orange-600 font-semibold">
-                      ({{ ((offer.offer_amount / offer.listing_price) * 100).toFixed(0) }}% of listing)
-                    </span>
-                  </div>
-
-                  <p v-if="offer.message" class="mt-3 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                    "{{ offer.message }}"
-                  </p>
-                </div>
-              </div>
-
-              <!-- Action Buttons -->
-              <div class="flex flex-col gap-2">
-                <button @click="acceptOffer(offer.id)"
-                  class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all whitespace-nowrap">
-                  ✓ Accept
-                </button>
-                <button @click="rejectOffer(offer.id)"
-                  class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all whitespace-nowrap">
-                  ✕ Reject
-                </button>
-              </div>
-            </div>
-          </div>
+        </router-link>    
         </div>
       </div>
+      </div>
 
-      <!-- Divider -->
-      <div class="border-t-2 border-gray-200 dark:border-slate-700"></div>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
+        <div class="flex border-b dark:border-slate-700">
+          <button @click="activeTab = 'collection'" :class="[
+            'flex-1 px-6 py-4 font-semibold transition-all',
+            activeTab === 'collection'
+              ? 'bg-red-600 text-white'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          ]">
+            My Card Collection
+          </button>
+          <button @click="activeTab = 'offers'" :class="[
+            'flex-1 px-6 py-4 font-semibold transition-all',
+            activeTab === 'offers'
+              ? 'bg-red-600 text-white'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          ]">
+            Offers
+          </button>
 
-      <!-- Sent Offers (Offers you made) -->
-      <div>
-        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-          📤 Sent Offers
-          <span v-if="sentOffers.length > 0" class="text-lg font-normal text-gray-500">
-            ({{ sentOffers.length }})
-          </span>
-        </h2>
 
-        <div v-if="sentOffers.length === 0" class="text-center py-8 text-gray-500">
-          <p>You haven't made any offers yet</p>
+          <button @click="activeTab = 'portfolio'" :class="[
+            'flex-1 px-6 py-4 font-semibold transition-all',
+            activeTab === 'portfolio'
+              ? 'bg-red-600 text-white'
+              : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          ]">
+            Portfolio
+          </button>
+
+          
+        </div>
+        
+        <div v-if="activeTab === 'collection'" class="p-6">
+
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold">Your Cards</h2>
+            <router-link
+              to="/upload"
+              class="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all shadow-lg"
+            >
+              <Plus class="w-5 h-5" />
+              Add Card
+            </router-link>
+          </div>
+
+          <div v-if="loading" class="text-center py-12 text-gray-500 dark:text-slate-400">
+            Loading your profile...
+          </div>
+
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+
+            <div v-for="card in ownedCards.filter(c => c.status !== 'sold')" :key="card.id"
+class="group relative bg-zinc-200 dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 overflow-hidden flex flex-col">
+
+              <div class="relative p-4">
+                <div v-if="card.quantity > 1"
+                  class="absolute top-2 right-2 z-10 px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
+                  x{{ card.quantity }}
+                </div>
+
+                <img :src="card.img" :alt="card.title" class="w-full h-80 object-contain" />
+              </div>
+
+              <div class="p-4 flex-1 flex flex-col">
+                <div class="mb-3">
+<h3 class="font-sans font-bold text-lg leading-tight mb-1">{{ card.title }}</h3>
+<p class="font-mono text-sm text-gray-500 dark:text-slate-400">{{ card.set }}</p>
+
+<div class="flex items-center gap-2 mt-2 flex-wrap">
+  <span class="px-2 py-0.5 bg-stone-100 dark:bg-indigo-900 text-red-700 dark:text-indigo-300 text-xs font-bold rounded">
+    {{ card.grade }}
+  </span>
+
+  <span v-if="card.status === 'listed'"
+    class="px-2 py-0.5 bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200 text-xs font-bold rounded">
+    LISTED
+  </span>
+  <span v-else-if="card.status === 'reserved'"
+    class="px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 text-xs font-bold rounded">
+    RESERVED
+  </span>
+  <span v-else
+    class="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 text-xs font-bold rounded">
+    OWNED
+  </span>
+</div>
+</div>
+
+<div class="pt-3 border-t dark:border-slate-700 mb-4 min-h-[80px]">
+<div v-if="card.status === 'listed'">
+  <p class="text-xl font-black text-black dark:text-white">
+    <img :src="jsbImg" alt="JSB" class="inline h-[25px] w-[25px] align-[-2px] mr-1" />
+    {{ Number(card.price).toFixed(2) }}
+  </p>
+</div>
+<p class="text-sm text-gray-500" :class="card.status === 'listed' ? '' : 'mt-2'">Cert: {{ card.cert }}</p>
+</div>
+
+
+<div class="flex gap-2">
+                  
+                  <button v-if="card.status !== 'listed'" @click="openSellModal(card)"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all text-sm flex-1 flex items-center justify-center gap-1">
+                    <Plus class="w-4 h-4" />
+                    Sell
+                  </button>
+                  <button v-else @click="undoListing(card)"
+                    class="px-4 py-2 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all text-sm flex-1 flex items-center justify-center gap-1">
+                    Undo Listing
+                  </button>
+                  
+                  <button @click="openDeleteModal(card)" 
+                    class="px-4 py-2 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-900 transition-all text-sm flex-1 flex items-center justify-center gap-1">
+                    <Trash2 class="w-4 h-4" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="!loading && ownedCards.length === 0" class="text-center py-12 text-gray-500 dark:text-slate-400">
+            <Package class="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <p class="text-lg font-semibold mb-2">No cards in your collection yet</p>
+            <p class="text-sm">Start building your profile by adding your first card!</p>
+          </div>
         </div>
 
-        <div v-else class="space-y-4">
-          <div v-for="offer in sentOffers" :key="offer.id"
-            class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2"
-            :class="{
-              'border-yellow-300 dark:border-yellow-700': offer.status === 'pending',
-              'border-green-300 dark:border-green-700': offer.status === 'accepted',
-              'border-red-300 dark:border-red-700': offer.status === 'rejected',
-              'border-gray-200 dark:border-slate-600': !offer.status
-            }">
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <p class="font-bold">{{ offer.card_name || 'Unknown Card' }}</p>
-                  <span class="px-2 py-1 rounded text-xs font-bold"
-                    :class="{
-                      'bg-yellow-100 text-yellow-700': offer.status === 'pending',
-                      'bg-green-100 text-green-700': offer.status === 'accepted',
-                      'bg-red-100 text-red-700': offer.status === 'rejected'
-                    }">
-                    {{ (offer.status || 'pending').toUpperCase() }}
-                  </span>
+
+        <div v-if="activeTab === 'portfolio'" class="p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold">Portfolio Growth</h2>
+            
+            <div class="flex gap-2 bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
+              <button
+                v-for="option in timeframeOptions"
+                :key="option.value"
+                @click="timeframe = option.value"
+                :class="[
+                  'px-4 py-2 rounded-md font-semibold text-sm transition-all',
+                  timeframe === option.value
+                    ? 'bg-red-600 text-white shadow-md'
+                    : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                ]"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="portfolioLoading" class="text-center py-12 text-gray-500 dark:text-slate-400">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+            <p>Loading portfolio data...</p>
+          </div>
+
+          <div v-else-if="portfolioHistory.length === 0" class="text-center py-12">
+            <TrendingUp class="w-16 h-16 mx-auto mb-4 opacity-50 text-gray-400 dark:text-slate-500" />
+            <p class="text-lg font-semibold mb-2 text-gray-600 dark:text-slate-400">No Portfolio History</p>
+            <p class="text-sm text-gray-500 dark:text-slate-500">
+              Your portfolio history will appear here once you own cards.
+            </p>
+          </div>
+
+          <div v-else class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
+                <div class="flex items-center gap-2 text-purple-600 dark:text-purple-400 text-sm mb-1">
+                  <DollarSign class="w-4 h-4" />
+                  <span class="font-semibold">Card Portfolio Value</span>
                 </div>
-
-                <p class="text-xs text-gray-500 mb-3">{{ formatOfferDate(offer.created_at) }}</p>
-
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">Your Offer:</span>
-                  <span class="text-xl font-black text-indigo-600">
-                    <img :src="jsbImg" alt="JSB" class="inline h-[18px] w-[18px] align-[-2px] mr-1" />
-                    {{ Number(offer.offer_amount || 0).toFixed(2) }}
-                  </span>
+                <div class="text-2xl font-black text-purple-900 dark:text-purple-100">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
+                  {{ currentPortfolioValue.toFixed(2) }}
                 </div>
+              </div>
 
+              <div :class="[
+                'rounded-xl p-4 border',
+                portfolioChange >= 0
+                  ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700'
+                  : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700'
+              ]">
+                <div :class="[
+                  'flex items-center gap-2 text-sm mb-1 font-semibold',
+                  portfolioChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                ]">
+                  <TrendingUp v-if="portfolioChange >= 0" class="w-4 h-4" />
+                  <TrendingUp v-else class="w-4 h-4 rotate-180" />
+                  <span>Change ({{ timeframe }})</span>
+                </div>
+                <div :class="[
+                  'text-2xl font-black',
+                  portfolioChange >= 0 ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'
+                ]">
+                  {{ portfolioChange >= 0 ? '+' : '' }}{{ portfolioChange.toFixed(2) }}%
+                </div>
+              </div>
+
+              <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700">
+                <div class="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm mb-1">
+                  <TrendingUp class="w-4 h-4" />
+                  <span class="font-semibold">All Time High</span>
+                </div>
+                <div class="text-2xl font-black text-yellow-900 dark:text-yellow-100">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[20px] w-[20px] align-[-2px] mr-1" />
+                  {{ allTimeHigh.toFixed(2) }}
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-700 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-slate-600">
+              <div class="h-96">
+                <PortfolioChart :chartData="filteredChartData" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="activeTab === 'reviews'" class="p-6 space-y-6">
+          <div class="flex flex-col lg:flex-row gap-6">
+            <div class="lg:w-1/3 bg-gradient-to-br from-red-600 via-red-500 to-red-400 rounded-2xl p-6 text-white shadow-xl">
+              <div class="flex items-center gap-2 text-white/80 text-sm">
+                <Star class="w-5 h-5 text-yellow-300" />
+                <span>Average Rating</span>
+              </div>
+              <div class="mt-4 text-5xl font-black">{{ averageRating.toFixed(1) }}</div>
+              <div class="mt-2 flex items-center gap-1">
+                <div
+                  v-for="n in starRange"
+                  :key="`avg-${n}`"
+                  class="relative w-6 h-6"
+                >
+                  <Star class="w-6 h-6 text-white/30 dark:text-white/20" />
+                  <Star
+                    class="w-6 h-6 text-yellow-300 fill-yellow-300 absolute inset-0"
+                    :style="{ clipPath: `inset(0 ${100 - getStarFillPercentage(averageRating, n)}% 0 0)` }"
+                  />
+                </div>
+              </div>
+              <div class="mt-4 text-white/80 text-sm">
+                {{ totalReviews }} {{ totalReviewsLabel }}
+              </div>
+            </div>
+
+            <div class="flex-1 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-slate-700">
+              <h3 class="text-lg font-semibold flex items-center gap-2 mb-4 text-gray-800 dark:text-slate-100">
+                <MessageCircle class="w-5 h-5 text-red-500" />
+                Rating Breakdown
+              </h3>
+              <div class="space-y-3">
+                <div
+                  v-for="item in ratingBreakdown"
+                  :key="`breakdown-${item.rating}`"
+                  class="flex items-center gap-3"
+                >
+                  <div class="w-12 text-sm font-semibold text-gray-500 dark:text-slate-300">
+                    {{ item.rating }}★
+                  </div>
+                  <div class="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-red-500 rounded-full transition-all"
+                      :style="{ width: `${item.percentage}%` }"
+                    ></div>
+                  </div>
+                  <div class="w-12 text-right text-sm font-semibold text-gray-500 dark:text-slate-300">
+                    {{ item.percentage }}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Recent Reviews</h3>
+            <div
+              v-if="reviewsLoading"
+              class="text-center py-12 text-gray-500 dark:text-slate-400 border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl"
+            >
+              <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600 mx-auto mb-4"></div>
+              <p>Fetching reviews...</p>
+            </div>
+            <div
+              v-else-if="totalReviews === 0"
+              class="text-center py-12 text-gray-500 dark:text-slate-400 border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl"
+            >
+              <MessageCircle class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-slate-600" />
+              <p>Reviews will appear here once other trainers share their experience.</p>
+            </div>
+            <div v-else class="space-y-4">
+              <article
+                v-for="review in reviews"
+                :key="review.id"
+                class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <p class="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                        {{ review.reviewerName || review.reviewer || review.reviewerEmail || 'Anonymous Trainer' }}
+                      </p>
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-200"
+                      >
+                        <BadgeCheck class="w-3.5 h-3.5" />
+                        Review from {{ review.role === 'seller' ? 'Seller' : 'Buyer' }}
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-slate-400">
+                      {{ formatReviewDate(review.createdAt) }}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div
+                      v-for="n in starRange"
+                      :key="`${review.id}-${n}`"
+                      class="relative w-4 h-4"
+                    >
+                      <Star class="w-4 h-4 text-gray-300 dark:text-slate-600" />
+                      <Star
+                        class="w-4 h-4 text-yellow-400 fill-yellow-400 absolute inset-0"
+                        :style="{ clipPath: `inset(0 ${100 - getStarFillPercentage(review.rating, n)}% 0 0)` }"
+                      />
+                    </div>
+                    <span class="ml-2 text-sm font-semibold text-gray-600 dark:text-slate-300">
+                      {{ formatRatingDisplay(review.rating) }}
+                    </span>
+                  </div>
+                </div>
+                <p class="mt-4 text-gray-700 dark:text-slate-300 leading-relaxed">
+                  {{ review.comment || 'No comment provided.' }}
+                </p>
+              </article>
+            </div>
+          </div>
+        </div>
+
+<div v-if="activeTab === 'offers'" class="p-6">
+  <div class="space-y-6">
+    <div>
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        📥 Received Offers
+        <span v-if="receivedOffers.length > 0" class="text-lg font-normal text-gray-500">
+          ({{ receivedOffers.length }})
+        </span>
+      </h2>
+
+      <div v-if="loadingOffers" class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <p class="mt-2 text-gray-500">Loading offers...</p>
+      </div>
+
+      <div v-else-if="receivedOffers.length === 0" class="text-center py-8 text-gray-500">
+        <p>No pending offers on your cards</p>
+      </div>
+
+      <div v-else class="space-y-4">
+        <div v-for="offer in receivedOffers" :key="offer.id"
+          class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2 border-gray-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+                  <User class="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p class="font-bold">{{ offer.buyer_name || 'Unknown Buyer' }}</p>
+                  <p class="text-xs text-gray-500">{{ formatOfferDate(offer.created_at) }}</p>
+                </div>
+              </div>
+
+              <div class="ml-13">
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                  Offered for: <span class="font-semibold">{{ offer.card_name || 'Unknown Card' }}</span>
+                </p>
                 <p class="text-sm text-gray-500">
                   Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
                 </p>
+                
+                <div class="mt-3 flex items-center gap-2">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Offer Amount:</span>
+                  <span class="text-2xl font-black text-green-600">
+                    <img :src="jsbImg" alt="JSB" class="inline h-[21px] w-[21px] align-[-2px] mr-1" />
+                    {{ Number(offer.offer_amount || 0).toFixed(2) }}
+                  </span>
+                  <span v-if="offer.offer_amount < offer.listing_price" 
+                    class="text-sm text-orange-600 font-semibold">
+                    ({{ ((offer.offer_amount / offer.listing_price) * 100).toFixed(0) }}% of listing)
+                  </span>
+                </div>
 
-                <p v-if="offer.message" class="mt-2 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                <p v-if="offer.message" class="mt-3 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
                   "{{ offer.message }}"
                 </p>
-
-                <p v-if="offer.status === 'accepted' && offer.accepted_at" class="mt-3 text-sm text-green-600 font-semibold">
-                  ✅ Accepted on {{ formatOfferDate(offer.accepted_at) }}
-                </p>
-                <p v-else-if="offer.status === 'rejected' && offer.rejected_at" class="mt-3 text-sm text-red-600 font-semibold">
-                  ❌ Rejected on {{ formatOfferDate(offer.rejected_at) }}
-                </p>
-                <p v-else-if="offer.status === 'pending'" class="mt-3 text-sm text-yellow-600 font-semibold">
-                  ⏳ Waiting for seller's response
-                </p>
               </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <button @click="acceptOffer(offer.id)"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all whitespace-nowrap">
+                ✓ Accept
+              </button>
+              <button @click="rejectOffer(offer.id)"
+                class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all whitespace-nowrap">
+                ✕ Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t-2 border-gray-200 dark:border-slate-700"></div>
+
+    <div>
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        📤 Sent Offers
+        <span v-if="sentOffers.length > 0" class="text-lg font-normal text-gray-500">
+          ({{ sentOffers.length }})
+        </span>
+      </h2>
+
+      <div v-if="sentOffers.length === 0" class="text-center py-8 text-gray-500">
+        <p>You haven't made any offers yet</p>
+      </div>
+
+      <div v-else class="space-y-4">
+        <div v-for="offer in sentOffers" :key="offer.id"
+          class="bg-white dark:bg-slate-700 rounded-xl p-5 border-2"
+          :class="{
+            'border-yellow-300 dark:border-yellow-700': offer.status === 'pending',
+            'border-green-300 dark:border-green-700': offer.status === 'accepted',
+            'border-red-300 dark:border-red-700': offer.status === 'rejected',
+            'border-gray-200 dark:border-slate-600': !offer.status
+          }">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <p class="font-bold">{{ offer.card_name || 'Unknown Card' }}</p>
+                <span class="px-2 py-1 rounded text-xs font-bold"
+                  :class="{
+                    'bg-yellow-100 text-yellow-700': offer.status === 'pending',
+                    'bg-green-100 text-green-700': offer.status === 'accepted',
+                    'bg-red-100 text-red-700': offer.status === 'rejected'
+                  }">
+                  {{ (offer.status || 'pending').toUpperCase() }}
+                </span>
+              </div>
+
+              <p class="text-xs text-gray-500 mb-3">{{ formatOfferDate(offer.created_at) }}</p>
+
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Your Offer:</span>
+                <span class="text-xl font-black text-indigo-600">
+                  <img :src="jsbImg" alt="JSB" class="inline h-[18px] w-[18px] align-[-2px] mr-1" />
+                  {{ Number(offer.offer_amount || 0).toFixed(2) }}
+                </span>
+              </div>
+
+              <p class="text-sm text-gray-500">
+                Listed at: <img :src="jsbImg" alt="JSB" class="inline h-[14px] w-[14px] align-[-1px] mr-1" />{{ Number(offer.listing_price || 0).toFixed(2) }}
+              </p>
+
+              <p v-if="offer.message" class="mt-2 text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                "{{ offer.message }}"
+              </p>
+
+              <p v-if="offer.status === 'accepted' && offer.accepted_at" class="mt-3 text-sm text-green-600 font-semibold">
+                ✅ Accepted on {{ formatOfferDate(offer.accepted_at) }}
+              </p>
+              <p v-else-if="offer.status === 'rejected' && offer.rejected_at" class="mt-3 text-sm text-red-600 font-semibold">
+                ❌ Rejected on {{ formatOfferDate(offer.rejected_at) }}
+              </p>
+              <p v-else-if="offer.status === 'pending'" class="mt-3 text-sm text-yellow-600 font-semibold">
+                ⏳ Waiting for seller's response
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  </div>
-          
-        <!-- Add Card Modal -->
-        <!-- (unchanged UI; still mocked locally) -->
-        <div v-if="showAddModal"
-          class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="text-2xl font-bold">Add New Card</h3>
-              <button @click="showAddModal = false" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
-                <X class="w-6 h-6" />
-              </button>
-            </div>
-
-            <div class="space-y-4">
-              <!-- form fields unchanged -->
-              <!-- … -->
-              <button @click="handleAddCard"
-                class="w-full px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
-                Add to Portfolio
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Edit Card Modal (unchanged UI) -->
-        <div v-if="showEditModal && editingCard"
-          class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl">
-            <!-- form fields unchanged -->
-            <!-- … -->
-            <button @click="handleEditCard"
-              class="w-full px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ✅ Sell Modal -->
-      <div v-if="showSellModal"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-4 sm:p-6 md:p-8 max-w-2xl w-full shadow-2xl my-8">
+</div>
+</div>
+        
+      <div v-if="showAddModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold">
-              {{ sellStep === 'confirm' ? 'Confirm Listing' : 'Sell Card' }}
-            </h3>
-            <button @click="closeSellModal" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
+            <h3 class="text-2xl font-bold">Add New Card</h3>
+            <button @click="showAddModal = false" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
               <X class="w-6 h-6" />
             </button>
           </div>
 
-          <!-- Selected card summary (read-only) -->
-          <div v-if="sellCard"
-              class="mb-6 grid grid-cols-1 sm:grid-cols-[140px,1fr] gap-4 items-start">
-            <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800 rounded-xl p-3">
-              <img :src="sellCard.img" :alt="sellCard.title" class="w-full h-36 object-contain" />
-            </div>
-            <div>
-              <p class="text-sm text-gray-500 dark:text-slate-400 mb-1">You are selling</p>
-              <h4 class="text-lg font-bold">{{ sellCard.title }}</h4>
-              <p class="text-sm text-gray-500 dark:text-slate-400">
-                Set: {{ sellCard.set }} &nbsp;•&nbsp; {{ sellCard.grade }}
-              </p>
-              <p class="text-xs text-gray-400 mt-1">Cert: {{ sellCard.cert }}</p>
-            </div>
-          </div>
-
-          <!-- Step 1: Form -->
-          <div v-if="sellStep === 'form'" class="space-y-4">
-            <div>
-              <label class="block text-sm font-semibold mb-2">Selling Price</label>
-
-              <!-- wrapper to position icon/unit inside the input -->
-              <div class="relative">
-                <!-- left icon inside the input -->
-                <img
-                  :src="jsbImg"
-                  alt="JSB"
-                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5"
-                />
-
-                <!-- the input with extra left/right padding -->
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  v-model="sellForm.price"
-                  class="w-full pl-11 pr-14 px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
-                  placeholder="0.00"
-                />
-
-                <!-- right unit inside the input -->
-                <span
-                  class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-slate-400"
-                >JSB</span>
-              </div>
-
-              <p class="text-xs text-gray-500 mt-1">Enter the price buyers will see.</p>
-            </div>
-
-
-            
-
-            <div>
-              <label class="block text-sm font-semibold mb-2">Delivery</label>
-              <select v-model="sellForm.delivery"
-                      class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900">
-                <option value="meetup">Meet up</option>
-                <option value="mail">Mail</option>
-              </select>
-            </div>
-
-            <div class="flex items-center justify-end gap-3 pt-2">
-              <button @click="closeSellModal"
-                      class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
-                Cancel
-              </button>
-              <button @click="submitSellForm"
-                      class="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-60"
-                      :disabled="!sellForm.price || Number(sellForm.price) <= 0">
-                Sell it
-              </button>
-            </div>
-          </div>
-
-          <!-- Step 2: Confirm -->
-          <div v-else class="space-y-4">
-            <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
-              <p class="text-sm text-gray-500 dark:text-slate-300 mb-2">Listing summary</p>
-              <ul class="space-y-1 text-sm">
-                <li><span class="font-semibold">Price:</span> {{ Number(sellForm.price).toFixed(2) }}</li>
-                <li><span class="font-semibold">Delivery:</span> {{ sellForm.delivery === 'meetup' ? 'Meet up' : 'Mail' }}</li>
-                <li v-if="sellForm.description"><span class="font-semibold">Description:</span> {{ sellForm.description }}</li>
-              </ul>
-            </div>
-
-            <div class="flex items-center justify-end gap-3 pt-2">
-              <button @click="backToSellForm"
-                      class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
-                Back
-              </button>
-              <button @click="confirmSell"
-                      class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
-                Confirm & Publish
-              </button>
-            </div>
+          <div class="space-y-4">
+            <button @click="handleAddCard"
+              class="w-full px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
+              Add to Portfolio
+            </button>
           </div>
         </div>
       </div>
-          <!-- Transaction Result Modal -->
-          <div v-if="showTransactionModal" @click="closeTransactionModal" 
-            class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
-            <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
-              
-              <!-- Success Header -->
-              <div v-if="transactionResult.success" 
-                  class="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
-                <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                  <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
-                <p class="text-green-100">{{ transactionResult.title }}</p>
+
+      <div v-if="showEditModal && editingCard"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl">
+          <button @click="handleEditCard"
+            class="w-full px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg">
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showSellModal"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div class="bg-white dark:bg-slate-800 rounded-3xl p-4 sm:p-6 md:p-8 max-w-2xl w-full shadow-2xl my-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold">
+            {{ sellStep === 'confirm' ? 'Confirm Listing' : 'Sell Card' }}
+          </h3>
+          <button @click="closeSellModal" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
+            <X class="w-6 h-6" />
+          </button>
+        </div>
+
+        <div v-if="sellCard"
+            class="mb-6 grid grid-cols-1 sm:grid-cols-[140px,1fr] gap-4 items-start">
+          <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-800 rounded-xl p-3">
+            <img :src="sellCard.img" :alt="sellCard.title" class="w-full h-36 object-contain" />
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mb-1">You are selling</p>
+            <h4 class="text-lg font-bold">{{ sellCard.title }}</h4>
+            <p class="text-sm text-gray-500 dark:text-slate-400">
+              Set: {{ sellCard.set }} &nbsp;•&nbsp; {{ sellCard.grade }}
+            </p>
+            <p class="text-xs text-gray-400 mt-1">Cert: {{ sellCard.cert }}</p>
+          </div>
+        </div>
+
+        <div v-if="sellStep === 'form'" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2">Selling Price</label>
+
+            <div class="relative">
+              <img
+                :src="jsbImg"
+                alt="JSB"
+                class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5"
+              />
+
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                v-model="sellForm.price"
+                class="w-full pl-11 pr-14 px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900"
+                placeholder="0.00"
+              />
+
+              <span
+                class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-slate-400"
+              >JSB</span>
+            </div>
+
+            <p class="text-xs text-gray-500 mt-1">Enter the price buyers will see.</p>
+          </div>
+
+
+          
+
+          <div>
+            <label class="block text-sm font-semibold mb-2">Delivery</label>
+            <select v-model="sellForm.delivery"
+                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:border-indigo-500 focus:outline-none dark:bg-slate-900">
+              <option value="meetup">Meet up</option>
+              <option value="mail">Mail</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button @click="closeSellModal"
+                    class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
+              Cancel
+            </button>
+            <button @click="submitSellForm"
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-60"
+                    :disabled="!sellForm.price || Number(sellForm.price) <= 0">
+              Sell it
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="space-y-4">
+          <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+            <p class="text-sm text-gray-500 dark:text-slate-300 mb-2">Listing summary</p>
+            <ul class="space-y-1 text-sm">
+              <li><span class="font-semibold">Price:</span> {{ Number(sellForm.price).toFixed(2) }}</li>
+              <li><span class="font-semibold">Delivery:</span> {{ sellForm.delivery === 'meetup' ? 'Meet up' : 'Mail' }}</li>
+              <li v-if="sellForm.description"><span class="font-semibold">Description:</span> {{ sellForm.description }}</li>
+            </ul>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button @click="backToSellForm"
+                    class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
+              Back
+            </button>
+            <button @click="confirmSell"
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">
+              Confirm & Publish
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showDeleteModal" 
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl my-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-red-600 dark:text-red-400">
+            Confirm Deletion
+          </h3>
+          <button @click="closeDeleteModal" class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
+            <X class="w-6 h-6" />
+          </button>
+        </div>
+
+        <div v-if="cardToDelete" class="space-y-4">
+          <div class="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-700/50">
+            <Trash2 class="w-8 h-8 text-red-500 flex-shrink-0" />
+            <div>
+              <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Are you sure you want to permanently remove this card from your portfolio?
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Card: **{{ cardToDelete.title }}** (Cert: {{ cardToDelete.cert }})
+              </p>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-end gap-3 pt-4">
+            <button @click="closeDeleteModal"
+                    class="px-5 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 font-semibold">
+              Cancel
+            </button>
+            <button @click="confirmDeleteCard"
+                    class="px-5 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all">
+              Yes, Delete It
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="showTransactionModal" @click="closeTransactionModal" 
+          class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+          <div @click.stop class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
+            
+            <div v-if="transactionResult.success" 
+                class="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
               </div>
+              <h2 class="text-3xl font-black text-white mb-2">Success! 🎉</h2>
+              <p class="text-green-100">{{ transactionResult.title }}</p>
+            </div>
 
-              <!-- Error Header -->
-              <div v-else 
-                  class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
-                <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-                <h2 class="text-3xl font-black text-white mb-2">Action Failed</h2>
-                <p class="text-red-100">{{ transactionResult.title }}</p>
+            <div v-else 
+                class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center">
+              <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </div>
+              <h2 class="text-3xl font-black text-white mb-2">Action Failed</h2>
+              <p class="text-red-100">{{ transactionResult.title }}</p>
+            </div>
 
-              <!-- Content -->
-              <div class="p-8">
-                <div class="space-y-6">
-                  <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-900/30 rounded-2xl p-6 border-2" :class="transactionResult.success ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'">
-                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {{ transactionResult.message }}
-                    </p>
-                  </div>
+            <div class="p-8">
+              <div class="space-y-6">
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-900/30 rounded-2xl p-6 border-2" :class="transactionResult.success ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'">
+                  <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {{ transactionResult.message }}
+                  </p>
+                </div>
 
-                  <div class="flex gap-3">
-                    <button @click="closeTransactionModal" 
-                            class="flex-1 px-6 py-3 rounded-xl font-bold transition-all shadow-lg" :class="transactionResult.success ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800'">
-                      {{ transactionResult.success ? 'Great!' : 'Close' }}
-                    </button>
-                  </div>
+                <div class="flex gap-3">
+                  <button @click="closeTransactionModal" 
+                          class="flex-1 px-6 py-3 rounded-xl font-bold transition-all shadow-lg" :class="transactionResult.success ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800'">
+                    {{ transactionResult.success ? 'Great!' : 'Close' }}
+                  </button>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-    </div>
-    
-  </template>
+  </div>
+  
+</template>
 
-  <script setup>
+<script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import {
   User, Mail, Clock, TrendingUp, Package, DollarSign, Plus, Edit2, Trash2, X,
@@ -1311,11 +1298,97 @@ function formatJoinDate(timestamp) {
     showEditModal.value = false
     editingCard.value = null
   }
+  
+  // --- DELETE MODAL LOGIC (New) ---
+  const showDeleteModal = ref(false)
+  const cardToDelete = ref(null)
 
-  const handleDeleteCard = (id) => {
-    if (!confirm('Remove this card from your portfolio?')) return
-    ownedCards.value = ownedCards.value.filter(c => c.id !== id)
+  function openDeleteModal(card) {
+    cardToDelete.value = card
+    showDeleteModal.value = true
   }
+
+  function closeDeleteModal() {
+    showDeleteModal.value = false
+    cardToDelete.value = null
+  }
+
+  // The previous handleDeleteCard stub is no longer necessary as the template directly calls openDeleteModal(card).
+
+  async function confirmDeleteCard() { 
+  if (!cardToDelete.value) return;
+
+  const card = cardToDelete.value;
+  const certToDelete = card.cert;
+  const token = localStorage.getItem('token');
+  
+  // Close the modal immediately for a smooth transition to the result modal
+  closeDeleteModal(); 
+
+  // Basic validation check
+  if (!token) {
+    transactionResult.value = {
+      success: false,
+      title: 'Authentication Error',
+      message: 'You are not logged in. Please log in and try again.'
+    };
+    showTransactionModal.value = true;
+    return;
+  }
+  if (!certToDelete) {
+    transactionResult.value = {
+      success: false,
+      title: 'Data Error',
+      message: `Card details are missing the necessary Certificate (Cert) number.`
+    };
+    showTransactionModal.value = true;
+    return;
+  }
+
+  try {
+    // 1. Send DELETE request to the API
+    const resp = await fetch(`${API_BASE}/api/cards/${encodeURIComponent(certToDelete)}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    // Attempt to read the response body for error messages, even if resp.ok is false
+    const data = await resp.json().catch(() => ({})); 
+
+    if (!resp.ok) {
+      // Throw an error with the server's message or a fallback status message
+      const errorMessage = data.message || data.error || `Server responded with status ${resp.status}`;
+      throw new Error(errorMessage);
+    }
+
+    // 2. SUCCESS: Update local UI state (remove card)
+    ownedCards.value = ownedCards.value.filter(c => c.cert !== certToDelete);
+    
+    // 3. Show Success Transaction Modal
+    transactionResult.value = {
+      success: true,
+      title: 'Card Removed',
+      message: `${card.title} (Cert: ${certToDelete}) has been successfully removed from your collection.`
+    };
+
+  } catch (e) {
+    console.error('Failed to delete card:', e.message);
+    
+    // 4. FAILURE: Show Failure Transaction Modal
+    transactionResult.value = {
+      success: false,
+      title: 'Deletion Failed',
+      // Display the specific error message caught above
+      message: `Could not remove card ${card.title}. Reason: ${e.message}.`
+    };
+    
+  } finally {
+    cardToDelete.value = null;
+    showTransactionModal.value = true;
+  }
+}
+  // --- END DELETE MODAL LOGIC ---
+
 
   // --- Sell modal state ---
   const showSellModal = ref(false)
@@ -1611,6 +1684,6 @@ function formatJoinDate(timestamp) {
 
   </script>
 
-  <style scoped>
+<style scoped>
   /* Optional custom styles */
-  </style>
+</style>
