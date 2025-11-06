@@ -480,5 +480,29 @@ router.post('/:cert/undo', async (req, res) => {
       return res.status(500).json({ error: 'Failed to undo listing' });
     }
 });
+
+// ========== GET /api/cards/images/avatar/:filename - Serve avatar images ==========
+router.get('/images/avatar/:filename', async (req, res) => {
+  try {
+    const { filename } = req.params;
+    
+    if (!filename) {
+      return res.status(400).json({ error: 'Filename is required' });
+    }
+
+    // Get signed URL from Firebase Storage (folder, filename as separate params)
+    const signedUrl = await getImageSignedUrl('avatar', filename);
+    
+    if (!signedUrl) {
+      return res.status(404).json({ error: 'Avatar not found' });
+    }
+
+    // Redirect to the signed URL
+    res.redirect(signedUrl);
+  } catch (error) {
+    console.error('❌ Error serving avatar:', error);
+    res.status(500).json({ error: 'Failed to load avatar' });
+  }
+});
     
     export default router;
