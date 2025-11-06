@@ -383,12 +383,12 @@ router.post('/ingest', async (req, res) => {
       cert_number: certNumber,
       sellerEmail: listingEmail,
       sellerId: userRef.id,
-      status: 'listed',
       updated_at: now,
     };
 
     if (!existingListing.exists) {
       listingPayload.created_at = now;
+      listingPayload.status = 'display';
       if (typeof req.body?.listing_price === 'number') {
         listingPayload.listing_price = req.body.listing_price;
       } else {
