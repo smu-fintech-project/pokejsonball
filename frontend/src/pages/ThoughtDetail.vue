@@ -1,5 +1,5 @@
 <template>
-  <section class="space-y-6">
+  <section class="space-y-4 px-5">
     <!-- Improved back button -->
     <router-link 
       to="/community" 
@@ -11,7 +11,7 @@
       <span class="font-medium">Back to Community</span>
     </router-link>
 
-    <article v-if="thought" class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700">
+    <article v-if="thought" class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 px-6">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <!-- Avatar (first letter) -->
@@ -122,20 +122,10 @@
       </div>
     </article>
 
-    <!-- Add comment -->
-    <div v-if="isAuthenticated" class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700">
-      <h3 class="font-semibold mb-2">Add a comment</h3>
-      <textarea v-model="newComment" class="w-full p-3 rounded-lg border dark:bg-slate-700 dark:text-white" rows="4"
-        placeholder="Be kind. Share helpful insights or questions."></textarea>
-      <div class="mt-3 flex justify-end">
-        <button @click="submitComment" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">
-          Comment
-        </button>
-      </div>
-    </div>
+   
 
     <!-- Comments -->
-    <div class="space-y-4">
+    <div class="space-y-4 px-6">
       <div v-for="c in comments" :key="c.id" class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700">
         <div class="flex items-center gap-3 mb-3">
           <!-- Avatar (first letter) -->
@@ -189,7 +179,36 @@
     <div class="text-center" v-if="nextCursor">
       <button @click="loadMore" class="mt-2 px-5 py-2 rounded-lg border font-medium">Load more</button>
     </div>
+
+     <!-- Add comment -->
+    <div 
+    v-if="isAuthenticated" 
+    class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border-2 border-red-200 dark:border-red-900 p-6 space-y-4"
+>
+    <h3 class="text-xl font-black text-gray-900 dark:text-white">Add a comment</h3>
+    
+    <textarea 
+        v-model="newComment" 
+        class="w-full p-4 rounded-xl border-2 border-red-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white transition-all focus:ring-4 focus:ring-red-300 focus:border-red-500 resize-none" 
+        rows="4"
+        placeholder="Be kind. Share helpful insights or questions."
+    ></textarea>
+    
+    <div class="flex justify-end">
+        <button 
+            @click="submitComment" 
+            :disabled="!newComment.trim()"
+            class="px-8 py-3 rounded-xl font-bold text-white transition-all shadow-lg 
+                  bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 
+                  border-b-4 border-red-800 active:border-b-2 active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            Comment
+        </button>
+    </div>
+</div>
   </section>
+
+  
 </template>
 
 <script setup>
@@ -297,11 +316,11 @@ async function loadMore() {
 }
 
 async function submitComment() {
-  if (!newComment.value.trim()) return;
-  const c = await addCommentApi(thoughtId, { body: newComment.value.trim() });
-  comments.value.push(c);
-  newComment.value = '';
-  thought.value.commentsCount = (thought.value.commentsCount || 0) + 1;
+  if (!newComment.value.trim()) return;
+  const c = await addCommentApi(thoughtId, { body: newComment.value.trim() });
+  comments.value.unshift(c); 
+  newComment.value = '';
+  thought.value.commentsCount = (thought.value.commentsCount || 0) + 1;
 }
 
 async function onVoteThought(th, clickValue) {
