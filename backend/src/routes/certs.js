@@ -1,5 +1,5 @@
 import express from 'express';
-// import OpenAI from 'openai';
+import OpenAI from 'openai';
 import { authenticateToken } from '../middleware/auth.js';
 import { getCert, getPSACardDetails } from '../services/psaService.js';
 import { getCardByCert, upsertCard } from '../services/firebaseDb.js';
@@ -7,20 +7,22 @@ import { getFirestore } from '../services/firebase.js';
 
 const router = express.Router();
 
-// let openaiClient = null;
+let openaiClient = null;
 
-// function getOpenAIClient() {
-//   if (openaiClient) return openaiClient;
-//   const apiKey = process.env.OPENAI_API_KEY;
-//   if (!apiKey) {
-//     throw Object.assign(new Error('OPENAI_API_KEY is not configured'), {
-//       status: 500,
-//       code: 'OPENAI_KEY_MISSING'
-//     });
-//   }
-//   openaiClient = new OpenAI({ apiKey });
-//   return openaiClient;
-// }
+function getOpenAIClient() {
+  if (openaiClient) return openaiClient;
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw Object.assign(new Error('OPENAI_API_KEY is not configured'), {
+      status: 500,
+      code: 'OPENAI_KEY_MISSING'
+    });
+  }
+
+  openaiClient = new OpenAI({ apiKey });
+  return openaiClient;
+}
 
 // Require auth for all cert routes
 router.use(authenticateToken);
@@ -116,7 +118,7 @@ router.post('/extract', async (req, res) => {
   }
 
   try {
-    // const client = getOpenAIClient();
+    const client = getOpenAIClient();
 
     const response = await client.responses.create({
       model: 'gpt-4o-mini',
