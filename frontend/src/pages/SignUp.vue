@@ -117,27 +117,6 @@
           <span v-else>Create account</span>
         </button>
 
-        <!-- Divider -->
-        <div class="relative">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t-2 border-red-200"></div>
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-2 bg-white text-gray-500">Or continue with</span>
-          </div>
-        </div>
-
-        <!-- Social Buttons -->
-        <div class="grid grid-cols-2 gap-3">
-          <button type="button" disabled class="w-full inline-flex justify-center py-2 px-4 border-2 border-red-200 rounded-lg shadow-sm bg-gray-50 text-sm font-medium text-gray-400 cursor-not-allowed">
-             Google
-          </button>
-          <button type="button" disabled class="w-full inline-flex justify-center py-2 px-4 border-2 border-red-200 rounded-lg shadow-sm bg-gray-50 text-sm font-medium text-gray-400 cursor-not-allowed">
-            🍎 Apple
-          </button>
-        </div>
-        <p class="text-xs text-gray-400 text-center">Social login coming soon</p>
-
         <!-- Link to Login -->
         <div class="text-center">
           <p class="text-sm text-gray-600">
