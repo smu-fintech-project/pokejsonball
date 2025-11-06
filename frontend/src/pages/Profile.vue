@@ -1542,18 +1542,6 @@ async function loadOwnedCards() {
     }
   }
 
-  // Update your onMounted to load offers
-  onMounted(async () => {
-    await loadProfile();
-    if (isAuthed.value) {
-      await loadOwnedCards();
-      await loadReceivedOffers();
-      await loadSentOffers();
-    }
-  });
-
-
-
   </script>
 
   <style scoped>
