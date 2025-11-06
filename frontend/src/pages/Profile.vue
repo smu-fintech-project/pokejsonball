@@ -1133,6 +1133,7 @@ async function loadOwnedCards() {
     // 2. This 'cards' array already has the joined listing and card data
     const cards = await resp.json();
     
+    console.log('API RESPONSE (raw):', JSON.stringify(cards, null, 2));
     // 3. Map this data to what your template expects
     ownedCards.value = cards.map(c => ({
       id: c.cert_number,

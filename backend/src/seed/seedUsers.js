@@ -56,17 +56,36 @@ async function seedUsers() {
     { email: 'eve@gmail.com', name: 'Eve' , avatar: 'bulbasaur.png' },
   ];
 
+  // --- MODIFICATION START ---
+  // 1. Initialize all users with an empty 'cards' array
+  const usersWithCards = users.map(u => ({ ...u, cards: [] }));
+
+  // 2. Distribute all certs to all users in a round-robin fashion
+  for (let i = 0; i < certs.length; i++) {
+    const cert = certs[i];
+    // Use the modulo operator to get a user index (0, 1, 2, 3, 4, 5, 0, 1, 2, ...)
+    const userIndex = i % usersWithCards.length; 
+    usersWithCards[userIndex].cards.push(cert);
+  }
+  // --- MODIFICATION END ---
+
   const passwordPlain = 'password123';
   const hashed = await bcrypt.hash(passwordPlain, 10);
 
   const createdUsers = [];
 
-  for (let i = 0; i < users.length; i++) {
-    const u = users[i];
-    const userCerts = [];
-    const idx = i * 2;
-    if (certs[idx]) userCerts.push(certs[idx]);
-    if (certs[idx + 1]) userCerts.push(certs[idx + 1]);
+  // 3. Loop over the new 'usersWithCards' array
+  for (let i = 0; i < usersWithCards.length; i++) {
+    const u = usersWithCards[i];
+
+    // 4. Get the pre-assigned cards
+    const userCerts = u.cards; 
+    
+    // (This part is removed as it's no longer needed)
+    // const userCerts = [];
+    // const idx = i * 2;
+    // if (certs[idx]) userCerts.push(certs[idx]);
+    // if (certs[idx + 1]) userCerts.push(certs[idx + 1]);
 
     const existing = await db.collection('users').where('email', '==', u.email).get();
     if (!existing.empty) {
@@ -83,19 +102,12 @@ async function seedUsers() {
       isAdmin: u.isAdmin || false,
       password: hashed,
       createdAt: new Date().toISOString(),
-      cards: userCerts,
+      cards: userCerts, // Use the assigned cards here
       wallet: {
         balance: 100,
         currency: 'JSB'
       }
-    
-
-      
-
     };
-
-
-
 
     const ref = await db.collection('users').add(userDoc);
     console.log(`Created user ${u.email} (id=${ref.id}) with certs: ${JSON.stringify(userCerts)}`);
@@ -131,23 +143,6 @@ async function seedUsers() {
   await seedSampleReviews(db, createdUsers);
 
   console.log('✅ Seed users complete');
-}
-
-// User Listing Harcoded
-async function createUserCards(db, userId, certNumbers, userName) {
-  const cardsRef = db.collection('users').doc(userId).collection('cards');
-
-  for (const certNumber of certNumbers) {
-    const cardDoc = {
-      cert_number: certNumber,
-      PSA_price: 0,
-      last_sold_price: 0
-    };
-
-    await cardsRef.add(cardDoc);
-  }
-
-  console.log(`Created ${certNumbers.length} cards for ${userName}`);
 }
 // Hardcoded transaction History
 async function createInitialTransactions(db, userId, userName) {
@@ -323,7 +318,7 @@ async function seedSampleReviews(db, users) {
       await reviewsRef.add(reviewDoc);
     }
 
-    console.log(`  ⭐ Seeded ${block.entries.length} reviews for ${reviewee.email}`);
+    console.log(` Seeded ${block.entries.length} reviews for ${reviewee.email}`);
   }
 
   console.log('✅ Sample reviews seeded');
