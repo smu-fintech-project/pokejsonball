@@ -12,7 +12,7 @@ router.post("/signup", async (req, res) => {
   try {
     const db = admin.firestore();  // ← Get db reference HERE, inside the route
     
-    const { name, email, password } = req.body;
+    const { name, email, password, avatar } = req.body;
     
     // Validate input
     if (!name || !email || !password) {
@@ -39,11 +39,12 @@ router.post("/signup", async (req, res) => {
     // Hash password
     const hashed = await bcrypt.hash(password, 10);
     
-    // Save user to Firestore
+    // Save user to Firestore with avatar
     const userRef = await db.collection('users').add({
       name: name.trim(),
       email,
       password: hashed,
+      avatar: avatar || null,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
     
@@ -122,6 +123,31 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.error("❌ Login error:", error);
     res.status(500).json({ error: "Login failed. Please try again." });
+  }
+});
+
+// ========== GET AVATARS - List available avatar files ==========
+router.get("/avatars", async (req, res) => {
+  try {
+    const bucketName = process.env.VITE_FIREBASE_STORAGE_BUCKET;
+    const bucket = bucketName ? admin.storage().bucket(bucketName) : admin.storage().bucket();
+    
+    // List all files in the 'avatar' folder
+    const [files] = await bucket.getFiles({ prefix: 'avatar/' });
+    
+    // Filter out the folder itself and extract filenames
+    const avatars = files
+      .filter(file => file.name !== 'avatar/' && !file.name.endsWith('/'))
+      .map(file => {
+        const filename = file.name.split('/').pop();
+        return filename;
+      });
+    
+    res.json({ avatars });
+    
+  } catch (error) {
+    console.error("❌ Error listing avatars:", error);
+    res.status(500).json({ error: "Failed to load avatars" });
   }
 });
 
