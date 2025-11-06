@@ -25,6 +25,7 @@ router.get('/', async (req, res) => {
     const communityId = req.query.communityId || null;
     const result = await listThoughts({ limit, cursor, communityId });
     res.json(result);
+    console.log(`thoughtss: ${JSON.stringify(result)}`);
   } catch (e) {
     console.error('list thoughts error:', e.message);
     res.status(500).json({ error: 'FAILED_LIST' });
