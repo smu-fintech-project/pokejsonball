@@ -1113,98 +1113,48 @@ function formatJoinDate(timestamp) {
     }
   }
 
-  async function loadOwnedCards() {
-    if (!isAuthed.value) return;
-    loading.value = true;
+// In Profile.vue
+async function loadOwnedCards() {
+  if (!isAuthed.value) return;
+  loading.value = true;
+  
+  try {
+    const token = localStorage.getItem('token');
+    const email = userProfile.value.email;
+
+    // 1. Make ONE call to the endpoint that gets all owned cards
+    const resp = await fetch(`${API_BASE}/api/cards/ownedCards?email=${encodeURIComponent(email)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     
-    try {
-      const token = localStorage.getItem('token');
-      const email = userProfile.value.email;
-      
-      // First, get the user's owned cards from their profile
-      const userResp = await fetch(`${API_BASE}/api/users/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (!userResp.ok) throw new Error(`HTTP ${userResp.status}`);
-      const userData = await userResp.json();
-      
-      console.log('👤 User data:', userData);
-      console.log('🎴 User owns these cert numbers:', userData.cards);
-      
-      // Get the cert numbers this user owns
-      const ownedCertNumbers = userData.cards || [];
-      
-      if (ownedCertNumbers.length === 0) {
-        console.log('📭 No cards owned by this user');
-        ownedCards.value = [];
-        loading.value = false;
-        return;
-      }
-      
-      // Fetch full card details for each cert number
-      const cardPromises = ownedCertNumbers.map(async (certNumber) => {
-        try {
-          console.log(`🔍 Fetching details for cert: ${certNumber}`);
-          
-          // Get card details from cards endpoint
-          const cardResp = await fetch(`${API_BASE}/api/cards/${encodeURIComponent(certNumber)}`);
-          if (!cardResp.ok) {
-            console.warn(`⚠️ Failed to fetch card ${certNumber}: HTTP ${cardResp.status}`);
-            return null;
-          }
-          
-          const cardData = await cardResp.json();
-          console.log(`✅ Got card data for ${certNumber}:`, cardData);
-          
-          // Check if this user has an active listing for this card
-          let listingPrice = 0;
-          let listingStatus = 'display';
-          
-          try {
-            const listingsResp = await fetch(`${API_BASE}/api/cards/ownedCards?email=${encodeURIComponent(email)}`);
-            if (listingsResp.ok) {
-              const listings = await listingsResp.json();
-              const listing = listings.find(l => String(l.cert_number) === String(certNumber));
-              if (listing) {
-                listingPrice = listing.listing_price || 0;
-                listingStatus = listing.status || 'display';
-              }
-            }
-          } catch (e) {
-            console.warn(`⚠️ Failed to check listing for ${certNumber}:`, e.message);
-          }
-          
-          return {
-            id: certNumber,
-            cert: certNumber,
-            img: cardData.image_url || cardData?.psa?.imageUrl || '',
-            title: cardData.card_name || cardData?.psa?.cardName || 'Card',
-            set: cardData.set_name || cardData?.psa?.setName || '—',
-            grade: cardData?.psa?.grade ? `PSA ${cardData.psa.grade}` : 'PSA —',
-            price: Number(listingPrice),
-            quantity: 1,
-            status: listingStatus,
-            dateAdded: ''
-          };
-        } catch (e) {
-          console.error(`❌ Error fetching card ${certNumber}:`, e.message);
-          return null;
-        }
-      });
-      
-      const cards = await Promise.all(cardPromises);
-      ownedCards.value = cards.filter(c => c !== null);
-      
-      console.log(`✅ Loaded ${ownedCards.value.length} owned cards`);
-      
-    } catch (e) {
-      console.error('❌ Failed to load owned cards:', e.message);
-      ownedCards.value = [];
-    } finally {
-      loading.value = false;
-    }
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    
+    // 2. This 'cards' array already has the joined listing and card data
+    const cards = await resp.json();
+    
+    // 3. Map this data to what your template expects
+    ownedCards.value = cards.map(c => ({
+      id: c.cert_number,
+      cert: c.cert_number,
+      img: c.image_url || c.psa?.imageUrl || '',
+      title: c.card_name || c.psa?.cardName || 'Card',
+      set: c.set_name || c.psa?.setName || '—',
+      grade: c.psa_grade ? `PSA ${c.psa_grade}` : 'PSA —',
+      price: Number(c.listing_price || 0),
+      quantity: 1, // You'll need to adjust this if you track quantities
+      status: c.status || 'display',
+      dateAdded: c.created_at || ''
+    }));
+    
+    console.log(`✅ Loaded ${ownedCards.value.length} owned cards in ONE call`);
+    
+  } catch (e) {
+    console.error('❌ Failed to load owned cards:', e.message);
+    ownedCards.value = [];
+  } finally {
+    loading.value = false;
   }
+}
 
   async function loadReviews() {
     if (!isAuthed.value) return
