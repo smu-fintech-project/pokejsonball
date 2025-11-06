@@ -4,6 +4,7 @@
  */
 
 import express from 'express';
+import { authenticateToken } from '../middleware/auth.js';
 import { getCardByCert, upsertCard, getCache, setCache, getMarketplaceCards, getAllUsers, getAllCards, getImageSignedUrl} from '../services/firebaseDb.js';
 
 
@@ -442,6 +443,50 @@ router.get('/images/:folder/:filename', async (req, res) => {
     const code = e.message === 'IMAGE_NOT_FOUND' ? 404 : 500;
     return res.status(code).json({ error: e.message || 'FAILED_IMAGE' });
   }
+});
+
+// DELETE /api/cards/:cert - Delete card from user's portfolio and the listing document
+router.delete('/:cert', authenticateToken, async (req, res) => {
+    const cert = String(req.params.cert);
+    console.log(`\n🗑️  Deleting card listing and ownership for cert: ${cert}`);
+    
+    // authenticateToken middleware ensures req.user is set
+    const userId = req.user?.userId;
+
+    if (!userId) {
+        // Fallback check, though authentication middleware should usually enforce this
+        return res.status(401).json({ error: 'Authentication required for deletion.' });
+    }
+
+    try {
+        const { getFirestore } = await import('../services/firebase.js');
+        const db = getFirestore();
+        const userRef = db.collection('users').doc(userId);
+
+        // 1. Delete the listing document (Users/{userId}/listings/{cert})
+        const listingRef = userRef.collection('listings').doc(cert);
+        await listingRef.delete();
+        console.log(`   ✅ Listing deleted: users/${userId}/listings/${cert}`);
+
+        // 2. Remove the cert number from the user's top-level 'cards' array
+        const userSnap = await userRef.get();
+        if (userSnap.exists) {
+            const currentCards = userSnap.data().cards || [];
+            // Filter out the deleted cert
+            const updatedCards = currentCards.filter(c => String(c) !== cert);
+
+            await userRef.update({ cards: updatedCards });
+            console.log(`   ✅ Cert removed from user.cards array.`);
+        }
+
+        return res.json({ 
+            success: true, 
+            message: `Card ${cert} successfully removed from portfolio.` 
+        });
+    } catch (e) {
+        console.error('❌ Deletion failed for cert', cert, e.message || e);
+        return res.status(500).json({ error: 'Failed to delete card from portfolio' });
+    }
 });
 
 export default router;
