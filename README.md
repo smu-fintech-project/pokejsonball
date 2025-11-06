@@ -430,6 +430,89 @@ Response:
 
 ### Database Schema
 
+### JSB E-Wallet System
+
+**1. Wallet.vue** 
+- Display current JSB balance
+- Bank Account Verification status
+- Transaction History (type, date range)
+
+**2. AddFundsModal.vue**
+- SGD 1:1 JSB Conversion
+- Card, Paynow, GrabPay
+  
+**3. CashOutModal.vue** 
+- Enter JSB amount to withdraw (minimum 10 JSB)
+- 1:1 SGD
+- Disabled if stripe account not linked
+
+## JSB E-Wallet Usage Flow:
+**Purchase JSB:**
+1. User clicks "Add Funds"
+   
+2. Enters amount (SGD) → clicks "Continue to Payment"
+   
+3. Frontend → POST /api/wallet/purchase-jsb with amount
+   
+4. Backend creates Stripe PaymentIntent + returns clientSecret
+   
+5. Stripe Payment Element appears (Card, PayNow, GrabPay)
+   
+6. User selects payment method + clicks "Pay Now"
+   
+7. Frontend confirms payment via Stripe.js
+   
+8. Stripe processes payment → sends webhook (payment_intent.succeeded)
+   
+9. Backend receives webhook → adds JSB to user's wallet
+   
+10. Frontend shows success → wallet balance updated
+
+
+**Link Bank Account:**
+1. User clicks "Link Bank Account"
+  
+2. Backend creates Stripe Connect account + returns onboarding URL
+    
+3. User fills bank details on Stripe form (redirected)
+    
+4. Stripe validates & redirects back to your app
+    
+5. Backend Webhook confirms verification → Backend updates Firestore
+    
+6. Frontend shows "Verified ✅" → Cash Out enabled
+
+**Cash Out:**
+1. User opens wallet (bank account already verified)
+   
+2. Clicks "Cash Out" button
+   
+3. CashOutModal opens - user enters JSB amount
+   
+4. User clicks "Withdraw" button
+   
+5. Frontend → POST /api/wallet/cashout with jsbAmount
+   
+6. Backend validates:
+   - User has verified Stripe Connect account
+   - Amount is between 10 JSB and user's balance
+   
+7. Backend deducts JSB from wallet balance
+   
+8. Backend creates Stripe Transfer to user's Connect account
+   
+9. Backend records transaction in Firestore (type: "withdrawal")
+   
+**Wallet.js:**
+- Validates first (Sufficient Balance, Linked account valid)
+- Creates intent, sends to Stripe
+  
+**Webhook:**
+- Receives Stripe confirmation 
+- Idempotency check (unique event ID)
+- Firestore manipulation (balance +- amount, record transaction)
+
+
 **Conversations Collection:**
 ```javascript
 {
