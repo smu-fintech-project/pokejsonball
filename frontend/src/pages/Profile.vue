@@ -1006,7 +1006,8 @@ function formatJoinDate(timestamp) {
 
   // Stats
   const totalCards = computed(() =>
-    ownedCards.value.reduce((t, c) => t + (c.quantity ?? 1), 0)  //what is this???
+    // Filter out cards that have status 'sold' before counting.
+    ownedCards.value.filter(c => c.status !== 'sold').length 
   )
 
   // Wallet balance from backend (actual JSB balance)
